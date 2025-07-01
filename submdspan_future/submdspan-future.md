@@ -438,55 +438,239 @@ Benchmarks were run on Windows Subsystem Linux 2 (Ubuntu 22 LTS) under Windows 1
 
 #### `extents<int, 4, 4, 4, 4, 4, 2>` (rank 6, `IndexType=int`, all static extents)
 
-| Compiler     | P3663 enabled? | Mean CPU time (ns) | Outer iterations |
-| ------------ | -------------- | ------------------ | ---------------- |
-| Clang 21.0.0 | Yes            |   321917           | 2160             |
-| Clang 21.0.0 | No             | 12612291           |   52             |
-| GCC 15.1.0   | Yes            |   322847           | 2035             |
-| GCC 15.1.0   | No             |   322098           | 2156             |
-| Clang 14.0.0 | Yes            |   317226           | 2160             |
-| Clang 14.0.0 | No             |   335550           | 2151             |
-| GCC 11.4.0   | Yes            |   663204           | 1110             |
-| GCC 11.4.0   | No             |   655524           | 1072             |
+<table>
+  <tr>
+    <th>Compiler</th>
+    <th>P3663 enabled?</th>
+    <th>Mean CPU time (ns)</th>
+    <th>Outer iterations</th>
+  </tr>
+  <tr>
+    <td>Clang 21.0.0</td>
+    <td>Yes</td>
+    <td>321917</td>
+    <td>2160</td>
+  </tr>
+  <tr>
+    <td>Clang 21.0.0</td>
+    <td>No</td>
+    <td>12612291</td>
+    <td>52</td>
+  </tr>
+  <tr>
+    <td>GCC 15.1.0</td>
+    <td>Yes</td>
+    <td>322847</td>
+    <td>2035</td>
+  </tr>
+  <tr>
+    <td>GCC 15.1.0</td>
+    <td>No</td>
+    <td>322098</td>
+    <td>2156</td>
+  </tr>
+  <tr>
+    <td>Clang 14.0.0</td>
+    <td>Yes</td>
+    <td>317226</td>
+    <td>2160</td>
+  </tr>
+  <tr>
+    <td>Clang 14.0.0</td>
+    <td>No</td>
+    <td>335550</td>
+    <td>2151</td>
+  </tr>
+  <tr>
+    <td>GCC 11.4.0</td>
+    <td>Yes</td>
+    <td>663204</td>
+    <td>1110</td>
+  </tr>
+  <tr>
+    <td>GCC 11.4.0</td>
+    <td>No</td>
+    <td>655524</td>
+    <td>1072</td>
+  </tr>
+</table>
 
 #### `dims<6, int>{4, 4, 4, 4, 4, 2}` (rank 6, `IndexType=int`, all dynamic extents)
 
-| Compiler     | P3663 enabled? | Mean CPU time (ns) | Outer iterations |
-| ------------ | -------------- | ------------------ | ---------------- |
-| Clang 21.0.0 | Yes            | 28573409           |   25             |
-| Clang 21.0.0 | No             | 32210084           |   22             |
-| GCC 15.1.0   | Yes            | 24218781           |   29             |
-| GCC 15.1.0   | No             | 21664452           |   31             |
-| Clang 14.0.0 | Yes            | 16802927           |   42             |
-| Clang 14.0.0 | No             | 13018827           |   55             |
-| GCC 11.4.0   | Yes            | 29826258           |   25             |
-| GCC 11.4.0   | No             | 23318382           |   30             |
+<table>
+  <tr>
+    <th>Compiler</th>
+    <th>P3663 enabled?</th>
+    <th>Mean CPU time (ns)</th>
+    <th>Outer iterations</th>
+  </tr>
+  <tr>
+    <td>Clang 21.0.0</td>
+    <td>Yes</td>
+    <td>28573409</td>
+    <td>25</td>
+  </tr>
+  <tr>
+    <td>Clang 21.0.0</td>
+    <td>No</td>
+    <td>32210084</td>
+    <td>22</td>
+  </tr>
+  <tr>
+    <td>GCC 15.1.0</td>
+    <td>Yes</td>
+    <td>24218781</td>
+    <td>29</td>
+  </tr>
+  <tr>
+    <td>GCC 15.1.0</td>
+    <td>No</td>
+    <td>21664452</td>
+    <td>31</td>
+  </tr>
+  <tr>
+    <td>Clang 14.0.0</td>
+    <td>Yes</td>
+    <td>16802927</td>
+    <td>42</td>
+  </tr>
+  <tr>
+    <td>Clang 14.0.0</td>
+    <td>No</td>
+    <td>13018827</td>
+    <td>55</td>
+  </tr>
+  <tr>
+    <td>GCC 11.4.0</td>
+    <td>Yes</td>
+    <td>29826258</td>
+    <td>25</td>
+  </tr>
+  <tr>
+    <td>GCC 11.4.0</td>
+    <td>No</td>
+    <td>23318382</td>
+    <td>30</td>
+  </tr>
+</table>
 
 #### `extents<size_t, 4, 4, 4, 4, 4, 2>` (rank 6, `IndexType=size_t`, all static extents)
 
-| Compiler     | P3663 enabled? | Mean CPU time (ns) | Outer iterations |
-| ------------ | -------------- | ------------------ | ---------------- |
-| Clang 21.0.0 | Yes            |   323624           | 2099             |
-| Clang 21.0.0 | No             |  9560465           |   22             |
-| GCC 15.1.0   | Yes            |   322152           | 2123             |
-| GCC 15.1.0   | No             |   318111           | 2191             |
-| Clang 14.0.0 | Yes            |   326443           | 2193             |
-| Clang 14.0.0 | No             |  9566053           |   72             |
-| GCC 11.4.0   | Yes            |   679657           | 1044             |
-| GCC 11.4.0   | No             |   673962           |  977             |
+<table>
+  <tr>
+    <th>Compiler</th>
+    <th>P3663 enabled?</th>
+    <th>Mean CPU time (ns)</th>
+    <th>Outer iterations</th>
+  </tr>
+  <tr>
+    <td>Clang 21.0.0</td>
+    <td>Yes</td>
+    <td>323624</td>
+    <td>2099</td>
+  </tr>
+  <tr>
+    <td>Clang 21.0.0</td>
+    <td>No</td>
+    <td>9560465</td>
+    <td>22</td>
+  </tr>
+  <tr>
+    <td>GCC 15.1.0</td>
+    <td>Yes</td>
+    <td>322152</td>
+    <td>2123</td>
+  </tr>
+  <tr>
+    <td>GCC 15.1.0</td>
+    <td>No</td>
+    <td>318111</td>
+    <td>2191</td>
+  </tr>
+  <tr>
+    <td>Clang 14.0.0</td>
+    <td>Yes</td>
+    <td>326443</td>
+    <td>2193</td>
+  </tr>
+  <tr>
+    <td>Clang 14.0.0</td>
+    <td>No</td>
+    <td>9566053</td>
+    <td>72</td>
+  </tr>
+  <tr>
+    <td>GCC 11.4.0</td>
+    <td>Yes</td>
+    <td>679657</td>
+    <td>1044</td>
+  </tr>
+  <tr>
+    <td>GCC 11.4.0</td>
+    <td>No</td>
+    <td>673962</td>
+    <td>977</td>
+  </tr>
+</table>
 
 #### `dims<6, size_t>{4, 4, 4, 4, 4, 2}` (rank 6, `IndexType=size_t`, all dynamic extents)
 
-| Compiler     | P3663 enabled? | Mean CPU time (ns) | Outer iterations |
-| ------------ | -------------- | ------------------ | ---------------- |
-| Clang 21.0.0 | Yes            | 11672089           |   57             |
-| Clang 21.0.0 | No             | 29269825           |   25             |
-| GCC 15.1.0   | Yes            | 25481788           |   27             |
-| GCC 15.1.0   | No             | 22775149           |   32             |
-| Clang 14.0.0 | Yes            | 28532969           |   25             |
-| Clang 14.0.0 | No             | 14644212           |   45             |
-| GCC 11.4.0   | Yes            | 21809043           |   31             |
-| GCC 11.4.0   | No             | 26799987           |   26             |
+<table>
+  <tr>
+    <th>Compiler</th>
+    <th>P3663 enabled?</th>
+    <th>Mean CPU time (ns)</th>
+    <th>Outer iterations</th>
+  </tr>
+  <tr>
+    <td>Clang 21.0.0</td>
+    <td>Yes</td>
+    <td>11672089</td>
+    <td>57</td>
+  </tr>
+  <tr>
+    <td>Clang 21.0.0</td>
+    <td>No</td>
+    <td>29269825</td>
+    <td>25</td>
+  </tr>
+  <tr>
+    <td>GCC 15.1.0</td>
+    <td>Yes</td>
+    <td>25481788</td>
+    <td>27</td>
+  </tr>
+  <tr>
+    <td>GCC 15.1.0</td>
+    <td>No</td>
+    <td>22775149</td>
+    <td>32</td>
+  </tr>
+  <tr>
+    <td>Clang 14.0.0</td>
+    <td>Yes</td>
+    <td>28532969</td>
+    <td>25</td>
+  </tr>
+  <tr>
+    <td>Clang 14.0.0</td>
+    <td>No</td>
+    <td>14644212</td>
+    <td>45</td>
+  </tr>
+  <tr>
+    <td>GCC 11.4.0</td>
+    <td>Yes</td>
+    <td>21809043</td>
+    <td>31</td>
+  </tr>
+  <tr>
+    <td>GCC 11.4.0</td>
+    <td>No</td>
+    <td>26799987</td>
+    <td>26</td>
+  </tr>
+</table>
 
 ### Preliminary conclusions
 
