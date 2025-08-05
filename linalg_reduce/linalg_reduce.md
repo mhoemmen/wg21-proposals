@@ -1,5 +1,5 @@
 --
-title: "Should we make std::linalg reductions deduce return types like `fold_*`?"
+title: "Should we make std::linalg reductions deduce return types like fold algorithms?"
 document: PXXXXR0
 date: today
 audience: LEWG
@@ -7,6 +7,7 @@ author:
   - name: Mark Hoemmen
     email: <mhoemmen@nvidia.com>
 toc: true
+
 --
 
 # Abstract
