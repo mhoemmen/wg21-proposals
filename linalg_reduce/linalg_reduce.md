@@ -1,6 +1,15 @@
-# Should we make std::linalg reductions deduce return types like `fold_*`?
+--
+title: "Should we make std::linalg reductions deduce return types like `fold_*`?"
+document: PXXXXR0
+date: today
+audience: LEWG
+author:
+  - name: Mark Hoemmen
+    email: <mhoemmen@nvidia.com>
+toc: true
+--
 
-## Abstract
+# Abstract
 
 C++26's `std::linalg::dot` and similar reduction-like algorithms
 return the same type as their initial value,
@@ -16,7 +25,7 @@ instead of `std::reduce`.
 We discuss advantages and disadvantages of this change,
 and conclude that we should retain `std::linalg`'s current behavior.
 
-## Introduction
+# Introduction
 
 The C++ Standard Committee voted
 the linear algebra proposal P1673 into C++26.
@@ -71,9 +80,9 @@ We think that this is a reasonable design choice,
 even though we do not think `std::linalg`'s algorithms
 need to behave the same way.
 
-## Arguments for and against the status quo
+# Arguments for and against the status quo
 
-### What is the status quo and what is the suggested change?
+## What is the status quo and what is the suggested change?
 
 The status quo is that for `std::linalg::dot`
 and all the other reduction-like algorithms in `std::linalg`,
@@ -88,7 +97,7 @@ The status quo is "imitate C++17's `std::reduce`."
 The change suggested by some C++ Standard Committee members
 is to imitate `fold_*` instead.
 
-### Arguments for the status quo (imitate `std::reduce`)
+## Arguments for the status quo (imitate `std::reduce`)
 
 1. It makes the return type obvious.
 
@@ -104,7 +113,7 @@ and with mixed-precision floating-point computations
 are more likely to state return and accumulator types explicitly,
 rather than rely on interfaces to "guess" them.
 
-### Arguments against the status quo (imitate `fold_*`)
+## Arguments against the status quo (imitate `fold_*`)
 
 1. `dot(range_of_double, 0)` truncating the result by returning `int`
 is a usability pitfall.
@@ -120,7 +129,7 @@ as the binary operator's return type.
 consistent with that would make it possible to implement
 `std::linalg` using numeric range algorithms.
 
-## Affected algorithms
+# Affected algorithms
 
 This issue affects the following algorithms in [linalg]
 with overloads that have `Scalar` or `sum_of_squares_result<Scalar>`
@@ -145,13 +154,13 @@ deduce it from that of the overloads with `Scalar` return type.
 
 * `matrix_inf_norm` ([linalg.algs.blas1.matinfnorm])
 
-## Examples showing the advantage of `fold_*` over `reduce`
+# Examples showing the advantage of `fold_*` over `reduce`
 
 The following examples of range and initial value types
 show the advantage of `std::ranges::fold_*`'s approach
 for deducing return type over `std::reduce`'s approach.
 
-### Range of `float` with `uint64_t` initial value
+## Range of `float` with `uint64_t` initial value
 
 Adding a `float` and a `uint64_t` produces a `float`.
 A user might sum up a range of `float` using a `uint64_t` initial value
@@ -169,7 +178,7 @@ making it clear that this loss of information has taken place.
 In contrast, `std::reduce` with `uint64_t` initial value type
 would just return `uint64_t`.
 
-### Mixed float-point types with more precise addition
+## Mixed float-point types with more precise addition
 
 This situation simulates the increasing variety of number types
 designed for the performance needs of machine learning.
@@ -241,7 +250,7 @@ This may lose information.
 
 The last section of this paper shows this example in full.
 
-## Expression templates complicate use of `fold_*`
+# Expression templates complicate use of `fold_*`
 
 The `fold_*` algorithms deduce the return type as
 "the decayed result of invoking the binary operation
@@ -409,7 +418,7 @@ In summary,
     * depends on non-mandatory copy elision
         to avoid temporaries with expression templates.
 
-## `vector_sum_of_squares`
+# `vector_sum_of_squares`
 
 [LWG Issue 4302](https://cplusplus.github.io/LWG/issue4302)
 shows a separate design issue with `vector_sum_of_squares`.
@@ -417,9 +426,9 @@ If the C++ Standard Committee resolves this issue
 by removing `vector_sum_of_squares` entirely,
 then we won't have to worry about its return type.
 
-## Examples: Code links and listings
+# Examples: Code links and listings
 
-### float-float and 6-byte float
+## float-float and 6-byte float
 
 This example shows the difference in return type
 between `std::ranges::fold_left` and `std::reduce`
@@ -547,7 +556,7 @@ int main() {
 }
 ```
 
-### Expression templates and `fold_left` and `reduce` return types
+## Expression templates and `fold_left` and `reduce` return types
 
 This example shows how to use `std::ranges::fold_left` and `std::reduce`
 when the return type of `operator+` is an expression template.
