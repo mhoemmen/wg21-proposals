@@ -1,0 +1,3 @@
+[submodule "linalg_reduce/wg21"]
+	path = linalg_reduce/wg21
+	url = https://github.com/mpark/wg21.git

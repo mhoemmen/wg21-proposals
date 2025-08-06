@@ -1,14 +1,15 @@
---
+---
 title: "Should we make std::linalg reductions deduce return types like fold algorithms?"
-document: PXXXXR0
+document: P9999R0
 date: today
-audience: LEWG
+audience:
+  - Library Evolution
 author:
   - name: Mark Hoemmen
     email: <mhoemmen@nvidia.com>
 toc: true
-
---
+toc-depth: 2
+---
 
 # Abstract
 
@@ -130,7 +131,7 @@ as the binary operator's return type.
 consistent with that would make it possible to implement
 `std::linalg` using numeric range algorithms.
 
-# Affected algorithms
+# Affected algorithms in `std::linalg`
 
 This issue affects the following algorithms in [linalg]
 with overloads that have `Scalar` or `sum_of_squares_result<Scalar>`
@@ -155,31 +156,115 @@ deduce it from that of the overloads with `Scalar` return type.
 
 * `matrix_inf_norm` ([linalg.algs.blas1.matinfnorm])
 
-# Examples showing the advantage of `fold_*` over `reduce`
+# Examples contrasting C++17 `reduce` and `fold_*`
 
 The following examples of range and initial value types
-show the advantage of `std::ranges::fold_*`'s approach
-for deducing return type over `std::reduce`'s approach.
+show differences between `std::reduce`'s results
+and `std::ranges::fold_*`'s results.
 
 ## Range of `float` with `uint64_t` initial value
 
-Adding a `float` and a `uint64_t` produces a `float`.
-A user might sum up a range of `float` using a `uint64_t` initial value
-if they know that each of the `float` values
-in the range is a nonnegative integer.
-The sum of two such values should always fit in 64 bits.
-However, `float` plus `uint64_t` first converts the `uint64_t`
-(the non-floating-point type) to `float` --
-a lossy conversion if `float` is the usual 32 bits! --
-then performs the sum in `float`.
-Both `std::reduce` and `std::ranges::fold_left` would thus
-perform the sum in `float`.
-However, `std::ranges::fold_left` would return `float`,
-making it clear that this loss of information has taken place.
-In contrast, `std::reduce` with `uint64_t` initial value type
-would just return `uint64_t`.
+The following example
+([Compiler Explorer link](https://godbolt.org/z/nW4qanEjv))
+sums a range of `float` with a nonzero `uint64_t` initial value
+using `std::reduce` and `std::ranges::fold_left`,
+and then compares the result with summing the same `float` range
+with a `double` initial value.
 
-## Mixed float-point types with more precise addition
+```c++
+#include <algorithm>
+#include <cstdint>
+#include <limits>
+#include <numeric>
+#include <print>
+#include <type_traits>
+#include <vector>
+
+int main() {
+  // [0, 16777216] is the max range of contiguous
+  // nonnegative integers that fit in float (FP32).
+  const float big_fp32 = 16777215.0f;
+  std::print("big_fp32 = {}\n", big_fp32);
+  std::print("big_fp32 + 1.0f = {}\n", big_fp32 + 1.0f);
+  std::print("big_fp32 + 2.0f = {}\n", big_fp32 + 2.0f);
+
+  const std::size_t count = 4;
+  std::vector<float> vec(count, big_fp32);
+  std::print("vec = {}\n", vec);
+
+  const std::uint64_t initial_value = 1u;
+  const std::plus<> op{};
+  
+  auto reduce_result = std::reduce(
+    vec.begin(), vec.end(), initial_value, op);
+  static_assert(
+    std::is_same_v<decltype(reduce_result), std::uint64_t>);
+  std::print("reduce_result = {}\n", reduce_result);
+
+  auto fold_result = std::ranges::fold_left(
+    vec, initial_value, op);
+  static_assert(
+    std::is_same_v<decltype(fold_result), float>);
+  std::print("fold_result = {}\n", fold_result);
+
+  std::vector<double> vec_fp64(count,
+    static_cast<double>(big_fp32)
+  );
+  auto fold_fp64_result = std::ranges::fold_left(
+    vec_fp64, static_cast<double>(initial_value), op);
+  std::print("vec_fp64 = {}\n", vec_fp64);
+  static_assert(
+    std::is_same_v<decltype(fold_fp64_result), double>);
+  std::print("fold_fp64_result = {}\n", fold_fp64_result);
+
+  return 0;
+}
+```
+
+It prints the following output.
+
+```
+big_fp32 = 16777215
+big_fp32 + 1.0f = 16777216
+big_fp32 + 2.0f = 16777216
+vec = [16777215, 16777215, 16777215, 16777215]
+reduce_result = 67108861
+fold_result = 67108864
+vec_fp64 = [16777215, 16777215, 16777215, 16777215]
+fold_fp64_result = 67108861
+```
+
+Why would users try summing a 'float' range with a `uint64_t` initial value?
+In this example, we know that
+
+* each value is a nonnegative integer that fits exactly
+    in both `float` and in `uint32_t`, but
+
+* `float` cannot represent the sum of the values exactly.
+
+Novice users might reasonably expect that using a `uint64_t`
+as the initial value would turn the `float`s into integers
+and thus would perform the sum exactly.
+Alas, they would be wrong.  For both algorithms,
+each binary `operator+` invocation first converts
+the `uint64_t` term to `float`,
+and then does the computation in `float` precision.
+C++ itself does the "wrong thing" here;
+it's not really either algorithm's "fault."
+
+The difference between algorithms is in return types
+and order of operations.
+`std::reduce` assigns the `float` binary operation result
+to a `uint64_t` accumulator and then returns `uint64_t`,
+thus concealing the loss of information.
+`std::ranges::fold_left` returns `float`,
+which indicates that something bad may have happened.
+
+In this case, `std::reduce` accidentally got the right answer,
+probably because the initial value of one got added at the end
+(as the numeric algorithms have permission to reorder terms).
+
+## Mixed floating-point types with more precise addition
 
 This situation simulates the increasing variety of number types
 designed for the performance needs of machine learning.
@@ -426,6 +511,16 @@ shows a separate design issue with `vector_sum_of_squares`.
 If the C++ Standard Committee resolves this issue
 by removing `vector_sum_of_squares` entirely,
 then we won't have to worry about its return type.
+
+# Conclusions
+
+The status quo for return types of `std::linalg`'s
+reduction-like algorithms is to imitate C++17 `std::reduce`.
+Some have suggested changing this to imitate C++23
+`std::ranges::fold_left` and related algorithms.
+Given the disadvantages of `fold_left`'s approach
+for use cases of importance to `std::linalg`'s audience,
+we recommend against changing `std::linalg` at this point.
 
 # Examples: Code links and listings
 
