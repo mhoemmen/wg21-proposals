@@ -1,0 +1,1559 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="mpark/wg21" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="dcterms.date" content="2025-08-06" />
+  <title>Should we make std::linalg reductions deduce return types like
+fold algorithms?</title>
+  <style>
+      code{white-space: pre-wrap;}
+      span.smallcaps{font-variant: small-caps;}
+      span.underline{text-decoration: underline;}
+      div.column{display: inline-block; vertical-align: top; width: 50%;}
+      div.csl-block{margin-left: 1.5em;}
+      ul.task-list{list-style: none;}
+      pre > code.sourceCode { white-space: pre; position: relative; }
+      pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+      pre > code.sourceCode > span:empty { height: 1.2em; }
+      .sourceCode { overflow: visible; }
+      code.sourceCode > span { color: inherit; text-decoration: inherit; }
+      div.sourceCode { margin: 1em 0; }
+      pre.sourceCode { margin: 0; }
+      @media screen {
+      div.sourceCode { overflow: auto; }
+      }
+      @media print {
+      pre > code.sourceCode { white-space: pre-wrap; }
+      pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+      }
+      pre.numberSource code
+        { counter-reset: source-line 0; }
+      pre.numberSource code > span
+        { position: relative; left: -4em; counter-increment: source-line; }
+      pre.numberSource code > span > a:first-child::before
+        { content: counter(source-line);
+          position: relative; left: -1em; text-align: right; vertical-align: baseline;
+          border: none; display: inline-block;
+          -webkit-touch-callout: none; -webkit-user-select: none;
+          -khtml-user-select: none; -moz-user-select: none;
+          -ms-user-select: none; user-select: none;
+          padding: 0 4px; width: 4em;
+          color: #aaaaaa;
+        }
+      pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+      div.sourceCode
+        {  background-color: #f6f8fa; }
+      @media screen {
+      pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+      }
+      code span { } /* Normal */
+      code span.al { color: #ff0000; } /* Alert */
+      code span.an { } /* Annotation */
+      code span.at { } /* Attribute */
+      code span.bn { color: #9f6807; } /* BaseN */
+      code span.bu { color: #9f6807; } /* BuiltIn */
+      code span.cf { color: #00607c; } /* ControlFlow */
+      code span.ch { color: #9f6807; } /* Char */
+      code span.cn { } /* Constant */
+      code span.co { color: #008000; font-style: italic; } /* Comment */
+      code span.cv { color: #008000; font-style: italic; } /* CommentVar */
+      code span.do { color: #008000; } /* Documentation */
+      code span.dt { color: #00607c; } /* DataType */
+      code span.dv { color: #9f6807; } /* DecVal */
+      code span.er { color: #ff0000; font-weight: bold; } /* Error */
+      code span.ex { } /* Extension */
+      code span.fl { color: #9f6807; } /* Float */
+      code span.fu { } /* Function */
+      code span.im { } /* Import */
+      code span.in { color: #008000; } /* Information */
+      code span.kw { color: #00607c; } /* Keyword */
+      code span.op { color: #af1915; } /* Operator */
+      code span.ot { } /* Other */
+      code span.pp { color: #6f4e37; } /* Preprocessor */
+      code span.re { } /* RegionMarker */
+      code span.sc { color: #9f6807; } /* SpecialChar */
+      code span.ss { color: #9f6807; } /* SpecialString */
+      code span.st { color: #9f6807; } /* String */
+      code span.va { } /* Variable */
+      code span.vs { color: #9f6807; } /* VerbatimString */
+      code span.wa { color: #008000; font-weight: bold; } /* Warning */
+      code.diff {color: #898887}
+      code.diff span.va {color: #006e28}
+      code.diff span.st {color: #bf0303}
+  </style>
+  <style type="text/css">
+body {
+margin: 5em;
+font-family: serif;
+
+hyphens: auto;
+line-height: 1.35;
+text-align: justify;
+
+-webkit-text-size-adjust: none;
+-moz-text-size-adjust: none;
+text-size-adjust: none;
+}
+@media screen and (max-width: 30em) {
+body {
+margin: 1.5em;
+}
+}
+div.wrapper {
+max-width: 60em;
+margin: auto;
+}
+ul {
+list-style-type: none;
+padding-left: 2em;
+margin-top: -0.2em;
+margin-bottom: -0.2em;
+}
+a {
+text-decoration: none;
+color: #4183C4;
+}
+a.hidden_link {
+text-decoration: none;
+color: inherit;
+}
+li {
+margin-top: 0.6em;
+margin-bottom: 0.6em;
+}
+h1, h2, h3, h4 {
+position: relative;
+line-height: 1;
+}
+a.self-link {
+position: absolute;
+top: 0;
+left: calc(-1 * (3.5rem - 26px));
+width: calc(3.5rem - 26px);
+height: 2em;
+text-align: center;
+border: none;
+transition: opacity .2s;
+opacity: .5;
+font-family: sans-serif;
+font-weight: normal;
+font-size: 83%;
+}
+a.self-link:hover { opacity: 1; }
+a.self-link::before { content: "§"; }
+ul > li:before {
+content: "\2014";
+position: absolute;
+margin-left: -1.5em;
+}
+:target { background-color: #C9FBC9; }
+:target .codeblock { background-color: #C9FBC9; }
+:target ul { background-color: #C9FBC9; }
+.abbr_ref { float: right; }
+.folded_abbr_ref { float: right; }
+:target .folded_abbr_ref { display: none; }
+:target .unfolded_abbr_ref { float: right; display: inherit; }
+.unfolded_abbr_ref { display: none; }
+.secnum { display: inline-block; min-width: 35pt; }
+.header-section-number { display: inline-block; min-width: 35pt; }
+.annexnum { display: block; }
+div.sourceLinkParent {
+float: right;
+}
+a.sourceLink {
+position: absolute;
+opacity: 0;
+margin-left: 10pt;
+}
+a.sourceLink:hover {
+opacity: 1;
+}
+a.itemDeclLink {
+position: absolute;
+font-size: 75%;
+text-align: right;
+width: 5em;
+opacity: 0;
+}
+a.itemDeclLink:hover { opacity: 1; }
+span.marginalizedparent {
+position: relative;
+left: -5em;
+}
+li span.marginalizedparent { left: -7em; }
+li ul > li span.marginalizedparent { left: -9em; }
+li ul > li ul > li span.marginalizedparent { left: -11em; }
+li ul > li ul > li ul > li span.marginalizedparent { left: -13em; }
+div.footnoteNumberParent {
+position: relative;
+left: -4.7em;
+}
+a.marginalized {
+position: absolute;
+font-size: 75%;
+text-align: right;
+width: 5em;
+}
+a.enumerated_item_num {
+position: relative;
+left: -3.5em;
+display: inline-block;
+margin-right: -3em;
+text-align: right;
+width: 3em;
+}
+div.para { margin-bottom: 0.6em; margin-top: 0.6em; text-align: justify; }
+div.section { text-align: justify; }
+div.sentence { display: inline; }
+span.indexparent {
+display: inline;
+position: relative;
+float: right;
+right: -1em;
+}
+a.index {
+position: absolute;
+display: none;
+}
+a.index:before { content: "⟵"; }
+
+a.index:target {
+display: inline;
+}
+.indexitems {
+margin-left: 2em;
+text-indent: -2em;
+}
+div.itemdescr {
+margin-left: 3em;
+}
+.bnf {
+font-family: serif;
+margin-left: 40pt;
+margin-top: 0.5em;
+margin-bottom: 0.5em;
+}
+.ncbnf {
+font-family: serif;
+margin-top: 0.5em;
+margin-bottom: 0.5em;
+margin-left: 40pt;
+}
+.ncsimplebnf {
+font-family: serif;
+font-style: italic;
+margin-top: 0.5em;
+margin-bottom: 0.5em;
+margin-left: 40pt;
+background: inherit; 
+}
+span.textnormal {
+font-style: normal;
+font-family: serif;
+white-space: normal;
+display: inline-block;
+}
+span.rlap {
+display: inline-block;
+width: 0px;
+}
+span.descr { font-style: normal; font-family: serif; }
+span.grammarterm { font-style: italic; }
+span.term { font-style: italic; }
+span.terminal { font-family: monospace; font-style: normal; }
+span.nonterminal { font-style: italic; }
+span.tcode { font-family: monospace; font-style: normal; }
+span.textbf { font-weight: bold; }
+span.textsc { font-variant: small-caps; }
+a.nontermdef { font-style: italic; font-family: serif; }
+span.emph { font-style: italic; }
+span.techterm { font-style: italic; }
+span.mathit { font-style: italic; }
+span.mathsf { font-family: sans-serif; }
+span.mathrm { font-family: serif; font-style: normal; }
+span.textrm { font-family: serif; }
+span.textsl { font-style: italic; }
+span.mathtt { font-family: monospace; font-style: normal; }
+span.mbox { font-family: serif; font-style: normal; }
+span.ungap { display: inline-block; width: 2pt; }
+span.textit { font-style: italic; }
+span.texttt { font-family: monospace; }
+span.tcode_in_codeblock { font-family: monospace; font-style: normal; }
+span.phantom { color: white; }
+
+span.math { font-style: normal; }
+span.mathblock {
+display: block;
+margin-left: auto;
+margin-right: auto;
+margin-top: 1.2em;
+margin-bottom: 1.2em;
+text-align: center;
+}
+span.mathalpha {
+font-style: italic;
+}
+span.synopsis {
+font-weight: bold;
+margin-top: 0.5em;
+display: block;
+}
+span.definition {
+font-weight: bold;
+display: block;
+}
+.codeblock {
+margin-left: 1.2em;
+line-height: 127%;
+}
+.outputblock {
+margin-left: 1.2em;
+line-height: 127%;
+}
+div.itemdecl {
+margin-top: 2ex;
+}
+code.itemdeclcode {
+white-space: pre;
+display: block;
+}
+span.textsuperscript {
+vertical-align: super;
+font-size: smaller;
+line-height: 0;
+}
+.footnotenum { vertical-align: super; font-size: smaller; line-height: 0; }
+.footnote {
+font-size: small;
+margin-left: 2em;
+margin-right: 2em;
+margin-top: 0.6em;
+margin-bottom: 0.6em;
+}
+div.minipage {
+display: inline-block;
+margin-right: 3em;
+}
+div.numberedTable {
+text-align: center;
+margin: 2em;
+}
+div.figure {
+text-align: center;
+margin: 2em;
+}
+table {
+border: 1px solid black;
+border-collapse: collapse;
+margin-left: auto;
+margin-right: auto;
+margin-top: 0.8em;
+text-align: left;
+hyphens: none; 
+}
+td, th {
+padding-left: 1em;
+padding-right: 1em;
+vertical-align: top;
+}
+td.empty {
+padding: 0px;
+padding-left: 1px;
+}
+td.left {
+text-align: left;
+}
+td.right {
+text-align: right;
+}
+td.center {
+text-align: center;
+}
+td.justify {
+text-align: justify;
+}
+td.border {
+border-left: 1px solid black;
+}
+tr.rowsep, td.cline {
+border-top: 1px solid black;
+}
+tr.even, tr.odd {
+border-bottom: 1px solid black;
+}
+tr.capsep {
+border-top: 3px solid black;
+border-top-style: double;
+}
+tr.header {
+border-bottom: 3px solid black;
+border-bottom-style: double;
+}
+th {
+border-bottom: 1px solid black;
+}
+span.centry {
+font-weight: bold;
+}
+div.table {
+display: block;
+margin-left: auto;
+margin-right: auto;
+text-align: center;
+width: 90%;
+}
+span.indented {
+display: block;
+margin-left: 2em;
+margin-bottom: 1em;
+margin-top: 1em;
+}
+ol.enumeratea { list-style-type: none; background: inherit; }
+ol.enumerate { list-style-type: none; background: inherit; }
+
+code.sourceCode > span { display: inline; }
+</style>
+  <link href="data:image/x-icon;base64,AAABAAIAEBAAAAEAIABoBAAAJgAAACAgAAABACAAqBAAAI4EAAAoAAAAEAAAACAAAAABACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA////AIJEAACCRAAAgkQAAIJEAACCRAAAgkQAVoJEAN6CRADegkQAWIJEAACCRAAAgkQAAIJEAACCRAAA////AP///wCCRAAAgkQAAIJEAACCRAAsgkQAvoJEAP+CRAD/gkQA/4JEAP+CRADAgkQALoJEAACCRAAAgkQAAP///wD///8AgkQAAIJEABSCRACSgkQA/IJEAP99PQD/dzMA/3czAP99PQD/gkQA/4JEAPyCRACUgkQAFIJEAAD///8A////AHw+AFiBQwDqgkQA/4BBAP9/PxP/uZd6/9rJtf/bybX/upd7/39AFP+AQQD/gkQA/4FDAOqAQgBc////AP///wDKklv4jlEa/3o7AP+PWC//8+3o///////////////////////z7un/kFox/35AAP+GRwD/mVYA+v///wD///8A0Zpk+NmibP+0d0T/8evj///////+/fv/1sKz/9bCs//9/fr//////+/m2/+NRwL/nloA/5xYAPj///8A////ANKaZPjRmGH/5cKh////////////k149/3UwAP91MQD/lmQ//86rhv+USg3/m1YA/5hSAP+bVgD4////AP///wDSmmT4zpJY/+/bx///////8+TV/8mLT/+TVx//gkIA/5lVAP+VTAD/x6B//7aEVv/JpH7/s39J+P///wD///8A0ppk+M6SWP/u2sf///////Pj1f/Nj1T/2KFs/8mOUv+eWhD/lEsA/8aee/+0glT/x6F7/7J8Rvj///8A////ANKaZPjRmGH/48Cf///////+/v7/2qt//82PVP/OkFX/37KJ/86siv+USg7/mVQA/5hRAP+bVgD4////AP///wDSmmT40ppk/9CVXP/69O////////7+/v/x4M//8d/P//7+/f//////9u7n/6tnJf+XUgD/nFgA+P///wD///8A0ppk+NKaZP/RmWL/1qNy//r07///////////////////////+vXw/9akdP/Wnmn/y5FY/6JfFvj///8A////ANKaZFTSmmTo0ppk/9GYYv/Ql1//5cWm//Hg0P/x4ND/5cWm/9GXYP/RmGH/0ppk/9KaZOjVnmpY////AP///wDSmmQA0ppkEtKaZI7SmmT60ppk/9CWX//OkVb/zpFW/9CWX//SmmT/0ppk/NKaZJDSmmQS0ppkAP///wD///8A0ppkANKaZADSmmQA0ppkKtKaZLrSmmT/0ppk/9KaZP/SmmT/0ppkvNKaZCrSmmQA0ppkANKaZAD///8A////ANKaZADSmmQA0ppkANKaZADSmmQA0ppkUtKaZNzSmmTc0ppkVNKaZADSmmQA0ppkANKaZADSmmQA////AP5/AAD4HwAA4AcAAMADAACAAQAAgAEAAIABAACAAQAAgAEAAIABAACAAQAAgAEAAMADAADgBwAA+B8AAP5/AAAoAAAAIAAAAEAAAAABACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA////AP///wCCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAAyCRACMgkQA6oJEAOqCRACQgkQAEIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAA////AP///wD///8A////AIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRABigkQA5oJEAP+CRAD/gkQA/4JEAP+CRADqgkQAZoJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAAD///8A////AP///wD///8AgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAA4gkQAwoJEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQAxIJEADyCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAP///wD///8A////AP///wCCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAWgkQAmIJEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAJyCRAAYgkQAAIJEAACCRAAAgkQAAIJEAACCRAAA////AP///wD///8A////AIJEAACCRAAAgkQAAIJEAACCRAAAgkQAdIJEAPCCRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAPSCRAB4gkQAAIJEAACCRAAAgkQAAIJEAAD///8A////AP///wD///8AgkQAAIJEAACCRAAAgkQASoJEANKCRAD/gkQA/4JEAP+CRAD/g0YA/39AAP9zLgD/bSQA/2shAP9rIQD/bSQA/3MuAP9/PwD/g0YA/4JEAP+CRAD/gkQA/4JEAP+CRADUgkQAToJEAACCRAAAgkQAAP///wD///8A////AP///wB+PwAAgkUAIoJEAKiCRAD/gkQA/4JEAP+CRAD/hEcA/4BBAP9sIwD/dTAA/5RfKv+viF7/vp56/76ee/+wiF7/lWAr/3YxAP9sIwD/f0AA/4RHAP+CRAD/gkQA/4JEAP+CRAD/gkQArIJEACaBQwAA////AP///wD///8A////AIBCAEBzNAD6f0EA/4NFAP+CRAD/gkQA/4VIAP92MwD/bSUA/6N1Tv/ezsL/////////////////////////////////38/D/6V3Uv9uJgD/dTEA/4VJAP+CRAD/gkQA/4JEAP+BQwD/fUAA/4FDAEj///8A////AP///wD///8AzJRd5qBlKf91NgD/dDUA/4JEAP+FSQD/cy4A/3YyAP/PuKP//////////////////////////////////////////////////////9K7qP94NQD/ciwA/4VJAP+CRAD/fkEA/35BAP+LSwD/mlYA6v///wD///8A////AP///wDdpnL/4qx3/8KJUv+PUhf/cTMA/3AsAP90LgD/4dK+/////////////////////////////////////////////////////////////////+TYxf91MAD/dTIA/31CAP+GRwD/llQA/6FcAP+gWwD8////AP///wD///8A////ANGZY/LSm2X/4ap3/92mcP+wdT3/byQA/8mwj////////////////////////////////////////////////////////////////////////////+LYxv9zLgP/jUoA/59bAP+hXAD/nFgA/5xYAPL///8A////AP///wD///8A0ppk8tKaZP/RmWL/1p9q/9ubXv/XqXj////////////////////////////7+fD/vZyG/6BxS/+gcUr/vJuE//r37f//////////////////////3MOr/5dQBf+dVQD/nVkA/5xYAP+cWAD/nFgA8v///wD///8A////AP///wDSmmTy0ppk/9KaZP/SmWP/yohJ//jo2P//////////////////////4NTG/4JDFf9lGAD/bSQA/20kAP9kGAD/fz8S/+Xb0f//////5NG9/6txN/+LOgD/m1QA/51aAP+cWAD/m1cA/5xYAP+cWADy////AP///wD///8A////ANKaZPLSmmT/0ppk/8+TWf/Unmv//v37//////////////////////+TWRr/VwsA/35AAP+ERgD/g0UA/4JGAP9lHgD/kFga/8KXX/+TRwD/jT4A/49CAP+VTQD/n10A/5xYAP+OQQD/lk4A/55cAPL///8A////AP///wD///8A0ppk8tKaZP/SmmT/y4tO/92yiP//////////////////////8NnE/8eCQP+rcTT/ez0A/3IyAP98PgD/gEMA/5FSAP+USwD/jj8A/5lUAP+JNwD/yqV2/694Mf+HNQD/jkAA/82rf/+laBj/jT4A8v///wD///8A////AP///wDSmmTy0ppk/9KaZP/LiUr/4byY///////////////////////gupX/0I5P/+Wuev/Lklz/l1sj/308AP+QSwD/ol0A/59aAP+aVQD/k0oA/8yoh///////+fXv/6pwO//Lp3v///////Pr4f+oay7y////AP///wD///8A////ANKaZPLSmmT/0ppk/8uJSv/hvJj//////////////////////+G7l//Jhkb/0ppk/96nc//fqXX/x4xO/6dkFP+QSQD/llEA/5xXAP+USgD/yaOA///////38uv/qG05/8ijdv//////8efb/6ZpLPL///8A////AP///wD///8A0ppk8tKaZP/SmmT/zIxO/9yxh///////////////////////7dbA/8iEQf/Sm2X/0Zlj/9ScZv/eqHf/2KJv/7yAQf+XTgD/iToA/5lSAP+JNgD/yKFv/611LP+HNQD/jT8A/8qmeP+kZRT/jT4A8v///wD///8A////AP///wDSmmTy0ppk/9KaZP/Pk1n/1J5q//78+//////////////////+/fv/1aFv/8iEQv/Tm2b/0ppl/9GZY//Wn2z/1pZc/9eldf/Bl2b/kUcA/4w9AP+OQAD/lUwA/59eAP+cWQD/jT8A/5ZOAP+eXADy////AP///wD///8A////ANKaZPLSmmT/0ppk/9KZY//KiEn/8d/P///////////////////////47+f/05tm/8iCP//KiEj/yohJ/8eCP//RmGH//vfy///////n1sP/rXQ7/4k4AP+TTAD/nVoA/5xYAP+cVwD/nFgA/5xYAPL///8A////AP///wD///8A0ppk8tKaZP/SmmT/0ptl/8uLTf/aq37////////////////////////////+/fz/6c2y/961jv/etY7/6Myx//78+v//////////////////////3MWv/5xXD/+ORAD/mFQA/51ZAP+cWAD/nFgA8v///wD///8A////AP///wDSmmTy0ppk/9KaZP/SmmT/0ppk/8mFRP/s1b//////////////////////////////////////////////////////////////////////////////+PD/0JFU/7NzMv+WUQD/kUsA/5tXAP+dWQDy////AP///wD///8A////ANKaZP/SmmT/0ppk/9KaZP/Sm2X/z5NZ/8yMT//z5NX/////////////////////////////////////////////////////////////////9Ofa/8yNUP/UmGH/36p5/8yTWv+qaSD/kksA/5ROAPz///8A////AP///wD///8A0ppk5NKaZP/SmmT/0ppk/9KaZP/TnGf/zY9T/82OUv/t1sD//////////////////////////////////////////////////////+7Yw//OkFX/zI5R/9OcZ//SmmP/26V0/9ymdf/BhUf/ol8R6P///wD///8A////AP///wDSmmQ80ppk9tKaZP/SmmT/0ppk/9KaZP/TnGj/zpFW/8qJSv/dson/8uHS//////////////////////////////////Lj0//etIv/y4lL/86QVf/TnGj/0ppk/9KaZP/RmWP/05xn/9ymdfjUnWdC////AP///wD///8A////ANKaZADSmmQc0ppkotKaZP/SmmT/0ppk/9KaZP/Tm2b/0Zli/8qJSf/NjlH/16Z3/+G8mP/myKr/5siq/+G8mP/Xp3f/zY5S/8qISf/RmGH/05tm/9KaZP/SmmT/0ppk/9KaZP/SmmSm0pljINWdaQD///8A////AP///wD///8A0ppkANKaZADSmmQA0ppkQtKaZMrSmmT/0ppk/9KaZP/SmmT/0ptl/9GYYf/Nj1P/y4lL/8qISP/KiEj/y4lK/82PU//RmGH/0ptl/9KaZP/SmmT/0ppk/9KaZP/SmmTO0ppkRtKaZADSmmQA0ppkAP///wD///8A////AP///wDSmmQA0ppkANKaZADSmmQA0ppkANKaZGzSmmTu0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmTw0ppkcNKaZADSmmQA0ppkANKaZADSmmQA////AP///wD///8A////ANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZBLSmmSQ0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppklNKaZBTSmmQA0ppkANKaZADSmmQA0ppkANKaZAD///8A////AP///wD///8A0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQy0ppkutKaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppkvtKaZDbSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkAP///wD///8A////AP///wDSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkXNKaZODSmmT/0ppk/9KaZP/SmmT/0ppk5NKaZGDSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA////AP///wD///8A////ANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkBtKaZIbSmmTo0ppk6tKaZIrSmmQK0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZAD///8A////AP/8P///+B///+AH//+AAf//AAD//AAAP/AAAA/gAAAHwAAAA8AAAAPAAAADwAAAA8AAAAPAAAADwAAAA8AAAAPAAAADwAAAA8AAAAPAAAADwAAAA8AAAAPAAAADwAAAA+AAAAfwAAAP/AAAP/8AAP//gAH//+AH///4H////D//" rel="icon" />
+  
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<div class="wrapper">
+<header id="title-block-header">
+<h1 class="title" style="text-align:center">Should we make std::linalg
+reductions deduce return types like fold algorithms?</h1>
+<table style="border:none;float:right">
+  <tr>
+    <td>Document #:</td>
+    <td>
+      P9999R0
+      [<a href="https://wg21.link/P9999">Latest</a>]
+      [<a href="https://wg21.link/P9999/status">Status</a>]
+    </td>
+  </tr>
+  <tr>
+    <td>Date:</td>
+    <td>2025-08-06</td>
+  </tr>
+  <tr>
+    <td style="vertical-align:top">Project:</td>
+    <td>Programming Language C++</td>
+  </tr>
+  <tr>
+    <td style="vertical-align:top">Audience:</td>
+    <td>
+      Library Evolution<br>
+    </td>
+  </tr>
+  <tr>
+    <td style="vertical-align:top">Reply-to:</td>
+    <td>
+      Mark Hoemmen<br>&lt;<a href="mailto:mhoemmen@nvidia.com" class="email">mhoemmen@nvidia.com</a>&gt;<br>
+    </td>
+  </tr>
+</table>
+</header>
+<div style="clear:both">
+<div id="TOC" role="doc-toc">
+<h1 id="toctitle">Contents</h1>
+<ul>
+<li><a href="#abstract" id="toc-abstract"><span class="toc-section-number">1</span> Abstract<span></span></a></li>
+<li><a href="#introduction" id="toc-introduction"><span class="toc-section-number">2</span> Introduction<span></span></a></li>
+<li><a href="#arguments-for-and-against-the-status-quo" id="toc-arguments-for-and-against-the-status-quo"><span class="toc-section-number">3</span> Arguments for and against the status
+quo<span></span></a>
+<ul>
+<li><a href="#what-is-the-status-quo-and-what-is-the-suggested-change" id="toc-what-is-the-status-quo-and-what-is-the-suggested-change"><span class="toc-section-number">3.1</span> What is the status quo and what is
+the suggested change?<span></span></a></li>
+<li><a href="#arguments-for-the-status-quo-imitate-stdreduce" id="toc-arguments-for-the-status-quo-imitate-stdreduce"><span class="toc-section-number">3.2</span> Arguments for the status quo
+(imitate
+<code class="sourceCode cpp">std<span class="op">::</span>reduce</code>)<span></span></a></li>
+<li><a href="#arguments-against-the-status-quo-imitate-fold_" id="toc-arguments-against-the-status-quo-imitate-fold_"><span class="toc-section-number">3.3</span> Arguments against the status quo
+(imitate
+<code class="sourceCode cpp">fold_<span class="op">*</span></code>)<span></span></a></li>
+</ul></li>
+<li><a href="#affected-algorithms-in-stdlinalg" id="toc-affected-algorithms-in-stdlinalg"><span class="toc-section-number">4</span> Affected algorithms in
+<code class="sourceCode cpp">std<span class="op">::</span>linalg</code><span></span></a></li>
+<li><a href="#examples-contrasting-c17-reduce-and-fold_" id="toc-examples-contrasting-c17-reduce-and-fold_"><span class="toc-section-number">5</span> Examples contrasting C++17
+<code class="sourceCode cpp">reduce</code> and
+<code class="sourceCode cpp">fold_<span class="op">*</span></code><span></span></a>
+<ul>
+<li><a href="#range-of-float-with-uint64_t-initial-value" id="toc-range-of-float-with-uint64_t-initial-value"><span class="toc-section-number">5.1</span> Range of
+<code class="sourceCode cpp"><span class="dt">float</span></code> with
+<code class="sourceCode cpp"><span class="dt">uint64_t</span></code>
+initial value<span></span></a></li>
+<li><a href="#mixed-floating-point-types-with-more-precise-addition" id="toc-mixed-floating-point-types-with-more-precise-addition"><span class="toc-section-number">5.2</span> Mixed floating-point types with
+more precise addition<span></span></a></li>
+</ul></li>
+<li><a href="#expression-templates-complicate-use-of-fold_" id="toc-expression-templates-complicate-use-of-fold_"><span class="toc-section-number">6</span> Expression templates complicate use
+of
+<code class="sourceCode cpp">fold_<span class="op">*</span></code><span></span></a></li>
+<li><a href="#vector_sum_of_squares" id="toc-vector_sum_of_squares"><span class="toc-section-number">7</span>
+<code class="sourceCode cpp">vector_sum_of_squares</code><span></span></a></li>
+<li><a href="#conclusions" id="toc-conclusions"><span class="toc-section-number">8</span> Conclusions<span></span></a></li>
+<li><a href="#examples-code-links-and-listings" id="toc-examples-code-links-and-listings"><span class="toc-section-number">9</span> Examples: Code links and
+listings<span></span></a>
+<ul>
+<li><a href="#float-float-and-6-byte-float" id="toc-float-float-and-6-byte-float"><span class="toc-section-number">9.1</span> float-float and 6-byte
+float<span></span></a></li>
+<li><a href="#expression-templates-and-fold_left-and-reduce-return-types" id="toc-expression-templates-and-fold_left-and-reduce-return-types"><span class="toc-section-number">9.2</span> Expression templates and
+<code class="sourceCode cpp">fold_left</code> and
+<code class="sourceCode cpp">reduce</code> return
+types<span></span></a></li>
+</ul></li>
+</ul>
+</div>
+<h1 data-number="1" id="abstract"><span class="header-section-number">1</span> Abstract<a href="#abstract" class="self-link"></a></h1>
+<p>This proposal does not include normative changes; it is informational
+only.</p>
+<p>C++26’s <code class="sourceCode cpp">std<span class="op">::</span>linalg<span class="op">::</span>dot</code>
+and similar reduction-like algorithms return the same type as their
+initial value, just like C++17’s
+<code class="sourceCode cpp">std<span class="op">::</span>reduce</code>.
+In contrast, C++23’s <code class="sourceCode cpp">std<span class="op">::</span>ranges<span class="op">::</span>fold_left</code>,
+<code class="sourceCode cpp">fold_right</code>, and
+<code class="sourceCode cpp">fold_left_with_iter</code> deduce their
+return type as “the decayed result of invoking the binary operation with
+<code class="sourceCode cpp">T</code> (the initial value) and the
+reference type of the range.”</p>
+<p>Some C++ Standard Committee members have asked that we change
+<code class="sourceCode cpp">std<span class="op">::</span>linalg</code>
+to imitate <code class="sourceCode cpp">std<span class="op">::</span>ranges<span class="op">::</span>fold_left</code>
+instead of
+<code class="sourceCode cpp">std<span class="op">::</span>reduce</code>.
+We discuss advantages and disadvantages of this change, and conclude
+that we should retain
+<code class="sourceCode cpp">std<span class="op">::</span>linalg</code>’s
+current behavior.</p>
+<h1 data-number="2" id="introduction"><span class="header-section-number">2</span> Introduction<a href="#introduction" class="self-link"></a></h1>
+<p>The C++ Standard Committee voted the linear algebra proposal P1673
+into C++26. This adds many algorithms to the new
+<code class="sourceCode cpp">std<span class="op">::</span>linalg</code>
+namespace. Several of these algorithms behave like reductions, in that
+they apply a binary operator to the elements of one or two
+<code class="sourceCode cpp">mdspan</code> object(s) in order to reduce
+them to a single value. These <em>reduction-like</em> algorithms
+include</p>
+<ul>
+<li><p>the vector dot products <code class="sourceCode cpp">dot</code>
+and <code class="sourceCode cpp">dotc</code>,</p></li>
+<li><p><code class="sourceCode cpp">vector_sum_of_squares</code>,</p></li>
+<li><p>the vector norms
+<code class="sourceCode cpp">vector_two_norm</code> and
+<code class="sourceCode cpp">vector_abs_sum</code>, and</p></li>
+<li><p>the matrix norms
+<code class="sourceCode cpp">matrix_frob_norm</code>,
+<code class="sourceCode cpp">matrix_one_norm</code>, and
+<code class="sourceCode cpp">matrix_inf_norm</code>.</p></li>
+</ul>
+<p>All these algorithms take an optional initial value. Just like C++17
+<code class="sourceCode cpp">std<span class="op">::</span>reduce</code>,
+the return type of the algorithms is the same as the initial value’s
+type. For example, if <code class="sourceCode cpp">x</code> is an
+<code class="sourceCode cpp">mdspan</code>, <code class="sourceCode cpp">std<span class="op">::</span>linalg<span class="op">::</span>vector_two_norm<span class="op">(</span>x, <span class="fl">0.0</span><span class="op">)</span></code>
+returns
+<code class="sourceCode cpp"><span class="dt">double</span></code>,
+regardless of <code class="sourceCode cpp">x</code>’s value type. If the
+value type is
+<code class="sourceCode cpp"><span class="dt">double</span></code>,
+<code class="sourceCode cpp">std<span class="op">::</span>linalg<span class="op">::</span>vector_two_norm<span class="op">(</span>x, <span class="dv">0</span><span class="op">)</span></code>
+would return
+<code class="sourceCode cpp"><span class="dt">int</span></code>.</p>
+<p>C++23 added the <code class="sourceCode cpp">fold_left</code>,
+<code class="sourceCode cpp">fold_right</code>, and
+<code class="sourceCode cpp">fold_left_with_iter</code> algorithms to
+<code class="sourceCode cpp">std<span class="op">::</span>ranges</code>.
+All of them require an initial value of type
+<code class="sourceCode cpp">T</code>. However, their return type might
+not necessarily be <code class="sourceCode cpp">T</code>. Instead, the
+<code class="sourceCode cpp">fold_<span class="op">*</span></code>
+algorithms deduce the return type as “the decayed result of invoking the
+binary operation with <code class="sourceCode cpp">T</code> (the initial
+value) and the reference type of the range.” For example, if
+<code class="sourceCode cpp">x</code> is a range of
+<code class="sourceCode cpp"><span class="dt">double</span></code>, then
+<code class="sourceCode cpp">std<span class="op">::</span>ranges<span class="op">::</span>fold_left<span class="op">(</span>x, <span class="dv">0</span><span class="op">)</span></code>
+would return
+<code class="sourceCode cpp"><span class="dt">double</span></code>, even
+though the initial value is an
+<code class="sourceCode cpp"><span class="dt">int</span></code>.</p>
+<p>Some C++ Standard Committee members have asked that we change
+<code class="sourceCode cpp">std<span class="op">::</span>linalg</code>’s
+reduction-like algorithms to imitate <code class="sourceCode cpp">std<span class="op">::</span>ranges<span class="op">::</span>fold_left</code>
+instead of
+<code class="sourceCode cpp">std<span class="op">::</span>reduce</code>.
+Each approach has its advantages and disadvantages. We conclude that we
+should retain
+<code class="sourceCode cpp">std<span class="op">::</span>linalg</code>’s
+current behavior. In our view, the current behavior makes sense for the
+linear algebra domain, even though it is not consistent with the various
+<code class="sourceCode cpp">fold_<span class="op">*</span></code>
+algorithms.</p>
+<p>The same design concern applies to the numeric range algorithms
+proposed in <a href="https://wg21.link/p3732">P3732</a>. Revision 0 of
+P3732 proposes that <code class="sourceCode cpp">std<span class="op">::</span>ranges<span class="op">::</span>reduce</code>
+deduce its return type in the same way as <code class="sourceCode cpp">std<span class="op">::</span>ranges<span class="op">::</span>fold_left</code>.
+We think that this is a reasonable design choice, even though we do not
+think
+<code class="sourceCode cpp">std<span class="op">::</span>linalg</code>’s
+algorithms need to behave the same way.</p>
+<h1 data-number="3" id="arguments-for-and-against-the-status-quo"><span class="header-section-number">3</span> Arguments for and against the
+status quo<a href="#arguments-for-and-against-the-status-quo" class="self-link"></a></h1>
+<h2 data-number="3.1" id="what-is-the-status-quo-and-what-is-the-suggested-change"><span class="header-section-number">3.1</span> What is the status quo and what
+is the suggested change?<a href="#what-is-the-status-quo-and-what-is-the-suggested-change" class="self-link"></a></h2>
+<p>The status quo is that for <code class="sourceCode cpp">std<span class="op">::</span>linalg<span class="op">::</span>dot</code>
+and all the other reduction-like algorithms in
+<code class="sourceCode cpp">std<span class="op">::</span>linalg</code>,
+the return type is the same as the initial value type. For example, if
+<code class="sourceCode cpp">x</code> is an
+<code class="sourceCode cpp">mdspan</code>, <code class="sourceCode cpp">std<span class="op">::</span>linalg<span class="op">::</span>vector_two_norm<span class="op">(</span>x, <span class="fl">0.0</span><span class="op">)</span></code>
+returns
+<code class="sourceCode cpp"><span class="dt">double</span></code>,
+regardless of <code class="sourceCode cpp">x</code>’s value type. If the
+value type is
+<code class="sourceCode cpp"><span class="dt">double</span></code>,
+<code class="sourceCode cpp">std<span class="op">::</span>linalg<span class="op">::</span>vector_two_norm<span class="op">(</span>x, <span class="dv">0</span><span class="op">)</span></code>
+would return
+<code class="sourceCode cpp"><span class="dt">int</span></code>.</p>
+<p>The status quo is “imitate C++17’s
+<code class="sourceCode cpp">std<span class="op">::</span>reduce</code>.”
+The change suggested by some C++ Standard Committee members is to
+imitate
+<code class="sourceCode cpp">fold_<span class="op">*</span></code>
+instead.</p>
+<h2 data-number="3.2" id="arguments-for-the-status-quo-imitate-stdreduce"><span class="header-section-number">3.2</span> Arguments for the status quo
+(imitate
+<code class="sourceCode cpp">std<span class="op">::</span>reduce</code>)<a href="#arguments-for-the-status-quo-imitate-stdreduce" class="self-link"></a></h2>
+<ol type="1">
+<li><p>It makes the return type obvious.</p></li>
+<li><p>It works straightforwardly with expression templates, as we show
+later in this paper.</p></li>
+<li><p>It is consistent with the BLAS Standard’s Fortran 95 interface
+(where the initial value is an <code class="sourceCode cpp">INOUT</code>
+argument, so the initial value type is the same as the result
+type).</p></li>
+<li><p>Users who are familiar with the linear algebra domain and with
+mixed-precision floating-point computations are more likely to state
+return and accumulator types explicitly, rather than rely on interfaces
+to “guess” them.</p></li>
+</ol>
+<h2 data-number="3.3" id="arguments-against-the-status-quo-imitate-fold_"><span class="header-section-number">3.3</span> Arguments against the status
+quo (imitate
+<code class="sourceCode cpp">fold_<span class="op">*</span></code>)<a href="#arguments-against-the-status-quo-imitate-fold_" class="self-link"></a></h2>
+<ol type="1">
+<li><p><code class="sourceCode cpp">dot<span class="op">(</span>range_of_double, <span class="dv">0</span><span class="op">)</span></code>
+truncating the result by returning
+<code class="sourceCode cpp"><span class="dt">int</span></code> is a
+usability pitfall.</p></li>
+<li><p>The current interface may give users a false impression that they
+are controlling the precision of computation, because the initial value
+type may not be the same as the binary operator’s return type.</p></li>
+<li><p>If P3732 (numeric range algorithms) is accepted, then <code class="sourceCode cpp">std<span class="op">::</span>ranges<span class="op">::</span>reduce</code>
+would likely have behavior consistent with C++23
+<code class="sourceCode cpp">fold_<span class="op">*</span></code>.
+Making
+<code class="sourceCode cpp">std<span class="op">::</span>linalg</code>’s
+reduction-like algorithms consistent with that would make it possible to
+implement
+<code class="sourceCode cpp">std<span class="op">::</span>linalg</code>
+using numeric range algorithms.</p></li>
+</ol>
+<h1 data-number="4" id="affected-algorithms-in-stdlinalg"><span class="header-section-number">4</span> Affected algorithms in
+<code class="sourceCode cpp">std<span class="op">::</span>linalg</code><a href="#affected-algorithms-in-stdlinalg" class="self-link"></a></h1>
+<p>This issue affects the following algorithms in [linalg] with
+overloads that have <code class="sourceCode cpp">Scalar</code> or <code class="sourceCode cpp">sum_of_squares_result<span class="op">&lt;</span>Scalar<span class="op">&gt;</span></code>
+return type. Overloads with
+<code class="sourceCode cpp"><span class="kw">auto</span></code> return
+type deduce it from that of the overloads with
+<code class="sourceCode cpp">Scalar</code> return type.</p>
+<ul>
+<li><p><code class="sourceCode cpp">dot</code>
+([linalg.algs.blas1.dot])</p></li>
+<li><p><code class="sourceCode cpp">dotc</code>
+([linalg.algs.blas1.dot])</p></li>
+<li><p><code class="sourceCode cpp">vector_sum_of_squares</code>
+([linalg.algs.blas1.ssq]) (please see also the separate <a href="https://cplusplus.github.io/LWG/issue4302">LWG issue</a>)</p></li>
+<li><p><code class="sourceCode cpp">vector_two_norm</code>
+([linalg.algs.blas1.nrm2])</p></li>
+<li><p><code class="sourceCode cpp">vector_abs_sum</code>
+([linalg.algs.blas1.asum])</p></li>
+<li><p><code class="sourceCode cpp">matrix_frob_norm</code>
+([linalg.algs.blas1.matfrobnorm])</p></li>
+<li><p><code class="sourceCode cpp">matrix_one_norm</code>
+([linalg.algs.blas1.matonenorm])</p></li>
+<li><p><code class="sourceCode cpp">matrix_inf_norm</code>
+([linalg.algs.blas1.matinfnorm])</p></li>
+</ul>
+<h1 data-number="5" id="examples-contrasting-c17-reduce-and-fold_"><span class="header-section-number">5</span> Examples contrasting C++17
+<code class="sourceCode cpp">reduce</code> and
+<code class="sourceCode cpp">fold_<span class="op">*</span></code><a href="#examples-contrasting-c17-reduce-and-fold_" class="self-link"></a></h1>
+<p>The following examples of range and initial value types show
+differences between
+<code class="sourceCode cpp">std<span class="op">::</span>reduce</code>’s
+results and <code class="sourceCode cpp">std<span class="op">::</span>ranges<span class="op">::</span>fold_<span class="op">*</span></code>’s
+results.</p>
+<h2 data-number="5.1" id="range-of-float-with-uint64_t-initial-value"><span class="header-section-number">5.1</span> Range of
+<code class="sourceCode cpp"><span class="dt">float</span></code> with
+<code class="sourceCode cpp"><span class="dt">uint64_t</span></code>
+initial value<a href="#range-of-float-with-uint64_t-initial-value" class="self-link"></a></h2>
+<p>The following example (<a href="https://godbolt.org/z/nW4qanEjv">Compiler Explorer link</a>) sums
+a range of
+<code class="sourceCode cpp"><span class="dt">float</span></code> with a
+nonzero
+<code class="sourceCode cpp"><span class="dt">uint64_t</span></code>
+initial value using
+<code class="sourceCode cpp">std<span class="op">::</span>reduce</code>
+and <code class="sourceCode cpp">std<span class="op">::</span>ranges<span class="op">::</span>fold_left</code>,
+and then compares the result with summing the same
+<code class="sourceCode cpp"><span class="dt">float</span></code> range
+with a
+<code class="sourceCode cpp"><span class="dt">double</span></code>
+initial value.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;algorithm&gt;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;cstdint&gt;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;limits&gt;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;numeric&gt;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;print&gt;</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;type_traits&gt;</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;vector&gt;</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  <span class="co">// [0, 16777216] is the max range of contiguous</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  <span class="co">// nonnegative integers that fit in float (FP32).</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> <span class="dt">float</span> big_fp32 <span class="op">=</span> <span class="fl">16777215.0</span><span class="bu">f</span>;</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>print<span class="op">(</span><span class="st">&quot;big_fp32 = {}</span><span class="sc">\n</span><span class="st">&quot;</span>, big_fp32<span class="op">)</span>;</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>print<span class="op">(</span><span class="st">&quot;big_fp32 + 1.0f = {}</span><span class="sc">\n</span><span class="st">&quot;</span>, big_fp32 <span class="op">+</span> <span class="fl">1.0</span><span class="bu">f</span><span class="op">)</span>;</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>print<span class="op">(</span><span class="st">&quot;big_fp32 + 2.0f = {}</span><span class="sc">\n</span><span class="st">&quot;</span>, big_fp32 <span class="op">+</span> <span class="fl">2.0</span><span class="bu">f</span><span class="op">)</span>;</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> std<span class="op">::</span><span class="dt">size_t</span> count <span class="op">=</span> <span class="dv">4</span>;</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>vector<span class="op">&lt;</span><span class="dt">float</span><span class="op">&gt;</span> vec<span class="op">(</span>count, big_fp32<span class="op">)</span>;</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>print<span class="op">(</span><span class="st">&quot;vec = {}</span><span class="sc">\n</span><span class="st">&quot;</span>, vec<span class="op">)</span>;</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> std<span class="op">::</span><span class="dt">uint64_t</span> initial_value <span class="op">=</span> <span class="dv">1</span><span class="bu">u</span>;</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> std<span class="op">::</span>plus<span class="op">&lt;&gt;</span> op<span class="op">{}</span>;</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> reduce_result <span class="op">=</span> std<span class="op">::</span>reduce<span class="op">(</span></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>    vec<span class="op">.</span>begin<span class="op">()</span>, vec<span class="op">.</span>end<span class="op">()</span>, initial_value, op<span class="op">)</span>;</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static_assert</span><span class="op">(</span></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>    std<span class="op">::</span>is_same_v<span class="op">&lt;</span><span class="kw">decltype</span><span class="op">(</span>reduce_result<span class="op">)</span>, std<span class="op">::</span><span class="dt">uint64_t</span><span class="op">&gt;)</span>;</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>print<span class="op">(</span><span class="st">&quot;reduce_result = {}</span><span class="sc">\n</span><span class="st">&quot;</span>, reduce_result<span class="op">)</span>;</span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> fold_result <span class="op">=</span> std<span class="op">::</span>ranges<span class="op">::</span>fold_left<span class="op">(</span></span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>    vec, initial_value, op<span class="op">)</span>;</span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static_assert</span><span class="op">(</span></span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>    std<span class="op">::</span>is_same_v<span class="op">&lt;</span><span class="kw">decltype</span><span class="op">(</span>fold_result<span class="op">)</span>, <span class="dt">float</span><span class="op">&gt;)</span>;</span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>print<span class="op">(</span><span class="st">&quot;fold_result = {}</span><span class="sc">\n</span><span class="st">&quot;</span>, fold_result<span class="op">)</span>;</span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>vector<span class="op">&lt;</span><span class="dt">double</span><span class="op">&gt;</span> vec_fp64<span class="op">(</span>count,</span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>    <span class="kw">static_cast</span><span class="op">&lt;</span><span class="dt">double</span><span class="op">&gt;(</span>big_fp32<span class="op">)</span></span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>  <span class="op">)</span>;</span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> fold_fp64_result <span class="op">=</span> std<span class="op">::</span>ranges<span class="op">::</span>fold_left<span class="op">(</span></span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>    vec_fp64, <span class="kw">static_cast</span><span class="op">&lt;</span><span class="dt">double</span><span class="op">&gt;(</span>initial_value<span class="op">)</span>, op<span class="op">)</span>;</span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>print<span class="op">(</span><span class="st">&quot;vec_fp64 = {}</span><span class="sc">\n</span><span class="st">&quot;</span>, vec_fp64<span class="op">)</span>;</span>
+<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static_assert</span><span class="op">(</span></span>
+<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a>    std<span class="op">::</span>is_same_v<span class="op">&lt;</span><span class="kw">decltype</span><span class="op">(</span>fold_fp64_result<span class="op">)</span>, <span class="dt">double</span><span class="op">&gt;)</span>;</span>
+<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>print<span class="op">(</span><span class="st">&quot;fold_fp64_result = {}</span><span class="sc">\n</span><span class="st">&quot;</span>, fold_fp64_result<span class="op">)</span>;</span>
+<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="dv">0</span>;</span>
+<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>It prints the following output.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>big_fp32 = 16777215</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>big_fp32 + 1.0f = 16777216</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>big_fp32 + 2.0f = 16777216</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>vec = [16777215, 16777215, 16777215, 16777215]</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>reduce_result = 67108861</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>fold_result = 67108864</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>vec_fp64 = [16777215, 16777215, 16777215, 16777215]</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>fold_fp64_result = 67108861</span></code></pre></div>
+<p>Why would users try summing a ‘float’ range with a
+<code class="sourceCode cpp"><span class="dt">uint64_t</span></code>
+initial value? In this example, we know that</p>
+<ul>
+<li><p>each value is a nonnegative integer that fits exactly in both
+<code class="sourceCode cpp"><span class="dt">float</span></code> and in
+<code class="sourceCode cpp"><span class="dt">uint32_t</span></code>,
+but</p></li>
+<li><p><code class="sourceCode cpp"><span class="dt">float</span></code>
+cannot represent the sum of the values exactly.</p></li>
+</ul>
+<p>Novice users might reasonably expect that using a
+<code class="sourceCode cpp"><span class="dt">uint64_t</span></code> as
+the initial value would turn the
+<code class="sourceCode cpp"><span class="dt">float</span></code>s into
+integers and thus would perform the sum exactly. Alas, they would be
+wrong. For both algorithms, each binary <code class="sourceCode cpp"><span class="kw">operator</span><span class="op">+</span></code>
+invocation first converts the
+<code class="sourceCode cpp"><span class="dt">uint64_t</span></code>
+term to
+<code class="sourceCode cpp"><span class="dt">float</span></code>, and
+then does the computation in
+<code class="sourceCode cpp"><span class="dt">float</span></code>
+precision. C++ itself does the “wrong thing” here; it’s not really
+either algorithm’s “fault.”</p>
+<p>The difference between algorithms is in return types and order of
+operations.
+<code class="sourceCode cpp">std<span class="op">::</span>reduce</code>
+assigns the
+<code class="sourceCode cpp"><span class="dt">float</span></code> binary
+operation result to a
+<code class="sourceCode cpp"><span class="dt">uint64_t</span></code>
+accumulator and then returns
+<code class="sourceCode cpp"><span class="dt">uint64_t</span></code>,
+thus concealing the loss of information. <code class="sourceCode cpp">std<span class="op">::</span>ranges<span class="op">::</span>fold_left</code>
+returns
+<code class="sourceCode cpp"><span class="dt">float</span></code>, which
+indicates that something bad may have happened.</p>
+<p>In this case,
+<code class="sourceCode cpp">std<span class="op">::</span>reduce</code>
+accidentally got the right answer, probably because the initial value of
+one got added at the end (as the numeric algorithms have permission to
+reorder terms).</p>
+<h2 data-number="5.2" id="mixed-floating-point-types-with-more-precise-addition"><span class="header-section-number">5.2</span> Mixed floating-point types with
+more precise addition<a href="#mixed-floating-point-types-with-more-precise-addition" class="self-link"></a></h2>
+<p>This situation simulates the increasing variety of number types
+designed for the performance needs of machine learning.</p>
+<p>Let <code class="sourceCode cpp">float_float</code> represent a
+64-bit number type that uses the “double-double” approach to approximate
+<code class="sourceCode cpp"><span class="dt">double</span></code>-precision
+floating-point arithmetic.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">// for resolving ambiguities in overloaded operator+</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> float_base <span class="op">{}</span>;</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> float_float <span class="op">:</span> float_base <span class="op">{</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  float_float<span class="op">()</span> <span class="op">=</span> <span class="cf">default</span>;</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  float_float<span class="op">(</span><span class="dt">float</span><span class="op">)</span>;</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ... other member functions ...</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  <span class="kw">friend</span> float_float <span class="kw">operator</span><span class="op">+(</span>float_float, float_float<span class="op">)</span>;</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> T<span class="op">&gt;</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    <span class="kw">requires</span><span class="op">(</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>      std<span class="op">::</span>is_base_of_v<span class="op">&lt;</span>float_base, T<span class="op">&gt;</span> <span class="op">&amp;&amp;</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>      <span class="op">!</span> std<span class="op">::</span>is_same_v<span class="op">&lt;</span>T, float_float<span class="op">&gt;)</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>  <span class="kw">friend</span> <span class="dt">double</span> <span class="kw">operator</span><span class="op">+(</span>float_float, T<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>    <span class="co">// ... implementation ...</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span></code></pre></div>
+<p>Let <code class="sourceCode cpp">binary48</code> represent a 6-byte
+type that has more significand and exponent bits than IEEE 754
+<code class="sourceCode cpp">binary32</code>
+(<code class="sourceCode cpp"><span class="dt">float</span></code>), but
+fewer than <code class="sourceCode cpp">binary64</code>
+(<code class="sourceCode cpp"><span class="dt">double</span></code>).
+For example, <code class="sourceCode cpp">binary48</code> might have 9
+exponent bits, 38 significand bits, and 1 sign bit.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> binary48 <span class="op">:</span> float_base <span class="op">{</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  binary48<span class="op">()</span> <span class="op">=</span> <span class="cf">default</span>;</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  binary48<span class="op">(</span><span class="dt">float</span><span class="op">)</span>;</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">friend</span> binary48 <span class="kw">operator</span><span class="op">+(</span>binary48, binary48<span class="op">)</span>;</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> T<span class="op">&gt;</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">requires</span><span class="op">(</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>      std<span class="op">::</span>is_base_of_v<span class="op">&lt;</span>float_base, T<span class="op">&gt;</span> <span class="op">&amp;&amp;</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>      <span class="op">!</span> std<span class="op">::</span>is_same_v<span class="op">&lt;</span>T, binary48<span class="op">&gt;)</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  <span class="kw">friend</span> <span class="dt">double</span> <span class="kw">operator</span><span class="op">+(</span>binary48, T<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    <span class="co">// ... implementation ...</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span></code></pre></div>
+<p>Both types have implicit conversions from
+<code class="sourceCode cpp"><span class="dt">float</span></code>, but
+are not mutually convertible. Overloaded <code class="sourceCode cpp"><span class="kw">operator</span><span class="op">+</span></code>
+between either of the types results in
+<code class="sourceCode cpp"><span class="dt">double</span></code> (a
+type that can represent all the values of either).</p>
+<p>A <code class="sourceCode cpp">float_float</code> object can
+represent more values than <code class="sourceCode cpp">binary48</code>,
+so users might try to sum their range of
+<code class="sourceCode cpp">binary48</code> into a
+<code class="sourceCode cpp">float_float</code> accumulator. They
+<em>should</em> use a
+<code class="sourceCode cpp"><span class="dt">double</span></code>
+accumulator in this case, because this is the return type of <code class="sourceCode cpp"><span class="kw">operator</span><span class="op">+</span></code>.
+However, users don’t always do what we expect!</p>
+<p>In this case, <code class="sourceCode cpp">std<span class="op">::</span>ranges<span class="op">::</span>fold_left</code>
+does the right thing. It would accumulate into a
+<code class="sourceCode cpp"><span class="dt">double</span></code> and
+return
+<code class="sourceCode cpp"><span class="dt">double</span></code>. In
+contrast,
+<code class="sourceCode cpp">std<span class="op">::</span>reduce</code>
+with <code class="sourceCode cpp">float_float</code> initial value would
+cast each intermediate
+<code class="sourceCode cpp"><span class="dt">double</span></code>
+result to <code class="sourceCode cpp">float_float</code>. This may lose
+information.</p>
+<p>The last section of this paper shows this example in full.</p>
+<h1 data-number="6" id="expression-templates-complicate-use-of-fold_"><span class="header-section-number">6</span> Expression templates complicate
+use of
+<code class="sourceCode cpp">fold_<span class="op">*</span></code><a href="#expression-templates-complicate-use-of-fold_" class="self-link"></a></h1>
+<p>The
+<code class="sourceCode cpp">fold_<span class="op">*</span></code>
+algorithms deduce the return type as “the decayed result of invoking the
+binary operation with <code class="sourceCode cpp">T</code> (the initial
+value) and the reference type of the range.” This can complicate use of
+range or initial value types where the binary operation returns an
+expression template. Simple
+<code class="sourceCode cpp">fold_<span class="op">*</span></code>
+invocations with <code class="sourceCode cpp">std<span class="op">::</span>plus<span class="op">&lt;&gt;</span></code>
+may fail to compile, for example. In contrast, C++17
+<code class="sourceCode cpp">std<span class="op">::</span>reduce</code>
+has no problem as long as the initial value type is not an expression
+template.</p>
+<p>We do not actually want the
+<code class="sourceCode cpp">fold_<span class="op">*</span></code>
+algorithms to return an expression template. An expression template
+encodes a deferred computation. Thus, it may hold a reference or pointer
+to some other variables that may live on the stack. As a result,
+returning a proxy reference from a function carries the risk of dangling
+memory.</p>
+<p>At the same time, we want to permit use of expression templates,
+because they are common operations for number-like types where creating
+and returning temporary values can have a high cost. Using expression
+templates for arithmetic on such types can reduce dynamic memory
+allocation or stack space requirements. Examples include
+arbitrary-precision floating-point numbers, or <em>ensemble</em> data
+types that help sample a physics simulation over uncertain input data,
+by propagating multiple samples together as if they are a single
+floating-point number (see e.g., Phipps et al. 2017).</p>
+<p>The last section of this papes gives an example of an expression
+templates system for a “fixed-width vector” type <code class="sourceCode cpp">fixed_vector<span class="op">&lt;</span>ValueType, Size<span class="op">&gt;</span></code>.
+The two template parameters correspond to those of
+<code class="sourceCode cpp">std<span class="op">::</span>array</code>.
+Its behavior is like that of
+<code class="sourceCode cpp">std<span class="op">::</span>array</code>,
+and in addition, overloaded arithmetic operators implement a vector
+algebra. This algebra consists of vectors – either
+<code class="sourceCode cpp">fixed_vector</code> or an expression
+template thereof – and scalars (any type
+<code class="sourceCode cpp">T</code> not a vector, for which <code class="sourceCode cpp"><span class="kw">operator</span><span class="op">*(</span>T, ValueType<span class="op">)</span></code>
+is well formed).</p>
+<p>We show some use cases below. All of them reduce over the elements of
+<code class="sourceCode cpp">vec</code>, which has three <code class="sourceCode cpp">fixed_vector<span class="op">&lt;</span><span class="dt">float</span>, <span class="dv">4</span><span class="op">&gt;</span></code>
+values. The <code class="sourceCode cpp">fixed_vector</code> value
+<code class="sourceCode cpp">zero</code> has four zeros, and serves as
+the initial value for all the reductions. The
+<code class="sourceCode cpp">fixed_vector</code> value
+<code class="sourceCode cpp">expected_result</code> is the expected
+result for all the reductions.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> expr<span class="op">::</span>fixed_vector;</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>vector<span class="op">&lt;</span>fixed_vector<span class="op">&lt;</span><span class="dt">float</span>, <span class="dv">4</span><span class="op">&gt;&gt;</span> vec<span class="op">{</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  fixed_vector<span class="op">{</span>std<span class="op">::</span>array<span class="op">{</span><span class="fl">1.0</span><span class="bu">f</span>, <span class="fl">2.0</span><span class="bu">f</span>, <span class="fl">3.0</span><span class="bu">f</span>, <span class="fl">4.0</span><span class="bu">f</span><span class="op">}}</span>,</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  fixed_vector<span class="op">{</span>std<span class="op">::</span>array<span class="op">{</span><span class="fl">0.5</span><span class="bu">f</span>, <span class="fl">1.0</span><span class="bu">f</span>, <span class="fl">1.5</span><span class="bu">f</span>, <span class="fl">2.0</span><span class="bu">f</span><span class="op">}}</span>,</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  fixed_vector<span class="op">{</span>std<span class="op">::</span>array<span class="op">{</span><span class="fl">0.25</span><span class="bu">f</span>, <span class="fl">0.5</span><span class="bu">f</span>, <span class="fl">0.75</span><span class="bu">f</span>, <span class="fl">1.0</span><span class="bu">f</span><span class="op">}}</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> fixed_vector zero<span class="op">{</span>std<span class="op">::</span>array<span class="op">{</span><span class="fl">0.0</span><span class="bu">f</span>, <span class="fl">0.0</span><span class="bu">f</span>, <span class="fl">0.0</span><span class="bu">f</span>, <span class="fl">0.0</span><span class="bu">f</span><span class="op">}}</span>;</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> fixed_vector expected_result<span class="op">{</span>std<span class="op">::</span>array<span class="op">{</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>  <span class="fl">1.75</span><span class="bu">f</span>, <span class="fl">3.5</span><span class="bu">f</span>, <span class="fl">5.25</span><span class="bu">f</span>, <span class="fl">7.0</span><span class="bu">f</span>  </span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="op">}}</span>;</span></code></pre></div>
+<p>Invoking
+<code class="sourceCode cpp">std<span class="op">::</span>reduce</code>
+with <code class="sourceCode cpp">std<span class="op">::</span>plus<span class="op">&lt;&gt;</span></code>
+as the binary operator and a <code class="sourceCode cpp">fixed_vector<span class="op">&lt;</span><span class="dt">float</span>, <span class="dv">4</span><span class="op">&gt;</span></code>
+instance as the initial value both compiles and runs correctly. It’s
+obvious to readers what this means. It’s even possible to omit both the
+binary operator and the initial value, since the defaults for those
+would be <code class="sourceCode cpp">std<span class="op">::</span>plus<span class="op">&lt;&gt;</span></code>
+and <code class="sourceCode cpp">fixed_vector<span class="op">&lt;</span><span class="dt">float</span>, <span class="dv">4</span><span class="op">&gt;{}</span></code>,
+respectively. The call operator of <code class="sourceCode cpp">std<span class="op">::</span>plus<span class="op">&lt;&gt;</span></code>
+accepts any two types (possibly even heterogeneous types, though they
+both decay to <code class="sourceCode cpp">fixed_vector<span class="op">&lt;</span><span class="dt">float</span>, <span class="dv">4</span><span class="op">&gt;</span></code>
+in this case) and returns an expression template type
+(<code class="sourceCode cpp">binary_plus_expr</code>).
+<code class="sourceCode cpp">std<span class="op">::</span>reduce</code>
+assigns that result to the accumulator, thus invoking
+<code class="sourceCode cpp">fixed_vector</code>’s templated assignment
+operator that works with any fixed-vector-like type. Using
+<code class="sourceCode cpp">std<span class="op">::</span>reduce</code>
+with <code class="sourceCode cpp">std<span class="op">::</span>plus<span class="op">&lt;&gt;</span></code>
+thus achieves the desired effect of expression templates: avoiding
+unnecessary temporaries.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> reduce_result <span class="op">=</span> std<span class="op">::</span>reduce<span class="op">(</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  vec<span class="op">.</span>begin<span class="op">()</span>, vec<span class="op">.</span>end<span class="op">()</span>, zero, std<span class="op">::</span>plus<span class="op">&lt;&gt;{}</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="op">)</span>;</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="op">(</span>std<span class="op">::</span><span class="dt">size_t</span> k <span class="op">=</span> <span class="dv">0</span>; k <span class="op">&lt;</span> <span class="dv">4</span>; <span class="op">++</span>k<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="ot">assert</span><span class="op">(</span>reduce_result<span class="op">[</span>k<span class="op">]</span> <span class="op">==</span> expected_result<span class="op">[</span>k<span class="op">])</span>;  </span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Invoking <code class="sourceCode cpp">std<span class="op">::</span>ranges<span class="op">::</span>fold_left</code>
+with <code class="sourceCode cpp">std<span class="op">::</span>plus<span class="op">&lt;&gt;</span></code>
+as the binary operator does <em>not</em> compile, because the return
+type of <code class="sourceCode cpp">std<span class="op">::</span>plus<span class="op">&lt;&gt;::</span><span class="kw">operator</span><span class="op">()</span></code>
+is an expression template type
+(<code class="sourceCode cpp">binary_plus_expr</code>). This is a
+feature, not a bug, because returning an expression template here would
+necessarily dangle. The compilation error manifests as failure to
+satisfy <em><code class="sourceCode cpp">indirectly<span class="op">-</span>binary<span class="op">-</span>left<span class="op">-</span>foldable<span class="op">-</span>impl</code></em>,
+because <code class="sourceCode cpp">binary_plus_expr</code> is not
+<code class="sourceCode cpp">movable</code>. It’s not
+<code class="sourceCode cpp">movable</code> because its copy assignment
+operator is implicitly deleted, because it has reference members. That’s
+good! The correct design for an expression template is that it is not
+copy-assignable. Note, however, that nothing prevents users from writing
+an expression template that stores pointers instead of references. That
+could result in a <code class="sourceCode cpp">movable</code> type,
+which would, in turn, cause dangling if used in
+<code class="sourceCode cpp">fold_left</code> with <code class="sourceCode cpp">std<span class="op">::</span>plus<span class="op">&lt;&gt;</span></code>.</p>
+<p>Invoking <code class="sourceCode cpp">fold_left</code> with the
+binary operator spelled out as <code class="sourceCode cpp">std<span class="op">::</span>plus<span class="op">&lt;</span>fixed_vector<span class="op">&lt;</span><span class="dt">float</span>, <span class="dv">4</span><span class="op">&gt;&gt;</span></code>
+compiles and runs correctly. However, this may lose the advantage of
+expression templates. For each element of the
+<code class="sourceCode cpp">std<span class="op">::</span>vector</code>,
+the algorithm’s invocation of the binary operator returns a new
+temporary <code class="sourceCode cpp">fixed_vector</code>, assigns it
+to the accumulator, and then discards the temporary. Expression
+templates were designed to make this temporary unnecessary.</p>
+<p>The Standard lets compilers perform copy elision
+([class.copy.elision]) for unnamed return value cases like this. That
+would effectively eliminate the temporary. However, copy elision is not
+mandatory in this case.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> fold_result <span class="op">=</span> std<span class="op">::</span>ranges<span class="op">::</span>fold_left<span class="op">(</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  vec<span class="op">.</span>begin<span class="op">()</span>, vec<span class="op">.</span>end<span class="op">()</span>,</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  zero,</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>plus<span class="op">&lt;</span>fixed_vector<span class="op">&lt;</span><span class="dt">float</span>, <span class="dv">4</span><span class="op">&gt;&gt;{}</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="op">)</span>;</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="op">(</span>std<span class="op">::</span><span class="dt">size_t</span> k <span class="op">=</span> <span class="dv">0</span>; k <span class="op">&lt;</span> <span class="dv">4</span>; <span class="op">++</span>k<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="ot">assert</span><span class="op">(</span>fold_result<span class="op">[</span>k<span class="op">]</span> <span class="op">==</span> expected_result<span class="op">[</span>k<span class="op">])</span>;</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Another <code class="sourceCode cpp">fold_left</code> approach is to
+use a lambda returning <code class="sourceCode cpp">fixed_vector</code>
+as the binary operator. As with <code class="sourceCode cpp">std<span class="op">::</span>plus<span class="op">&lt;</span>fixed_vector<span class="op">&lt;</span><span class="dt">float</span>, <span class="dv">4</span><span class="op">&gt;&gt;</span></code>,
+this depends on copy elision in order to eliminate the temporary. The
+lambda also makes the code harder to read and write.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">// fold_left with a lambda must return fixed_vector</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="co">// so that the algorithm can deduce the result type.</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> fold_lambda_result <span class="op">=</span> std<span class="op">::</span>ranges<span class="op">::</span>fold_left<span class="op">(</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  vec<span class="op">.</span>begin<span class="op">()</span>, vec<span class="op">.</span>end<span class="op">()</span>,</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  zero,</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="op">[]</span> <span class="op">(</span><span class="kw">const</span> <span class="kw">auto</span><span class="op">&amp;</span> x, <span class="kw">const</span> <span class="kw">auto</span><span class="op">&amp;</span> y<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> fixed_vector<span class="op">&lt;</span><span class="dt">float</span>, <span class="dv">4</span><span class="op">&gt;(</span>x <span class="op">+</span> y<span class="op">)</span>;</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="op">)</span>;</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="op">(</span>std<span class="op">::</span><span class="dt">size_t</span> k <span class="op">=</span> <span class="dv">0</span>; k <span class="op">&lt;</span> <span class="dv">4</span>; <span class="op">++</span>k<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>  <span class="ot">assert</span><span class="op">(</span>fold_lambda_result<span class="op">[</span>k<span class="op">]</span> <span class="op">==</span> expected_result<span class="op">[</span>k<span class="op">])</span>;</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>In summary,</p>
+<ul>
+<li><p><code class="sourceCode cpp">std<span class="op">::</span>reduce</code>
+with expression templates Just Works; while</p></li>
+<li><p><code class="sourceCode cpp">std<span class="op">::</span>ranges<span class="op">::</span>fold_left</code></p>
+<ul>
+<li><p>does not compile for the default <code class="sourceCode cpp">std<span class="op">::</span>plus<span class="op">&lt;&gt;</span></code>
+case, and</p></li>
+<li><p>depends on non-mandatory copy elision to avoid temporaries with
+expression templates.</p></li>
+</ul></li>
+</ul>
+<h1 data-number="7" id="vector_sum_of_squares"><span class="header-section-number">7</span>
+<code class="sourceCode cpp">vector_sum_of_squares</code><a href="#vector_sum_of_squares" class="self-link"></a></h1>
+<p><a href="https://cplusplus.github.io/LWG/issue4302">LWG Issue
+4302</a> shows a separate design issue with
+<code class="sourceCode cpp">vector_sum_of_squares</code>. If the C++
+Standard Committee resolves this issue by removing
+<code class="sourceCode cpp">vector_sum_of_squares</code> entirely, then
+we won’t have to worry about its return type.</p>
+<h1 data-number="8" id="conclusions"><span class="header-section-number">8</span> Conclusions<a href="#conclusions" class="self-link"></a></h1>
+<p>The status quo for return types of
+<code class="sourceCode cpp">std<span class="op">::</span>linalg</code>’s
+reduction-like algorithms is to imitate C++17
+<code class="sourceCode cpp">std<span class="op">::</span>reduce</code>.
+Some have suggested changing this to imitate C++23 <code class="sourceCode cpp">std<span class="op">::</span>ranges<span class="op">::</span>fold_left</code>
+and related algorithms. Given the disadvantages of
+<code class="sourceCode cpp">fold_left</code>’s approach for use cases
+of importance to
+<code class="sourceCode cpp">std<span class="op">::</span>linalg</code>’s
+audience, we recommend against changing
+<code class="sourceCode cpp">std<span class="op">::</span>linalg</code>
+at this point.</p>
+<h1 data-number="9" id="examples-code-links-and-listings"><span class="header-section-number">9</span> Examples: Code links and
+listings<a href="#examples-code-links-and-listings" class="self-link"></a></h1>
+<h2 data-number="9.1" id="float-float-and-6-byte-float"><span class="header-section-number">9.1</span> float-float and 6-byte float<a href="#float-float-and-6-byte-float" class="self-link"></a></h2>
+<p>This example shows the difference in return type between <code class="sourceCode cpp">std<span class="op">::</span>ranges<span class="op">::</span>fold_left</code>
+and
+<code class="sourceCode cpp">std<span class="op">::</span>reduce</code>
+for mixed-precision arithmetic that returns a type of a higher
+precision. <a href="https://godbolt.org/z/Tdzef4Yah">Here</a> is a
+Compiler Explorer link.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;cassert&gt;</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;cstdint&gt;</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;type_traits&gt;</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;utility&gt;</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="co">// We define 2 noncomparable floating-point types,</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="co">// both larger than float and smaller than double:</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="co">// float_float and binary48.</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a><span class="co">// for resolving ambiguities in overloaded operator+</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> float_base <span class="op">{}</span>;</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> float_float;</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> binary48;</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a><span class="co">// float_float uses the &quot;double-double&quot; technique</span></span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a><span class="co">// (storing a pair of floating-point values</span></span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a><span class="co">// to represent a sum x_small + factor * x_large)</span></span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a><span class="co">// but with float instead of double.</span></span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a><span class="co">// The result takes 64 bits,</span></span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a><span class="co">// but has less exponent range than double.</span></span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a><span class="co">// One would do this to simulate double-precision arithmetic</span></span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a><span class="co">// on hardware where that arithmetic is slow or not supported.</span></span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a><span class="co">// </span></span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a><span class="co">// This class doesn&#39;t actually implement correct arithmetic;</span></span>
+<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a><span class="co">// the point is just to show that this compiles.</span></span>
+<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> float_float <span class="op">:</span> float_base <span class="op">{</span></span>
+<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a>  float_float<span class="op">()</span> <span class="op">=</span> <span class="cf">default</span>;</span>
+<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a>  float_float<span class="op">(</span><span class="dt">float</span><span class="op">)</span> <span class="op">{}</span></span>
+<span id="cb9-30"><a href="#cb9-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-31"><a href="#cb9-31" aria-hidden="true" tabindex="-1"></a>  <span class="kw">friend</span> float_float <span class="kw">operator</span><span class="op">+(</span>float_float, float_float<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb9-32"><a href="#cb9-32" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="op">{}</span>;</span>
+<span id="cb9-33"><a href="#cb9-33" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb9-34"><a href="#cb9-34" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> T<span class="op">&gt;</span></span>
+<span id="cb9-35"><a href="#cb9-35" aria-hidden="true" tabindex="-1"></a>    <span class="kw">requires</span><span class="op">(</span></span>
+<span id="cb9-36"><a href="#cb9-36" aria-hidden="true" tabindex="-1"></a>      std<span class="op">::</span>is_base_of_v<span class="op">&lt;</span>float_base, T<span class="op">&gt;</span> <span class="op">&amp;&amp;</span></span>
+<span id="cb9-37"><a href="#cb9-37" aria-hidden="true" tabindex="-1"></a>      <span class="op">!</span> std<span class="op">::</span>is_same_v<span class="op">&lt;</span>T, float_float<span class="op">&gt;)</span></span>
+<span id="cb9-38"><a href="#cb9-38" aria-hidden="true" tabindex="-1"></a>  <span class="kw">friend</span> <span class="dt">double</span> <span class="kw">operator</span><span class="op">+(</span>float_float, T<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb9-39"><a href="#cb9-39" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="fl">0.0</span>;</span>
+<span id="cb9-40"><a href="#cb9-40" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb9-41"><a href="#cb9-41" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
+<span id="cb9-42"><a href="#cb9-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-43"><a href="#cb9-43" aria-hidden="true" tabindex="-1"></a><span class="co">// binary48 represents a 6-byte floating-point type</span></span>
+<span id="cb9-44"><a href="#cb9-44" aria-hidden="true" tabindex="-1"></a><span class="co">// that has more significand and exponent bits than</span></span>
+<span id="cb9-45"><a href="#cb9-45" aria-hidden="true" tabindex="-1"></a><span class="co">// IEEE 754 binary32 (float),</span></span>
+<span id="cb9-46"><a href="#cb9-46" aria-hidden="true" tabindex="-1"></a><span class="co">// but fewer than binary64 (double).</span></span>
+<span id="cb9-47"><a href="#cb9-47" aria-hidden="true" tabindex="-1"></a><span class="co">// For example, binary48 might have 9 exponent bits,</span></span>
+<span id="cb9-48"><a href="#cb9-48" aria-hidden="true" tabindex="-1"></a><span class="co">// 38 significand bits, and 1 sign bit.</span></span>
+<span id="cb9-49"><a href="#cb9-49" aria-hidden="true" tabindex="-1"></a><span class="co">//</span></span>
+<span id="cb9-50"><a href="#cb9-50" aria-hidden="true" tabindex="-1"></a><span class="co">// We don&#39;t actually implement correct arithmetic;</span></span>
+<span id="cb9-51"><a href="#cb9-51" aria-hidden="true" tabindex="-1"></a><span class="co">// the point is just to show that this compiles.</span></span>
+<span id="cb9-52"><a href="#cb9-52" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> binary48 <span class="op">:</span> float_base <span class="op">{</span></span>
+<span id="cb9-53"><a href="#cb9-53" aria-hidden="true" tabindex="-1"></a>  binary48<span class="op">()</span> <span class="op">=</span> <span class="cf">default</span>;</span>
+<span id="cb9-54"><a href="#cb9-54" aria-hidden="true" tabindex="-1"></a>  binary48<span class="op">(</span><span class="dt">float</span><span class="op">)</span>;</span>
+<span id="cb9-55"><a href="#cb9-55" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-56"><a href="#cb9-56" aria-hidden="true" tabindex="-1"></a>  <span class="kw">friend</span> binary48 <span class="kw">operator</span><span class="op">+(</span>binary48, binary48<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb9-57"><a href="#cb9-57" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="op">{}</span>;</span>
+<span id="cb9-58"><a href="#cb9-58" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb9-59"><a href="#cb9-59" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> T<span class="op">&gt;</span></span>
+<span id="cb9-60"><a href="#cb9-60" aria-hidden="true" tabindex="-1"></a>    <span class="kw">requires</span><span class="op">(</span></span>
+<span id="cb9-61"><a href="#cb9-61" aria-hidden="true" tabindex="-1"></a>      std<span class="op">::</span>is_base_of_v<span class="op">&lt;</span>float_base, T<span class="op">&gt;</span> <span class="op">&amp;&amp;</span></span>
+<span id="cb9-62"><a href="#cb9-62" aria-hidden="true" tabindex="-1"></a>      <span class="op">!</span> std<span class="op">::</span>is_same_v<span class="op">&lt;</span>T, binary48<span class="op">&gt;)</span></span>
+<span id="cb9-63"><a href="#cb9-63" aria-hidden="true" tabindex="-1"></a>  <span class="kw">friend</span> <span class="dt">double</span> <span class="kw">operator</span><span class="op">+(</span>binary48, T<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb9-64"><a href="#cb9-64" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="fl">0.0</span>;</span>
+<span id="cb9-65"><a href="#cb9-65" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb9-66"><a href="#cb9-66" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
+<span id="cb9-67"><a href="#cb9-67" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-68"><a href="#cb9-68" aria-hidden="true" tabindex="-1"></a><span class="co">// This is well-formed if and only if</span></span>
+<span id="cb9-69"><a href="#cb9-69" aria-hidden="true" tabindex="-1"></a><span class="co">// the return type of operator+ called on (T, ValueType)</span></span>
+<span id="cb9-70"><a href="#cb9-70" aria-hidden="true" tabindex="-1"></a><span class="co">// is the same as T.</span></span>
+<span id="cb9-71"><a href="#cb9-71" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span></span>
+<span id="cb9-72"><a href="#cb9-72" aria-hidden="true" tabindex="-1"></a>  <span class="kw">class</span> <span class="co">/* initial value */</span> T,</span>
+<span id="cb9-73"><a href="#cb9-73" aria-hidden="true" tabindex="-1"></a>  <span class="kw">class</span> <span class="co">/* type of each element of the range */</span> ValueType<span class="op">&gt;</span></span>
+<span id="cb9-74"><a href="#cb9-74" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="dt">bool</span> test<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb9-75"><a href="#cb9-75" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span></span>
+<span id="cb9-76"><a href="#cb9-76" aria-hidden="true" tabindex="-1"></a>    std<span class="op">::</span>is_same_v<span class="op">&lt;</span></span>
+<span id="cb9-77"><a href="#cb9-77" aria-hidden="true" tabindex="-1"></a>      <span class="kw">decltype</span><span class="op">(</span></span>
+<span id="cb9-78"><a href="#cb9-78" aria-hidden="true" tabindex="-1"></a>        std<span class="op">::</span>declval<span class="op">&lt;</span>T<span class="op">&gt;()</span> <span class="op">+</span></span>
+<span id="cb9-79"><a href="#cb9-79" aria-hidden="true" tabindex="-1"></a>        std<span class="op">::</span>declval<span class="op">&lt;</span>ValueType<span class="op">&gt;())</span>,</span>
+<span id="cb9-80"><a href="#cb9-80" aria-hidden="true" tabindex="-1"></a>      T</span>
+<span id="cb9-81"><a href="#cb9-81" aria-hidden="true" tabindex="-1"></a>    <span class="op">&gt;</span>;</span>
+<span id="cb9-82"><a href="#cb9-82" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb9-83"><a href="#cb9-83" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-84"><a href="#cb9-84" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb9-85"><a href="#cb9-85" aria-hidden="true" tabindex="-1"></a>  <span class="op">{</span></span>
+<span id="cb9-86"><a href="#cb9-86" aria-hidden="true" tabindex="-1"></a>    <span class="kw">static_assert</span><span class="op">(!</span> test<span class="op">&lt;</span>std<span class="op">::</span><span class="dt">size_t</span>, <span class="dt">float</span><span class="op">&gt;())</span>;</span>
+<span id="cb9-87"><a href="#cb9-87" aria-hidden="true" tabindex="-1"></a>    <span class="kw">static_assert</span><span class="op">(</span>test<span class="op">&lt;</span><span class="dt">float</span>, std<span class="op">::</span><span class="dt">size_t</span><span class="op">&gt;())</span>;</span>
+<span id="cb9-88"><a href="#cb9-88" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-89"><a href="#cb9-89" aria-hidden="true" tabindex="-1"></a>    <span class="kw">static_assert</span><span class="op">(!</span> test<span class="op">&lt;</span><span class="dt">int32_t</span>, <span class="dt">uint64_t</span><span class="op">&gt;())</span>;</span>
+<span id="cb9-90"><a href="#cb9-90" aria-hidden="true" tabindex="-1"></a>    <span class="kw">static_assert</span><span class="op">(</span>test<span class="op">&lt;</span><span class="dt">uint64_t</span>, <span class="dt">int32_t</span><span class="op">&gt;())</span>;</span>
+<span id="cb9-91"><a href="#cb9-91" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-92"><a href="#cb9-92" aria-hidden="true" tabindex="-1"></a>    <span class="kw">static_assert</span><span class="op">(!</span> test<span class="op">&lt;</span>std<span class="op">::</span><span class="dt">size_t</span>, <span class="dt">double</span><span class="op">&gt;())</span>;</span>
+<span id="cb9-93"><a href="#cb9-93" aria-hidden="true" tabindex="-1"></a>    <span class="kw">static_assert</span><span class="op">(</span>test<span class="op">&lt;</span><span class="dt">double</span>, std<span class="op">::</span><span class="dt">size_t</span><span class="op">&gt;())</span>;</span>
+<span id="cb9-94"><a href="#cb9-94" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-95"><a href="#cb9-95" aria-hidden="true" tabindex="-1"></a>    <span class="kw">static_assert</span><span class="op">(!</span> test<span class="op">&lt;</span><span class="dt">uint64_t</span>, <span class="dt">double</span><span class="op">&gt;())</span>;</span>
+<span id="cb9-96"><a href="#cb9-96" aria-hidden="true" tabindex="-1"></a>    <span class="kw">static_assert</span><span class="op">(</span>test<span class="op">&lt;</span><span class="dt">double</span>, <span class="dt">uint64_t</span><span class="op">&gt;())</span>;</span>
+<span id="cb9-97"><a href="#cb9-97" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-98"><a href="#cb9-98" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Make sure that our custom number types</span></span>
+<span id="cb9-99"><a href="#cb9-99" aria-hidden="true" tabindex="-1"></a>    <span class="co">// have non-ambiguous overloaded operator+</span></span>
+<span id="cb9-100"><a href="#cb9-100" aria-hidden="true" tabindex="-1"></a>    float_float x;</span>
+<span id="cb9-101"><a href="#cb9-101" aria-hidden="true" tabindex="-1"></a>    <span class="kw">static_assert</span><span class="op">(</span>std<span class="op">::</span>is_same_v<span class="op">&lt;</span><span class="kw">decltype</span><span class="op">(</span>x <span class="op">+</span> x<span class="op">)</span>, float_float<span class="op">&gt;)</span>;</span>
+<span id="cb9-102"><a href="#cb9-102" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-103"><a href="#cb9-103" aria-hidden="true" tabindex="-1"></a>    binary48 y;</span>
+<span id="cb9-104"><a href="#cb9-104" aria-hidden="true" tabindex="-1"></a>    <span class="kw">static_assert</span><span class="op">(</span>std<span class="op">::</span>is_same_v<span class="op">&lt;</span><span class="kw">decltype</span><span class="op">(</span>y <span class="op">+</span> y<span class="op">)</span>, binary48<span class="op">&gt;)</span>;</span>
+<span id="cb9-105"><a href="#cb9-105" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-106"><a href="#cb9-106" aria-hidden="true" tabindex="-1"></a>    <span class="kw">static_assert</span><span class="op">(</span>std<span class="op">::</span>is_same_v<span class="op">&lt;</span><span class="kw">decltype</span><span class="op">(</span>x <span class="op">+</span> y<span class="op">)</span>, <span class="dt">double</span><span class="op">&gt;)</span>;</span>
+<span id="cb9-107"><a href="#cb9-107" aria-hidden="true" tabindex="-1"></a>    <span class="kw">static_assert</span><span class="op">(</span>std<span class="op">::</span>is_same_v<span class="op">&lt;</span><span class="kw">decltype</span><span class="op">(</span>y <span class="op">+</span> x<span class="op">)</span>, <span class="dt">double</span><span class="op">&gt;)</span>;</span>
+<span id="cb9-108"><a href="#cb9-108" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-109"><a href="#cb9-109" aria-hidden="true" tabindex="-1"></a>    <span class="kw">static_assert</span><span class="op">(!</span> test<span class="op">&lt;</span><span class="dt">double</span>, float_float<span class="op">&gt;())</span>;</span>
+<span id="cb9-110"><a href="#cb9-110" aria-hidden="true" tabindex="-1"></a>    <span class="kw">static_assert</span><span class="op">(!</span> test<span class="op">&lt;</span><span class="dt">double</span>, binary48<span class="op">&gt;())</span>;</span>
+<span id="cb9-111"><a href="#cb9-111" aria-hidden="true" tabindex="-1"></a>    <span class="kw">static_assert</span><span class="op">(!</span> test<span class="op">&lt;</span><span class="dt">long</span> <span class="dt">double</span>, binary48<span class="op">&gt;())</span>;</span>
+<span id="cb9-112"><a href="#cb9-112" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb9-113"><a href="#cb9-113" aria-hidden="true" tabindex="-1"></a>    <span class="co">// This is the bad thing</span></span>
+<span id="cb9-114"><a href="#cb9-114" aria-hidden="true" tabindex="-1"></a>    <span class="kw">static_assert</span><span class="op">(!</span> test<span class="op">&lt;</span>float_float, binary48<span class="op">&gt;())</span>;</span>
+<span id="cb9-115"><a href="#cb9-115" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb9-116"><a href="#cb9-116" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-117"><a href="#cb9-117" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="dv">0</span>;</span>
+<span id="cb9-118"><a href="#cb9-118" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h2 data-number="9.2" id="expression-templates-and-fold_left-and-reduce-return-types"><span class="header-section-number">9.2</span> Expression templates and
+<code class="sourceCode cpp">fold_left</code> and
+<code class="sourceCode cpp">reduce</code> return types<a href="#expression-templates-and-fold_left-and-reduce-return-types" class="self-link"></a></h2>
+<p>This example shows how to use <code class="sourceCode cpp">std<span class="op">::</span>ranges<span class="op">::</span>fold_left</code>
+and
+<code class="sourceCode cpp">std<span class="op">::</span>reduce</code>
+when the return type of <code class="sourceCode cpp"><span class="kw">operator</span><span class="op">+</span></code>
+is an expression template. <a href="https://godbolt.org/z/q7E1TzYxj">Here</a> is a Compiler Explorer
+link.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;algorithm&gt;</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;array&gt;</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;cassert&gt;</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;cstdint&gt;</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;numeric&gt;</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;type_traits&gt;</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;utility&gt;</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;vector&gt;</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;version&gt;</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a><span class="co">// Expression templates</span></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a><span class="kw">namespace</span> expr <span class="op">{</span></span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a><span class="kw">namespace</span> impl <span class="op">{</span></span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span>std<span class="op">::</span><span class="dt">size_t</span> Size<span class="op">&gt;</span></span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> fixed_vector_expr <span class="op">{</span></span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> std<span class="op">::</span><span class="dt">size_t</span> size<span class="op">()</span> <span class="op">{</span> <span class="cf">return</span> Size; <span class="op">}</span></span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span>std<span class="op">::</span><span class="dt">size_t</span> Size0, std<span class="op">::</span><span class="dt">size_t</span> Size1<span class="op">&gt;</span></span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> binary_fixed_vector_expr_t <span class="op">=</span> fixed_vector_expr<span class="op">&lt;</span></span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>  Size0 <span class="op">&lt;</span> Size1 <span class="op">?</span> Size1 <span class="op">:</span> Size0</span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;</span>;</span>
+<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> <span class="co">// namespace impl</span></span>
+<span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-29"><a href="#cb10-29" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> T<span class="op">&gt;</span></span>
+<span id="cb10-30"><a href="#cb10-30" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="dt">bool</span> is_fixed_vector_v <span class="op">=</span> <span class="kw">false</span>;</span>
+<span id="cb10-31"><a href="#cb10-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-32"><a href="#cb10-32" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> X<span class="op">&gt;</span></span>
+<span id="cb10-33"><a href="#cb10-33" aria-hidden="true" tabindex="-1"></a>  <span class="kw">requires</span><span class="op">(</span>is_fixed_vector_v<span class="op">&lt;</span>X<span class="op">&gt;)</span></span>
+<span id="cb10-34"><a href="#cb10-34" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> unary_plus_expr <span class="op">:</span> <span class="kw">public</span> impl<span class="op">::</span>fixed_vector_expr<span class="op">&lt;</span>X<span class="op">::</span>size<span class="op">()&gt;</span> <span class="op">{</span></span>
+<span id="cb10-35"><a href="#cb10-35" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">auto</span> <span class="kw">operator</span><span class="op">[]</span> <span class="op">(</span>std<span class="op">::</span><span class="dt">size_t</span> k<span class="op">)</span> <span class="kw">const</span> <span class="op">{</span></span>
+<span id="cb10-36"><a href="#cb10-36" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="op">+</span>x<span class="op">[</span>k<span class="op">]</span>;</span>
+<span id="cb10-37"><a href="#cb10-37" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb10-38"><a href="#cb10-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-39"><a href="#cb10-39" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> X<span class="op">&amp;</span> x;</span>
+<span id="cb10-40"><a href="#cb10-40" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
+<span id="cb10-41"><a href="#cb10-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-42"><a href="#cb10-42" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> X<span class="op">&gt;</span></span>
+<span id="cb10-43"><a href="#cb10-43" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="dt">bool</span> is_fixed_vector_v<span class="op">&lt;</span>unary_plus_expr<span class="op">&lt;</span>X<span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="kw">true</span>;</span>
+<span id="cb10-44"><a href="#cb10-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-45"><a href="#cb10-45" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Left, <span class="kw">class</span> Right<span class="op">&gt;</span></span>
+<span id="cb10-46"><a href="#cb10-46" aria-hidden="true" tabindex="-1"></a>  <span class="kw">requires</span><span class="op">(</span>is_fixed_vector_v<span class="op">&lt;</span>Left<span class="op">&gt;</span> <span class="op">&amp;&amp;</span> is_fixed_vector_v<span class="op">&lt;</span>Right<span class="op">&gt;)</span></span>
+<span id="cb10-47"><a href="#cb10-47" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> binary_plus_expr <span class="op">:</span></span>
+<span id="cb10-48"><a href="#cb10-48" aria-hidden="true" tabindex="-1"></a>  <span class="kw">public</span> impl<span class="op">::</span>binary_fixed_vector_expr_t<span class="op">&lt;</span>Left<span class="op">::</span>size<span class="op">()</span>, Right<span class="op">::</span>size<span class="op">()&gt;</span></span>
+<span id="cb10-49"><a href="#cb10-49" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb10-50"><a href="#cb10-50" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
+<span id="cb10-51"><a href="#cb10-51" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Constructor needed due to inheritance;</span></span>
+<span id="cb10-52"><a href="#cb10-52" aria-hidden="true" tabindex="-1"></a>  <span class="co">// otherwise this class could be an aggregate.</span></span>
+<span id="cb10-53"><a href="#cb10-53" aria-hidden="true" tabindex="-1"></a>  binary_plus_expr<span class="op">(</span><span class="kw">const</span> Left<span class="op">&amp;</span> lt, <span class="kw">const</span> Right<span class="op">&amp;</span> rt<span class="op">)</span> <span class="op">:</span> left<span class="op">(</span>lt<span class="op">)</span>, right<span class="op">(</span>rt<span class="op">)</span> <span class="op">{}</span></span>
+<span id="cb10-54"><a href="#cb10-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-55"><a href="#cb10-55" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">auto</span> <span class="kw">operator</span><span class="op">[]</span> <span class="op">(</span>std<span class="op">::</span><span class="dt">size_t</span> k<span class="op">)</span> <span class="kw">const</span> <span class="op">{</span></span>
+<span id="cb10-56"><a href="#cb10-56" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> left<span class="op">[</span>k<span class="op">]</span> <span class="op">+</span> right<span class="op">[</span>k<span class="op">]</span>;</span>
+<span id="cb10-57"><a href="#cb10-57" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb10-58"><a href="#cb10-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-59"><a href="#cb10-59" aria-hidden="true" tabindex="-1"></a><span class="kw">private</span><span class="op">:</span></span>
+<span id="cb10-60"><a href="#cb10-60" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> Left<span class="op">&amp;</span> left;</span>
+<span id="cb10-61"><a href="#cb10-61" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> Right<span class="op">&amp;</span> right;</span>
+<span id="cb10-62"><a href="#cb10-62" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
+<span id="cb10-63"><a href="#cb10-63" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-64"><a href="#cb10-64" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> L, <span class="kw">class</span> R<span class="op">&gt;</span></span>
+<span id="cb10-65"><a href="#cb10-65" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="dt">bool</span> is_fixed_vector_v<span class="op">&lt;</span>binary_plus_expr<span class="op">&lt;</span>L, R<span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="kw">true</span>;</span>
+<span id="cb10-66"><a href="#cb10-66" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-67"><a href="#cb10-67" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> X<span class="op">&gt;</span></span>
+<span id="cb10-68"><a href="#cb10-68" aria-hidden="true" tabindex="-1"></a>  <span class="kw">requires</span><span class="op">(</span>is_fixed_vector_v<span class="op">&lt;</span>X<span class="op">&gt;)</span></span>
+<span id="cb10-69"><a href="#cb10-69" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> unary_minus_expr <span class="op">:</span></span>
+<span id="cb10-70"><a href="#cb10-70" aria-hidden="true" tabindex="-1"></a>  <span class="kw">public</span> impl<span class="op">::</span>fixed_vector_expr<span class="op">&lt;</span>X<span class="op">::</span>size<span class="op">()&gt;</span></span>
+<span id="cb10-71"><a href="#cb10-71" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb10-72"><a href="#cb10-72" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">auto</span> <span class="kw">operator</span><span class="op">[]</span> <span class="op">(</span>std<span class="op">::</span><span class="dt">size_t</span> k<span class="op">)</span> <span class="kw">const</span> <span class="op">{</span></span>
+<span id="cb10-73"><a href="#cb10-73" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="op">-</span>x<span class="op">[</span>k<span class="op">]</span>;</span>
+<span id="cb10-74"><a href="#cb10-74" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb10-75"><a href="#cb10-75" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-76"><a href="#cb10-76" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> X<span class="op">&amp;</span> x;</span>
+<span id="cb10-77"><a href="#cb10-77" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
+<span id="cb10-78"><a href="#cb10-78" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-79"><a href="#cb10-79" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> X<span class="op">&gt;</span></span>
+<span id="cb10-80"><a href="#cb10-80" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="dt">bool</span> is_fixed_vector_v<span class="op">&lt;</span>unary_minus_expr<span class="op">&lt;</span>X<span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="kw">true</span>;</span>
+<span id="cb10-81"><a href="#cb10-81" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-82"><a href="#cb10-82" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Left, <span class="kw">class</span> Right<span class="op">&gt;</span></span>
+<span id="cb10-83"><a href="#cb10-83" aria-hidden="true" tabindex="-1"></a>  <span class="kw">requires</span><span class="op">(</span>is_fixed_vector_v<span class="op">&lt;</span>Left<span class="op">&gt;</span> <span class="op">&amp;&amp;</span> is_fixed_vector_v<span class="op">&lt;</span>Right<span class="op">&gt;)</span></span>
+<span id="cb10-84"><a href="#cb10-84" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> binary_minus_expr <span class="op">:</span></span>
+<span id="cb10-85"><a href="#cb10-85" aria-hidden="true" tabindex="-1"></a>  <span class="kw">public</span> impl<span class="op">::</span>binary_fixed_vector_expr_t<span class="op">&lt;</span>Left<span class="op">::</span>size<span class="op">()</span>, Right<span class="op">::</span>size<span class="op">()&gt;</span></span>
+<span id="cb10-86"><a href="#cb10-86" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb10-87"><a href="#cb10-87" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
+<span id="cb10-88"><a href="#cb10-88" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Constructor needed due to inheritance;</span></span>
+<span id="cb10-89"><a href="#cb10-89" aria-hidden="true" tabindex="-1"></a>  <span class="co">// otherwise this class could be an aggregate.</span></span>
+<span id="cb10-90"><a href="#cb10-90" aria-hidden="true" tabindex="-1"></a>  binary_minus_expr<span class="op">(</span><span class="kw">const</span> Left<span class="op">&amp;</span> lt, <span class="kw">const</span> Right<span class="op">&amp;</span> rt<span class="op">)</span> <span class="op">:</span> left<span class="op">(</span>lt<span class="op">)</span>, right<span class="op">(</span>rt<span class="op">)</span> <span class="op">{}</span></span>
+<span id="cb10-91"><a href="#cb10-91" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-92"><a href="#cb10-92" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">auto</span> <span class="kw">operator</span><span class="op">[]</span> <span class="op">(</span>std<span class="op">::</span><span class="dt">size_t</span> k<span class="op">)</span> <span class="kw">const</span> <span class="op">{</span></span>
+<span id="cb10-93"><a href="#cb10-93" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> left<span class="op">[</span>k<span class="op">]</span> <span class="op">-</span> right<span class="op">[</span>k<span class="op">]</span>;</span>
+<span id="cb10-94"><a href="#cb10-94" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb10-95"><a href="#cb10-95" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-96"><a href="#cb10-96" aria-hidden="true" tabindex="-1"></a><span class="kw">private</span><span class="op">:</span></span>
+<span id="cb10-97"><a href="#cb10-97" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> Left<span class="op">&amp;</span> left;</span>
+<span id="cb10-98"><a href="#cb10-98" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> Right<span class="op">&amp;</span> right;</span>
+<span id="cb10-99"><a href="#cb10-99" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
+<span id="cb10-100"><a href="#cb10-100" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-101"><a href="#cb10-101" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> L, <span class="kw">class</span> R<span class="op">&gt;</span></span>
+<span id="cb10-102"><a href="#cb10-102" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="dt">bool</span> is_fixed_vector_v<span class="op">&lt;</span>binary_minus_expr<span class="op">&lt;</span>L, R<span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="kw">true</span>;</span>
+<span id="cb10-103"><a href="#cb10-103" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-104"><a href="#cb10-104" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ScalingFactor, <span class="kw">class</span> Vector<span class="op">&gt;</span></span>
+<span id="cb10-105"><a href="#cb10-105" aria-hidden="true" tabindex="-1"></a>  <span class="kw">requires</span><span class="op">(</span></span>
+<span id="cb10-106"><a href="#cb10-106" aria-hidden="true" tabindex="-1"></a>    <span class="op">!</span> is_fixed_vector_v<span class="op">&lt;</span>ScalingFactor<span class="op">&gt;</span> <span class="op">&amp;&amp;</span></span>
+<span id="cb10-107"><a href="#cb10-107" aria-hidden="true" tabindex="-1"></a>    is_fixed_vector_v<span class="op">&lt;</span>Vector<span class="op">&gt;)</span></span>
+<span id="cb10-108"><a href="#cb10-108" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> scale_expr <span class="op">:</span></span>
+<span id="cb10-109"><a href="#cb10-109" aria-hidden="true" tabindex="-1"></a>  <span class="kw">public</span> impl<span class="op">::</span>fixed_vector_expr<span class="op">&lt;</span>Vector<span class="op">::</span>size<span class="op">()&gt;</span></span>
+<span id="cb10-110"><a href="#cb10-110" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb10-111"><a href="#cb10-111" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
+<span id="cb10-112"><a href="#cb10-112" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Constructor needed due to inheritance;</span></span>
+<span id="cb10-113"><a href="#cb10-113" aria-hidden="true" tabindex="-1"></a>  <span class="co">// otherwise this class could be an aggregate.</span></span>
+<span id="cb10-114"><a href="#cb10-114" aria-hidden="true" tabindex="-1"></a>  scale_expr<span class="op">(</span><span class="kw">const</span> ScalingFactor<span class="op">&amp;</span> sf, <span class="kw">const</span> Vector<span class="op">&amp;</span> v<span class="op">)</span> <span class="op">:</span></span>
+<span id="cb10-115"><a href="#cb10-115" aria-hidden="true" tabindex="-1"></a>    alpha<span class="op">(</span>sf<span class="op">)</span>, vec<span class="op">(</span>v<span class="op">)</span></span>
+<span id="cb10-116"><a href="#cb10-116" aria-hidden="true" tabindex="-1"></a>  <span class="op">{}</span></span>
+<span id="cb10-117"><a href="#cb10-117" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-118"><a href="#cb10-118" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">auto</span> <span class="kw">operator</span><span class="op">[]</span> <span class="op">(</span>std<span class="op">::</span><span class="dt">size_t</span> k<span class="op">)</span> <span class="kw">const</span> <span class="op">{</span></span>
+<span id="cb10-119"><a href="#cb10-119" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> alpha <span class="op">*</span> vec<span class="op">[</span>k<span class="op">]</span>;</span>
+<span id="cb10-120"><a href="#cb10-120" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb10-121"><a href="#cb10-121" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-122"><a href="#cb10-122" aria-hidden="true" tabindex="-1"></a><span class="kw">private</span><span class="op">:</span></span>
+<span id="cb10-123"><a href="#cb10-123" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> ScalingFactor<span class="op">&amp;</span> alpha;</span>
+<span id="cb10-124"><a href="#cb10-124" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> Vector<span class="op">&amp;</span> vec;</span>
+<span id="cb10-125"><a href="#cb10-125" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
+<span id="cb10-126"><a href="#cb10-126" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-127"><a href="#cb10-127" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> S, <span class="kw">class</span> V<span class="op">&gt;</span></span>
+<span id="cb10-128"><a href="#cb10-128" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="dt">bool</span> is_fixed_vector_v<span class="op">&lt;</span>scale_expr<span class="op">&lt;</span>S, V<span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="kw">true</span>;</span>
+<span id="cb10-129"><a href="#cb10-129" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-130"><a href="#cb10-130" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ValueType, std<span class="op">::</span><span class="dt">size_t</span> Size<span class="op">&gt;</span> </span>
+<span id="cb10-131"><a href="#cb10-131" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> fixed_vector;</span>
+<span id="cb10-132"><a href="#cb10-132" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-133"><a href="#cb10-133" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ValueType, std<span class="op">::</span><span class="dt">size_t</span> Size<span class="op">&gt;</span> </span>
+<span id="cb10-134"><a href="#cb10-134" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="dt">bool</span></span>
+<span id="cb10-135"><a href="#cb10-135" aria-hidden="true" tabindex="-1"></a>is_fixed_vector_v<span class="op">&lt;</span>fixed_vector<span class="op">&lt;</span>ValueType, Size<span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="kw">true</span>;</span>
+<span id="cb10-136"><a href="#cb10-136" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-137"><a href="#cb10-137" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ValueType, std<span class="op">::</span><span class="dt">size_t</span> Size<span class="op">&gt;</span> </span>
+<span id="cb10-138"><a href="#cb10-138" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> fixed_vector <span class="op">:</span> <span class="kw">public</span> impl<span class="op">::</span>fixed_vector_expr<span class="op">&lt;</span>Size<span class="op">&gt;</span> <span class="op">{</span></span>
+<span id="cb10-139"><a href="#cb10-139" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
+<span id="cb10-140"><a href="#cb10-140" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> fixed_vector<span class="op">()</span> <span class="op">=</span> <span class="cf">default</span>;</span>
+<span id="cb10-141"><a href="#cb10-141" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-142"><a href="#cb10-142" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> fixed_vector<span class="op">(</span><span class="kw">const</span> std<span class="op">::</span>array<span class="op">&lt;</span>ValueType, Size<span class="op">&gt;&amp;</span> data<span class="op">)</span></span>
+<span id="cb10-143"><a href="#cb10-143" aria-hidden="true" tabindex="-1"></a>    <span class="op">:</span> data_<span class="op">(</span>data<span class="op">)</span></span>
+<span id="cb10-144"><a href="#cb10-144" aria-hidden="true" tabindex="-1"></a>  <span class="op">{}</span></span>
+<span id="cb10-145"><a href="#cb10-145" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-146"><a href="#cb10-146" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Expr<span class="op">&gt;</span></span>
+<span id="cb10-147"><a href="#cb10-147" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> fixed_vector<span class="op">(</span><span class="kw">const</span> Expr<span class="op">&amp;</span> expr<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb10-148"><a href="#cb10-148" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> <span class="op">(</span>std<span class="op">::</span><span class="dt">size_t</span> k <span class="op">=</span> <span class="dv">0</span>; k <span class="op">&lt;</span> Size; <span class="op">++</span>k<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb10-149"><a href="#cb10-149" aria-hidden="true" tabindex="-1"></a>      data_<span class="op">[</span>k<span class="op">]</span> <span class="op">=</span> expr<span class="op">[</span>k<span class="op">]</span>;</span>
+<span id="cb10-150"><a href="#cb10-150" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb10-151"><a href="#cb10-151" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb10-152"><a href="#cb10-152" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-153"><a href="#cb10-153" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Expr<span class="op">&gt;</span></span>
+<span id="cb10-154"><a href="#cb10-154" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> fixed_vector<span class="op">&amp;</span> <span class="kw">operator</span><span class="op">=(</span><span class="kw">const</span> Expr<span class="op">&amp;</span> expr<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb10-155"><a href="#cb10-155" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> <span class="op">(</span>std<span class="op">::</span><span class="dt">size_t</span> k <span class="op">=</span> <span class="dv">0</span>; k <span class="op">&lt;</span> Size; <span class="op">++</span>k<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb10-156"><a href="#cb10-156" aria-hidden="true" tabindex="-1"></a>      data_<span class="op">[</span>k<span class="op">]</span> <span class="op">=</span> expr<span class="op">[</span>k<span class="op">]</span>;</span>
+<span id="cb10-157"><a href="#cb10-157" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb10-158"><a href="#cb10-158" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="op">*</span><span class="kw">this</span>;</span>
+<span id="cb10-159"><a href="#cb10-159" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb10-160"><a href="#cb10-160" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-161"><a href="#cb10-161" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Expr<span class="op">&gt;</span></span>
+<span id="cb10-162"><a href="#cb10-162" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> fixed_vector<span class="op">&amp;</span> <span class="kw">operator</span><span class="op">+=(</span><span class="kw">const</span> Expr<span class="op">&amp;</span> expr<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb10-163"><a href="#cb10-163" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> <span class="op">(</span>std<span class="op">::</span><span class="dt">size_t</span> k <span class="op">=</span> <span class="dv">0</span>; k <span class="op">&lt;</span> Size; <span class="op">++</span>k<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb10-164"><a href="#cb10-164" aria-hidden="true" tabindex="-1"></a>      data_<span class="op">[</span>k<span class="op">]</span> <span class="op">+=</span> expr<span class="op">[</span>k<span class="op">]</span>;</span>
+<span id="cb10-165"><a href="#cb10-165" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb10-166"><a href="#cb10-166" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="op">*</span><span class="kw">this</span>;</span>
+<span id="cb10-167"><a href="#cb10-167" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb10-168"><a href="#cb10-168" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-169"><a href="#cb10-169" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> std<span class="op">::</span><span class="dt">size_t</span> size<span class="op">()</span> <span class="op">{</span> <span class="cf">return</span> Size; <span class="op">}</span></span>
+<span id="cb10-170"><a href="#cb10-170" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-171"><a href="#cb10-171" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> ValueType <span class="kw">operator</span><span class="op">[]</span> <span class="op">(</span>std<span class="op">::</span><span class="dt">size_t</span> k<span class="op">)</span> <span class="kw">const</span> <span class="op">{</span></span>
+<span id="cb10-172"><a href="#cb10-172" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> data_<span class="op">[</span>k<span class="op">]</span>;</span>
+<span id="cb10-173"><a href="#cb10-173" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb10-174"><a href="#cb10-174" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-175"><a href="#cb10-175" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> ValueType<span class="op">&amp;</span> <span class="kw">operator</span><span class="op">[]</span> <span class="op">(</span>std<span class="op">::</span><span class="dt">size_t</span> k<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb10-176"><a href="#cb10-176" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> data_<span class="op">[</span>k<span class="op">]</span>;</span>
+<span id="cb10-177"><a href="#cb10-177" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb10-178"><a href="#cb10-178" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-179"><a href="#cb10-179" aria-hidden="true" tabindex="-1"></a><span class="kw">private</span><span class="op">:</span></span>
+<span id="cb10-180"><a href="#cb10-180" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>array<span class="op">&lt;</span>ValueType, Size<span class="op">&gt;</span> data_<span class="op">{}</span>;</span>
+<span id="cb10-181"><a href="#cb10-181" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
+<span id="cb10-182"><a href="#cb10-182" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-183"><a href="#cb10-183" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> X<span class="op">&gt;</span></span>
+<span id="cb10-184"><a href="#cb10-184" aria-hidden="true" tabindex="-1"></a>  <span class="kw">requires</span><span class="op">(</span>is_fixed_vector_v<span class="op">&lt;</span>X<span class="op">&gt;)</span></span>
+<span id="cb10-185"><a href="#cb10-185" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> unary_plus_expr<span class="op">&lt;</span>X<span class="op">&gt;</span></span>
+<span id="cb10-186"><a href="#cb10-186" aria-hidden="true" tabindex="-1"></a><span class="kw">operator</span><span class="op">+(</span><span class="kw">const</span> X<span class="op">&amp;</span> x<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb10-187"><a href="#cb10-187" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="op">{</span>x<span class="op">}</span>;</span>
+<span id="cb10-188"><a href="#cb10-188" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb10-189"><a href="#cb10-189" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-190"><a href="#cb10-190" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> X<span class="op">&gt;</span></span>
+<span id="cb10-191"><a href="#cb10-191" aria-hidden="true" tabindex="-1"></a>  <span class="kw">requires</span><span class="op">(</span>is_fixed_vector_v<span class="op">&lt;</span>X<span class="op">&gt;)</span></span>
+<span id="cb10-192"><a href="#cb10-192" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> unary_minus_expr<span class="op">&lt;</span>X<span class="op">&gt;</span></span>
+<span id="cb10-193"><a href="#cb10-193" aria-hidden="true" tabindex="-1"></a><span class="kw">operator</span><span class="op">-(</span><span class="kw">const</span> X<span class="op">&amp;</span> x<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb10-194"><a href="#cb10-194" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="op">{</span>x<span class="op">}</span>;</span>
+<span id="cb10-195"><a href="#cb10-195" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb10-196"><a href="#cb10-196" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-197"><a href="#cb10-197" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> L, <span class="kw">class</span> R<span class="op">&gt;</span></span>
+<span id="cb10-198"><a href="#cb10-198" aria-hidden="true" tabindex="-1"></a>  <span class="kw">requires</span><span class="op">(</span></span>
+<span id="cb10-199"><a href="#cb10-199" aria-hidden="true" tabindex="-1"></a>    is_fixed_vector_v<span class="op">&lt;</span>L<span class="op">&gt;</span> <span class="op">&amp;&amp;</span></span>
+<span id="cb10-200"><a href="#cb10-200" aria-hidden="true" tabindex="-1"></a>    is_fixed_vector_v<span class="op">&lt;</span>R<span class="op">&gt;)</span></span>
+<span id="cb10-201"><a href="#cb10-201" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> binary_plus_expr<span class="op">&lt;</span>L, R<span class="op">&gt;</span></span>
+<span id="cb10-202"><a href="#cb10-202" aria-hidden="true" tabindex="-1"></a><span class="kw">operator</span><span class="op">+(</span><span class="kw">const</span> L<span class="op">&amp;</span> left, <span class="kw">const</span> R<span class="op">&amp;</span> right<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb10-203"><a href="#cb10-203" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="op">{</span>left, right<span class="op">}</span>;</span>
+<span id="cb10-204"><a href="#cb10-204" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb10-205"><a href="#cb10-205" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-206"><a href="#cb10-206" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> L, <span class="kw">class</span> R<span class="op">&gt;</span></span>
+<span id="cb10-207"><a href="#cb10-207" aria-hidden="true" tabindex="-1"></a>  <span class="kw">requires</span><span class="op">(</span></span>
+<span id="cb10-208"><a href="#cb10-208" aria-hidden="true" tabindex="-1"></a>    is_fixed_vector_v<span class="op">&lt;</span>L<span class="op">&gt;</span> <span class="op">&amp;&amp;</span></span>
+<span id="cb10-209"><a href="#cb10-209" aria-hidden="true" tabindex="-1"></a>    is_fixed_vector_v<span class="op">&lt;</span>R<span class="op">&gt;)</span></span>
+<span id="cb10-210"><a href="#cb10-210" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> binary_minus_expr<span class="op">&lt;</span>L, R<span class="op">&gt;</span></span>
+<span id="cb10-211"><a href="#cb10-211" aria-hidden="true" tabindex="-1"></a><span class="kw">operator</span><span class="op">-(</span><span class="kw">const</span> L<span class="op">&amp;</span> left, <span class="kw">const</span> R<span class="op">&amp;</span> right<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb10-212"><a href="#cb10-212" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="op">{</span>left, right<span class="op">}</span>;</span>
+<span id="cb10-213"><a href="#cb10-213" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb10-214"><a href="#cb10-214" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-215"><a href="#cb10-215" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ScalingFactor, <span class="kw">class</span> Vector<span class="op">&gt;</span></span>
+<span id="cb10-216"><a href="#cb10-216" aria-hidden="true" tabindex="-1"></a>  <span class="kw">requires</span><span class="op">(</span></span>
+<span id="cb10-217"><a href="#cb10-217" aria-hidden="true" tabindex="-1"></a>    <span class="op">!</span> is_fixed_vector_v<span class="op">&lt;</span>ScalingFactor<span class="op">&gt;</span> <span class="op">&amp;&amp;</span></span>
+<span id="cb10-218"><a href="#cb10-218" aria-hidden="true" tabindex="-1"></a>    is_fixed_vector_v<span class="op">&lt;</span>Vector<span class="op">&gt;)</span></span>
+<span id="cb10-219"><a href="#cb10-219" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> scale_expr<span class="op">&lt;</span>ScalingFactor, Vector<span class="op">&gt;</span></span>
+<span id="cb10-220"><a href="#cb10-220" aria-hidden="true" tabindex="-1"></a><span class="kw">operator</span><span class="op">*(</span><span class="kw">const</span> ScalingFactor<span class="op">&amp;</span> alpha, <span class="kw">const</span> Vector<span class="op">&amp;</span> v<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb10-221"><a href="#cb10-221" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="op">{</span>alpha, v<span class="op">}</span>;</span>
+<span id="cb10-222"><a href="#cb10-222" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb10-223"><a href="#cb10-223" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-224"><a href="#cb10-224" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> <span class="co">// namespace expr</span></span>
+<span id="cb10-225"><a href="#cb10-225" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-226"><a href="#cb10-226" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb10-227"><a href="#cb10-227" aria-hidden="true" tabindex="-1"></a>  <span class="op">{</span></span>
+<span id="cb10-228"><a href="#cb10-228" aria-hidden="true" tabindex="-1"></a>    <span class="kw">using</span> expr<span class="op">::</span>fixed_vector;</span>
+<span id="cb10-229"><a href="#cb10-229" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-230"><a href="#cb10-230" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Test our expression templates system.</span></span>
+<span id="cb10-231"><a href="#cb10-231" aria-hidden="true" tabindex="-1"></a>    <span class="op">{</span></span>
+<span id="cb10-232"><a href="#cb10-232" aria-hidden="true" tabindex="-1"></a>      fixed_vector x<span class="op">{</span>std<span class="op">::</span>array<span class="op">{</span><span class="fl">1.0</span><span class="bu">f</span>, <span class="fl">2.0</span><span class="bu">f</span>, <span class="fl">3.0</span><span class="bu">f</span>, <span class="fl">4.0</span><span class="bu">f</span><span class="op">}}</span>;</span>
+<span id="cb10-233"><a href="#cb10-233" aria-hidden="true" tabindex="-1"></a>      fixed_vector y<span class="op">{</span>std<span class="op">::</span>array<span class="op">{-</span><span class="fl">1.0</span><span class="bu">f</span>, <span class="op">-</span><span class="fl">2.0</span><span class="bu">f</span>, <span class="op">-</span><span class="fl">3.0</span><span class="bu">f</span>, <span class="op">-</span><span class="fl">4.0</span><span class="bu">f</span><span class="op">}}</span>;</span>
+<span id="cb10-234"><a href="#cb10-234" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-235"><a href="#cb10-235" aria-hidden="true" tabindex="-1"></a>      fixed_vector<span class="op">&lt;</span><span class="dt">float</span>, <span class="dv">4</span><span class="op">&gt;</span> x_plus_y <span class="op">=</span> x <span class="op">+</span> y;</span>
+<span id="cb10-236"><a href="#cb10-236" aria-hidden="true" tabindex="-1"></a>      fixed_vector x_plus_y_expected<span class="op">{</span>std<span class="op">::</span>array<span class="op">{</span><span class="fl">0.0</span><span class="bu">f</span>, <span class="fl">0.0</span><span class="bu">f</span>, <span class="fl">0.0</span><span class="bu">f</span>, <span class="fl">0.0</span><span class="bu">f</span><span class="op">}}</span>;</span>
+<span id="cb10-237"><a href="#cb10-237" aria-hidden="true" tabindex="-1"></a>      <span class="cf">for</span> <span class="op">(</span>std<span class="op">::</span><span class="dt">size_t</span> k <span class="op">=</span> <span class="dv">0</span>; k <span class="op">&lt;</span> <span class="dv">4</span>; <span class="op">++</span>k<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb10-238"><a href="#cb10-238" aria-hidden="true" tabindex="-1"></a>        <span class="ot">assert</span><span class="op">(</span>x_plus_y<span class="op">[</span>k<span class="op">]</span> <span class="op">==</span> x_plus_y_expected<span class="op">[</span>k<span class="op">])</span>;</span>
+<span id="cb10-239"><a href="#cb10-239" aria-hidden="true" tabindex="-1"></a>      <span class="op">}</span></span>
+<span id="cb10-240"><a href="#cb10-240" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-241"><a href="#cb10-241" aria-hidden="true" tabindex="-1"></a>      fixed_vector<span class="op">&lt;</span><span class="dt">float</span>, <span class="dv">4</span><span class="op">&gt;</span> three_times_x <span class="op">=</span> <span class="fl">3.0</span><span class="bu">f</span> <span class="op">*</span> x;</span>
+<span id="cb10-242"><a href="#cb10-242" aria-hidden="true" tabindex="-1"></a>      fixed_vector three_times_x_expected<span class="op">{</span>std<span class="op">::</span>array<span class="op">{</span><span class="fl">3.0</span><span class="bu">f</span>, <span class="fl">6.0</span><span class="bu">f</span>, <span class="fl">9.0</span><span class="bu">f</span>, <span class="fl">12.0</span><span class="bu">f</span><span class="op">}}</span>;</span>
+<span id="cb10-243"><a href="#cb10-243" aria-hidden="true" tabindex="-1"></a>      <span class="cf">for</span> <span class="op">(</span>std<span class="op">::</span><span class="dt">size_t</span> k <span class="op">=</span> <span class="dv">0</span>; k <span class="op">&lt;</span> <span class="dv">4</span>; <span class="op">++</span>k<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb10-244"><a href="#cb10-244" aria-hidden="true" tabindex="-1"></a>        <span class="ot">assert</span><span class="op">(</span>three_times_x<span class="op">[</span>k<span class="op">]</span> <span class="op">==</span> three_times_x_expected<span class="op">[</span>k<span class="op">])</span>;</span>
+<span id="cb10-245"><a href="#cb10-245" aria-hidden="true" tabindex="-1"></a>      <span class="op">}</span></span>
+<span id="cb10-246"><a href="#cb10-246" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-247"><a href="#cb10-247" aria-hidden="true" tabindex="-1"></a>      fixed_vector<span class="op">&lt;</span><span class="dt">float</span>, <span class="dv">4</span><span class="op">&gt;</span> z <span class="op">=</span> <span class="fl">3.0</span><span class="bu">f</span> <span class="op">*</span> x <span class="op">+</span> y;</span>
+<span id="cb10-248"><a href="#cb10-248" aria-hidden="true" tabindex="-1"></a>      fixed_vector z_expected<span class="op">{</span>std<span class="op">::</span>array<span class="op">{</span><span class="fl">2.0</span><span class="bu">f</span>, <span class="fl">4.0</span><span class="bu">f</span>, <span class="fl">6.0</span><span class="bu">f</span>, <span class="fl">8.0</span><span class="bu">f</span><span class="op">}}</span>;</span>
+<span id="cb10-249"><a href="#cb10-249" aria-hidden="true" tabindex="-1"></a>      <span class="cf">for</span> <span class="op">(</span>std<span class="op">::</span><span class="dt">size_t</span> k <span class="op">=</span> <span class="dv">0</span>; k <span class="op">&lt;</span> <span class="dv">4</span>; <span class="op">++</span>k<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb10-250"><a href="#cb10-250" aria-hidden="true" tabindex="-1"></a>        <span class="ot">assert</span><span class="op">(</span>z<span class="op">[</span>k<span class="op">]</span> <span class="op">==</span> z_expected<span class="op">[</span>k<span class="op">])</span>;</span>
+<span id="cb10-251"><a href="#cb10-251" aria-hidden="true" tabindex="-1"></a>      <span class="op">}</span></span>
+<span id="cb10-252"><a href="#cb10-252" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb10-253"><a href="#cb10-253" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-254"><a href="#cb10-254" aria-hidden="true" tabindex="-1"></a>    std<span class="op">::</span>vector<span class="op">&lt;</span>fixed_vector<span class="op">&lt;</span><span class="dt">float</span>, <span class="dv">4</span><span class="op">&gt;&gt;</span> vec<span class="op">{</span></span>
+<span id="cb10-255"><a href="#cb10-255" aria-hidden="true" tabindex="-1"></a>      fixed_vector<span class="op">{</span>std<span class="op">::</span>array<span class="op">{</span><span class="fl">1.0</span><span class="bu">f</span>, <span class="fl">2.0</span><span class="bu">f</span>, <span class="fl">3.0</span><span class="bu">f</span>, <span class="fl">4.0</span><span class="bu">f</span><span class="op">}}</span>,</span>
+<span id="cb10-256"><a href="#cb10-256" aria-hidden="true" tabindex="-1"></a>      fixed_vector<span class="op">{</span>std<span class="op">::</span>array<span class="op">{</span><span class="fl">0.5</span><span class="bu">f</span>, <span class="fl">1.0</span><span class="bu">f</span>, <span class="fl">1.5</span><span class="bu">f</span>, <span class="fl">2.0</span><span class="bu">f</span><span class="op">}}</span>,</span>
+<span id="cb10-257"><a href="#cb10-257" aria-hidden="true" tabindex="-1"></a>      fixed_vector<span class="op">{</span>std<span class="op">::</span>array<span class="op">{</span><span class="fl">0.25</span><span class="bu">f</span>, <span class="fl">0.5</span><span class="bu">f</span>, <span class="fl">0.75</span><span class="bu">f</span>, <span class="fl">1.0</span><span class="bu">f</span><span class="op">}}</span></span>
+<span id="cb10-258"><a href="#cb10-258" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span>;</span>
+<span id="cb10-259"><a href="#cb10-259" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> fixed_vector zero<span class="op">{</span>std<span class="op">::</span>array<span class="op">{</span><span class="fl">0.0</span><span class="bu">f</span>, <span class="fl">0.0</span><span class="bu">f</span>, <span class="fl">0.0</span><span class="bu">f</span>, <span class="fl">0.0</span><span class="bu">f</span><span class="op">}}</span>;</span>
+<span id="cb10-260"><a href="#cb10-260" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> fixed_vector expected_result<span class="op">{</span>std<span class="op">::</span>array<span class="op">{</span></span>
+<span id="cb10-261"><a href="#cb10-261" aria-hidden="true" tabindex="-1"></a>      <span class="fl">1.75</span><span class="bu">f</span>, <span class="fl">3.5</span><span class="bu">f</span>, <span class="fl">5.25</span><span class="bu">f</span>, <span class="fl">7.0</span><span class="bu">f</span>  </span>
+<span id="cb10-262"><a href="#cb10-262" aria-hidden="true" tabindex="-1"></a>    <span class="op">}}</span>;</span>
+<span id="cb10-263"><a href="#cb10-263" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-264"><a href="#cb10-264" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Show that a manual for loop with std::plus&lt;&gt; produces</span></span>
+<span id="cb10-265"><a href="#cb10-265" aria-hidden="true" tabindex="-1"></a>    <span class="co">// the expected result.  std::plus&lt;&gt;::operator() returns</span></span>
+<span id="cb10-266"><a href="#cb10-266" aria-hidden="true" tabindex="-1"></a>    <span class="co">// an expression template (binary_plus_expr) here.</span></span>
+<span id="cb10-267"><a href="#cb10-267" aria-hidden="true" tabindex="-1"></a>    <span class="op">{</span></span>
+<span id="cb10-268"><a href="#cb10-268" aria-hidden="true" tabindex="-1"></a>      fixed_vector<span class="op">&lt;</span><span class="dt">float</span>, <span class="dv">4</span><span class="op">&gt;</span> plus_result;</span>
+<span id="cb10-269"><a href="#cb10-269" aria-hidden="true" tabindex="-1"></a>      std<span class="op">::</span>plus<span class="op">&lt;&gt;</span> plus<span class="op">{}</span>;</span>
+<span id="cb10-270"><a href="#cb10-270" aria-hidden="true" tabindex="-1"></a>      <span class="kw">static_assert</span><span class="op">(</span></span>
+<span id="cb10-271"><a href="#cb10-271" aria-hidden="true" tabindex="-1"></a>        std<span class="op">::</span>is_same_v<span class="op">&lt;</span></span>
+<span id="cb10-272"><a href="#cb10-272" aria-hidden="true" tabindex="-1"></a>          <span class="kw">decltype</span><span class="op">(</span>plus<span class="op">(</span>plus_result, vec<span class="op">[</span><span class="dv">0</span><span class="op">]))</span>,</span>
+<span id="cb10-273"><a href="#cb10-273" aria-hidden="true" tabindex="-1"></a>          expr<span class="op">::</span>binary_plus_expr<span class="op">&lt;</span></span>
+<span id="cb10-274"><a href="#cb10-274" aria-hidden="true" tabindex="-1"></a>            fixed_vector<span class="op">&lt;</span><span class="dt">float</span>, <span class="dv">4</span><span class="op">&gt;</span>,</span>
+<span id="cb10-275"><a href="#cb10-275" aria-hidden="true" tabindex="-1"></a>            fixed_vector<span class="op">&lt;</span><span class="dt">float</span>, <span class="dv">4</span><span class="op">&gt;&gt;</span></span>
+<span id="cb10-276"><a href="#cb10-276" aria-hidden="true" tabindex="-1"></a>        <span class="op">&gt;</span></span>
+<span id="cb10-277"><a href="#cb10-277" aria-hidden="true" tabindex="-1"></a>      <span class="op">)</span>;</span>
+<span id="cb10-278"><a href="#cb10-278" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-279"><a href="#cb10-279" aria-hidden="true" tabindex="-1"></a>      <span class="cf">for</span> <span class="op">(</span>std<span class="op">::</span><span class="dt">size_t</span> k <span class="op">=</span> <span class="dv">0</span>; k <span class="op">&lt;</span> vec<span class="op">.</span>size<span class="op">()</span>; <span class="op">++</span>k<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb10-280"><a href="#cb10-280" aria-hidden="true" tabindex="-1"></a>        plus_result <span class="op">=</span> plus<span class="op">(</span>plus_result, vec<span class="op">[</span>k<span class="op">])</span>;</span>
+<span id="cb10-281"><a href="#cb10-281" aria-hidden="true" tabindex="-1"></a>      <span class="op">}</span></span>
+<span id="cb10-282"><a href="#cb10-282" aria-hidden="true" tabindex="-1"></a>      <span class="cf">for</span> <span class="op">(</span>std<span class="op">::</span><span class="dt">size_t</span> k <span class="op">=</span> <span class="dv">0</span>; k <span class="op">&lt;</span> <span class="dv">4</span>; <span class="op">++</span>k<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb10-283"><a href="#cb10-283" aria-hidden="true" tabindex="-1"></a>        <span class="ot">assert</span><span class="op">(</span>plus_result<span class="op">[</span>k<span class="op">]</span> <span class="op">==</span> expected_result<span class="op">[</span>k<span class="op">])</span>;  </span>
+<span id="cb10-284"><a href="#cb10-284" aria-hidden="true" tabindex="-1"></a>      <span class="op">}</span></span>
+<span id="cb10-285"><a href="#cb10-285" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb10-286"><a href="#cb10-286" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-287"><a href="#cb10-287" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Show that a manual for loop produces the expected result.</span></span>
+<span id="cb10-288"><a href="#cb10-288" aria-hidden="true" tabindex="-1"></a>    <span class="co">// This invokes fixed_vector&#39;s generic operator+=</span></span>
+<span id="cb10-289"><a href="#cb10-289" aria-hidden="true" tabindex="-1"></a>    <span class="co">// that works for any &quot;fixed-vector-like&quot; type, including</span></span>
+<span id="cb10-290"><a href="#cb10-290" aria-hidden="true" tabindex="-1"></a>    <span class="co">// fixed_vector itself and any of its expression templates.</span></span>
+<span id="cb10-291"><a href="#cb10-291" aria-hidden="true" tabindex="-1"></a>    <span class="op">{</span></span>
+<span id="cb10-292"><a href="#cb10-292" aria-hidden="true" tabindex="-1"></a>      fixed_vector<span class="op">&lt;</span><span class="dt">float</span>, <span class="dv">4</span><span class="op">&gt;</span> manual_result;</span>
+<span id="cb10-293"><a href="#cb10-293" aria-hidden="true" tabindex="-1"></a>      <span class="cf">for</span> <span class="op">(</span>std<span class="op">::</span><span class="dt">size_t</span> outer_index <span class="op">=</span> <span class="dv">0</span>; outer_index <span class="op">&lt;</span> vec<span class="op">.</span>size<span class="op">()</span>; <span class="op">++</span>outer_index<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb10-294"><a href="#cb10-294" aria-hidden="true" tabindex="-1"></a>        manual_result <span class="op">+=</span> vec<span class="op">[</span>outer_index<span class="op">]</span>;</span>
+<span id="cb10-295"><a href="#cb10-295" aria-hidden="true" tabindex="-1"></a>      <span class="op">}</span></span>
+<span id="cb10-296"><a href="#cb10-296" aria-hidden="true" tabindex="-1"></a>      <span class="cf">for</span> <span class="op">(</span>std<span class="op">::</span><span class="dt">size_t</span> k <span class="op">=</span> <span class="dv">0</span>; k <span class="op">&lt;</span> <span class="dv">4</span>; <span class="op">++</span>k<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb10-297"><a href="#cb10-297" aria-hidden="true" tabindex="-1"></a>        <span class="ot">assert</span><span class="op">(</span>manual_result<span class="op">[</span>k<span class="op">]</span> <span class="op">==</span> expected_result<span class="op">[</span>k<span class="op">])</span>;  </span>
+<span id="cb10-298"><a href="#cb10-298" aria-hidden="true" tabindex="-1"></a>      <span class="op">}</span></span>
+<span id="cb10-299"><a href="#cb10-299" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb10-300"><a href="#cb10-300" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-301"><a href="#cb10-301" aria-hidden="true" tabindex="-1"></a><span class="pp">#if defined(__cpp_lib_ranges_fold)</span></span>
+<span id="cb10-302"><a href="#cb10-302" aria-hidden="true" tabindex="-1"></a>    <span class="co">// fold_left with std::plus&lt;&gt; does NOT compile,</span></span>
+<span id="cb10-303"><a href="#cb10-303" aria-hidden="true" tabindex="-1"></a>    <span class="co">// because the return type of std::plus&lt;&gt;::operator()</span></span>
+<span id="cb10-304"><a href="#cb10-304" aria-hidden="true" tabindex="-1"></a>    <span class="co">// is an expression template type (binary_plus_expr).</span></span>
+<span id="cb10-305"><a href="#cb10-305" aria-hidden="true" tabindex="-1"></a>    <span class="co">// This is a feature, not a bug, because returning an</span></span>
+<span id="cb10-306"><a href="#cb10-306" aria-hidden="true" tabindex="-1"></a>    <span class="co">// expression template here would necessarily dangle.</span></span>
+<span id="cb10-307"><a href="#cb10-307" aria-hidden="true" tabindex="-1"></a>    <span class="co">// This manifests as failure to satisfy</span></span>
+<span id="cb10-308"><a href="#cb10-308" aria-hidden="true" tabindex="-1"></a>    <span class="co">// _`indirectly-binary-left-foldable-impl`_,</span></span>
+<span id="cb10-309"><a href="#cb10-309" aria-hidden="true" tabindex="-1"></a>    <span class="co">// because binary_plus_expr is not movable</span></span>
+<span id="cb10-310"><a href="#cb10-310" aria-hidden="true" tabindex="-1"></a>    <span class="co">// (because its copy assignment operator is implicitly deleted,</span></span>
+<span id="cb10-311"><a href="#cb10-311" aria-hidden="true" tabindex="-1"></a>    <span class="co">// because it has reference members).</span></span>
+<span id="cb10-312"><a href="#cb10-312" aria-hidden="true" tabindex="-1"></a>    <span class="kw">auto</span> fold_result <span class="op">=</span> std<span class="op">::</span>ranges<span class="op">::</span>fold_left<span class="op">(</span></span>
+<span id="cb10-313"><a href="#cb10-313" aria-hidden="true" tabindex="-1"></a>      vec<span class="op">.</span>begin<span class="op">()</span>, vec<span class="op">.</span>end<span class="op">()</span>,</span>
+<span id="cb10-314"><a href="#cb10-314" aria-hidden="true" tabindex="-1"></a>      zero,</span>
+<span id="cb10-315"><a href="#cb10-315" aria-hidden="true" tabindex="-1"></a>      <span class="co">//std::plus&lt;&gt;{}</span></span>
+<span id="cb10-316"><a href="#cb10-316" aria-hidden="true" tabindex="-1"></a>      std<span class="op">::</span>plus<span class="op">&lt;</span>fixed_vector<span class="op">&lt;</span><span class="dt">float</span>, <span class="dv">4</span><span class="op">&gt;&gt;{}</span></span>
+<span id="cb10-317"><a href="#cb10-317" aria-hidden="true" tabindex="-1"></a>    <span class="op">)</span>;</span>
+<span id="cb10-318"><a href="#cb10-318" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> <span class="op">(</span>std<span class="op">::</span><span class="dt">size_t</span> k <span class="op">=</span> <span class="dv">0</span>; k <span class="op">&lt;</span> <span class="dv">4</span>; <span class="op">++</span>k<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb10-319"><a href="#cb10-319" aria-hidden="true" tabindex="-1"></a>      <span class="ot">assert</span><span class="op">(</span>fold_result<span class="op">[</span>k<span class="op">]</span> <span class="op">==</span> expected_result<span class="op">[</span>k<span class="op">])</span>;</span>
+<span id="cb10-320"><a href="#cb10-320" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb10-321"><a href="#cb10-321" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-322"><a href="#cb10-322" aria-hidden="true" tabindex="-1"></a>    <span class="co">// fold_left with a lambda must return fixed_vector</span></span>
+<span id="cb10-323"><a href="#cb10-323" aria-hidden="true" tabindex="-1"></a>    <span class="co">// so that the algorithm can deduce the result type.</span></span>
+<span id="cb10-324"><a href="#cb10-324" aria-hidden="true" tabindex="-1"></a>    <span class="kw">auto</span> fold_lambda_result <span class="op">=</span> std<span class="op">::</span>ranges<span class="op">::</span>fold_left<span class="op">(</span></span>
+<span id="cb10-325"><a href="#cb10-325" aria-hidden="true" tabindex="-1"></a>      vec<span class="op">.</span>begin<span class="op">()</span>, vec<span class="op">.</span>end<span class="op">()</span>,</span>
+<span id="cb10-326"><a href="#cb10-326" aria-hidden="true" tabindex="-1"></a>      zero,</span>
+<span id="cb10-327"><a href="#cb10-327" aria-hidden="true" tabindex="-1"></a>      <span class="op">[]</span> <span class="op">(</span><span class="kw">const</span> <span class="kw">auto</span><span class="op">&amp;</span> x, <span class="kw">const</span> <span class="kw">auto</span><span class="op">&amp;</span> y<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb10-328"><a href="#cb10-328" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> fixed_vector<span class="op">&lt;</span><span class="dt">float</span>, <span class="dv">4</span><span class="op">&gt;(</span>x <span class="op">+</span> y<span class="op">)</span>;</span>
+<span id="cb10-329"><a href="#cb10-329" aria-hidden="true" tabindex="-1"></a>      <span class="op">}</span></span>
+<span id="cb10-330"><a href="#cb10-330" aria-hidden="true" tabindex="-1"></a>    <span class="op">)</span>;</span>
+<span id="cb10-331"><a href="#cb10-331" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> <span class="op">(</span>std<span class="op">::</span><span class="dt">size_t</span> k <span class="op">=</span> <span class="dv">0</span>; k <span class="op">&lt;</span> <span class="dv">4</span>; <span class="op">++</span>k<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb10-332"><a href="#cb10-332" aria-hidden="true" tabindex="-1"></a>      <span class="ot">assert</span><span class="op">(</span>fold_lambda_result<span class="op">[</span>k<span class="op">]</span> <span class="op">==</span> expected_result<span class="op">[</span>k<span class="op">])</span>;</span>
+<span id="cb10-333"><a href="#cb10-333" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb10-334"><a href="#cb10-334" aria-hidden="true" tabindex="-1"></a><span class="pp">#endif</span></span>
+<span id="cb10-335"><a href="#cb10-335" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-336"><a href="#cb10-336" aria-hidden="true" tabindex="-1"></a>    <span class="co">// std::reduce with std::plus&lt;&gt; compiles and runs correctly,</span></span>
+<span id="cb10-337"><a href="#cb10-337" aria-hidden="true" tabindex="-1"></a>    <span class="co">// because the initial value type is fixed_vector</span></span>
+<span id="cb10-338"><a href="#cb10-338" aria-hidden="true" tabindex="-1"></a>    <span class="co">// and std::reduce casts the expression template type</span></span>
+<span id="cb10-339"><a href="#cb10-339" aria-hidden="true" tabindex="-1"></a>    <span class="co">// (binary_plus_expr) returned from std::plus&lt;&gt;::operator()</span></span>
+<span id="cb10-340"><a href="#cb10-340" aria-hidden="true" tabindex="-1"></a>    <span class="co">// to the initial value type. </span></span>
+<span id="cb10-341"><a href="#cb10-341" aria-hidden="true" tabindex="-1"></a>    <span class="kw">auto</span> reduce_result <span class="op">=</span> std<span class="op">::</span>reduce<span class="op">(</span></span>
+<span id="cb10-342"><a href="#cb10-342" aria-hidden="true" tabindex="-1"></a>      vec<span class="op">.</span>begin<span class="op">()</span>, vec<span class="op">.</span>end<span class="op">()</span>, zero, std<span class="op">::</span>plus<span class="op">&lt;&gt;{}</span></span>
+<span id="cb10-343"><a href="#cb10-343" aria-hidden="true" tabindex="-1"></a>    <span class="op">)</span>;</span>
+<span id="cb10-344"><a href="#cb10-344" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> <span class="op">(</span>std<span class="op">::</span><span class="dt">size_t</span> k <span class="op">=</span> <span class="dv">0</span>; k <span class="op">&lt;</span> <span class="dv">4</span>; <span class="op">++</span>k<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb10-345"><a href="#cb10-345" aria-hidden="true" tabindex="-1"></a>      <span class="ot">assert</span><span class="op">(</span>reduce_result<span class="op">[</span>k<span class="op">]</span> <span class="op">==</span> expected_result<span class="op">[</span>k<span class="op">])</span>;  </span>
+<span id="cb10-346"><a href="#cb10-346" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb10-347"><a href="#cb10-347" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb10-348"><a href="#cb10-348" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-349"><a href="#cb10-349" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="dv">0</span>;</span>
+<span id="cb10-350"><a href="#cb10-350" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+</div>
+</div>
+</body>
+</html>
