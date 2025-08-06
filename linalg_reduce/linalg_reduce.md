@@ -13,6 +13,9 @@ toc-depth: 2
 
 # Abstract
 
+This proposal does not include normative changes;
+it is informational only.
+
 C++26's `std::linalg::dot` and similar reduction-like algorithms
 return the same type as their initial value,
 just like C++17's `std::reduce`.
