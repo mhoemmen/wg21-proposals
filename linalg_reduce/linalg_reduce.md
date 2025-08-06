@@ -1,6 +1,6 @@
 ---
 title: "Should we make std::linalg reductions deduce return types like fold algorithms?"
-document: P9999R0
+document: P3809R0
 date: today
 audience:
   - Library Evolution
