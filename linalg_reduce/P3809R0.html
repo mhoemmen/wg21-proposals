@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2025-08-06" />
+  <meta name="dcterms.date" content="2025-08-07" />
   <title>Should we make std::linalg reductions deduce return types like
 fold algorithms?</title>
   <style>
@@ -437,7 +437,7 @@ reductions deduce return types like fold algorithms?</h1>
   </tr>
   <tr>
     <td>Date:</td>
-    <td>2025-08-06</td>
+    <td>2025-08-07</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project:</td>
@@ -504,6 +504,7 @@ float<span></span></a></li>
 <code class="sourceCode cpp">reduce</code> return
 types<span></span></a></li>
 </ul></li>
+<li><a href="#bibliography" id="toc-bibliography"><span class="toc-section-number">10</span> References<span></span></a></li>
 </ul>
 </div>
 <h1 data-number="1" id="abstract"><span class="header-section-number">1</span> Abstract<a href="#abstract" class="self-link"></a></h1>
@@ -529,8 +530,8 @@ that we should retain
 <code class="sourceCode cpp">std<span class="op">::</span>linalg</code>’s
 current behavior.</p>
 <h1 data-number="2" id="introduction"><span class="header-section-number">2</span> Introduction<a href="#introduction" class="self-link"></a></h1>
-<p>The C++ Standard Committee voted the linear algebra proposal P1673
-into C++26. This adds many algorithms to the new
+<p>The C++ Standard Committee voted the linear algebra proposal <span class="citation" data-cites="P1673R13"><a href="https://wg21.link/p1673r13" role="doc-biblioref">[P1673R13]</a></span> into the C++26 working draft.
+This adds many algorithms to the new
 <code class="sourceCode cpp">std<span class="op">::</span>linalg</code>
 namespace. Several of these algorithms behave like reductions, in that
 they apply a binary operator to the elements of one or two
@@ -593,8 +594,8 @@ linear algebra domain, even though it is not consistent with the various
 <code class="sourceCode cpp">fold_<span class="op">*</span></code>
 algorithms.</p>
 <p>The same design concern applies to the numeric range algorithms
-proposed in <a href="https://wg21.link/p3732">P3732</a>. Revision 0 of
-P3732 proposes that <code class="sourceCode cpp">std<span class="op">::</span>ranges<span class="op">::</span>reduce</code>
+proposed in <span class="citation" data-cites="P3732R0"><a href="https://wg21.link/p3732r0" role="doc-biblioref">[P3732R0]</a></span>. Revision 0 of P3732 proposes
+that <code class="sourceCode cpp">std<span class="op">::</span>ranges<span class="op">::</span>reduce</code>
 deduce its return type in the same way as <code class="sourceCode cpp">std<span class="op">::</span>ranges<span class="op">::</span>fold_left</code>.
 We think that this is a reasonable design choice, even though we do not
 think
@@ -651,7 +652,8 @@ usability pitfall.</p></li>
 <li><p>The current interface may give users a false impression that they
 are controlling the precision of computation, because the initial value
 type may not be the same as the binary operator’s return type.</p></li>
-<li><p>If P3732 (numeric range algorithms) is accepted, then <code class="sourceCode cpp">std<span class="op">::</span>ranges<span class="op">::</span>reduce</code>
+<li><p>If <span class="citation" data-cites="P3732R0"><a href="https://wg21.link/p3732r0" role="doc-biblioref">[P3732R0]</a></span> (numeric range algorithms) is
+accepted, then <code class="sourceCode cpp">std<span class="op">::</span>ranges<span class="op">::</span>reduce</code>
 would likely have behavior consistent with C++23
 <code class="sourceCode cpp">fold_<span class="op">*</span></code>.
 Making
@@ -699,7 +701,7 @@ results.</p>
 <code class="sourceCode cpp"><span class="dt">float</span></code> with
 <code class="sourceCode cpp"><span class="dt">uint64_t</span></code>
 initial value<a href="#range-of-float-with-uint64_t-initial-value" class="self-link"></a></h2>
-<p>The following example (<a href="https://godbolt.org/z/nW4qanEjv">Compiler Explorer link</a>) sums
+<p>The following example (<a href="https://godbolt.org/z/ffhrWsnx7">Compiler Explorer link</a>) sums
 a range of
 <code class="sourceCode cpp"><span class="dt">float</span></code> with a
 nonzero
@@ -721,7 +723,7 @@ initial value.</p>
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;vector&gt;</span></span>
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">()</span> <span class="op">{</span></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  <span class="co">// [0, 16777216] is the max range of contiguous</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  <span class="co">// [0, 16777216] is the max contiguous range of</span></span>
 <span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  <span class="co">// nonnegative integers that fit in float (FP32).</span></span>
 <span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> <span class="dt">float</span> big_fp32 <span class="op">=</span> <span class="fl">16777215.0</span><span class="bu">f</span>;</span>
 <span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>print<span class="op">(</span><span class="st">&quot;big_fp32 = {}</span><span class="sc">\n</span><span class="st">&quot;</span>, big_fp32<span class="op">)</span>;</span>
@@ -917,7 +919,7 @@ allocation or stack space requirements. Examples include
 arbitrary-precision floating-point numbers, or <em>ensemble</em> data
 types that help sample a physics simulation over uncertain input data,
 by propagating multiple samples together as if they are a single
-floating-point number (see e.g., Phipps et al. 2017).</p>
+floating-point number (see e.g., <span class="citation" data-cites="Phipps2017"><a href="https://doi.org/10.1137/15M1044679" role="doc-biblioref">[Phipps 2017]</a></span>).</p>
 <p>The last section of this papes gives an example of an expression
 templates system for a “fixed-width vector” type <code class="sourceCode cpp">fixed_vector<span class="op">&lt;</span>ValueType, Size<span class="op">&gt;</span></code>.
 The two template parameters correspond to those of
@@ -1553,6 +1555,28 @@ link.</p>
 <span id="cb10-348"><a href="#cb10-348" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-349"><a href="#cb10-349" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="dv">0</span>;</span>
 <span id="cb10-350"><a href="#cb10-350" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h1 data-number="10" id="bibliography"><span class="header-section-number">10</span> References<a href="#bibliography" class="self-link"></a></h1>
+<div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="1" role="doc-bibliography">
+<div id="ref-P1673R13" class="csl-entry" role="doc-biblioentry">
+[P1673R13] Mark Hoemmen, Daisy Hollman,Christian Trott,Daniel
+Sunderland,Nevin Liber,Alicia KlinvexLi-Ta Lo,Damien
+Lebrun-Grandie,Graham Lopez,Peter Caday,Sarah Knepper,Piotr
+Luszczek,Timothy Costa. 2023-12-18. A free function linear algebra
+interface based on the BLAS. <a href="https://wg21.link/p1673r13"><div class="csl-block">https://wg21.link/p1673r13</div></a>
+</div>
+<div id="ref-P3732R0" class="csl-entry" role="doc-biblioentry">
+[P3732R0] Ruslan Arutyunyan, Mark Hoemmen, Alexey Kukanov, Bryce
+Adelstein Lelbach, Abhilash Majumder. 2025-06-27. Numeric Range
+Algorithms. <a href="https://wg21.link/p3732r0"><div class="csl-block">https://wg21.link/p3732r0</div></a>
+</div>
+<div id="ref-Phipps2017" class="csl-entry" role="doc-biblioentry">
+[Phipps 2017] E. Phipps, M. D’Elia, H. C. Edwards, M. Hoemmen, and
+others. <span>“Embedded Ensemble Propagation for Improving Performance,
+Portability, and Scalability of Uncertainty Quantification on Emerging
+Computational Architectures,”</span> <em>SIAM Journal on Scientific
+Computing</em>, 39(2), pp. 162 - 193, 2017. <a href="https://doi.org/10.1137/15M1044679"><div class="csl-block">https://doi.org/10.1137/15M1044679</div></a>
+</div>
+</div>
 </div>
 </div>
 </body>

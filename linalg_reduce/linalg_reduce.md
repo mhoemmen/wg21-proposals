@@ -33,7 +33,7 @@ and conclude that we should retain `std::linalg`'s current behavior.
 # Introduction
 
 The C++ Standard Committee voted
-the linear algebra proposal P1673 into C++26.
+the linear algebra proposal [@P1673R13] into the C++26 working draft.
 This adds many algorithms to the new `std::linalg` namespace.
 Several of these algorithms behave like reductions,
 in that they apply a binary operator to the elements
@@ -78,7 +78,7 @@ In our view, the current behavior makes sense for the linear algebra domain,
 even though it is not consistent with the various `fold_*` algorithms.
 
 The same design concern applies to the numeric range algorithms
-proposed in [P3732](https://wg21.link/p3732).
+proposed in [@P3732R0].
 Revision 0 of P3732 proposes that `std::ranges::reduce`
 deduce its return type in the same way as `std::ranges::fold_left`.
 We think that this is a reasonable design choice,
@@ -128,7 +128,7 @@ that they are controlling the precision of computation,
 because the initial value type may not be the same
 as the binary operator's return type.
 
-3. If P3732 (numeric range algorithms) is accepted, then
+3. If [@P3732R0] (numeric range algorithms) is accepted, then
 `std::ranges::reduce` would likely have behavior consistent with C++23
 `fold_*`.  Making `std::linalg`'s reduction-like algorithms
 consistent with that would make it possible to implement
@@ -168,7 +168,7 @@ and `std::ranges::fold_*`'s results.
 ## Range of `float` with `uint64_t` initial value
 
 The following example
-([Compiler Explorer link](https://godbolt.org/z/nW4qanEjv))
+([Compiler Explorer link](https://godbolt.org/z/ffhrWsnx7))
 sums a range of `float` with a nonzero `uint64_t` initial value
 using `std::reduce` and `std::ranges::fold_left`,
 and then compares the result with summing the same `float` range
@@ -184,7 +184,7 @@ with a `double` initial value.
 #include <vector>
 
 int main() {
-  // [0, 16777216] is the max range of contiguous
+  // [0, 16777216] is the max contiguous range of
   // nonnegative integers that fit in float (FP32).
   const float big_fp32 = 16777215.0f;
   std::print("big_fp32 = {}\n", big_fp32);
@@ -368,7 +368,7 @@ Examples include arbitrary-precision floating-point numbers,
 or *ensemble* data types that help sample a physics simulation
 over uncertain input data, by propagating multiple samples together
 as if they are a single floating-point number
-(see e.g., Phipps et al. 2017).
+(see e.g., [@Phipps2017]).
 
 The last section of this papes gives an example of an
 expression templates system for a "fixed-width vector" type
@@ -1013,3 +1013,21 @@ int main() {
   return 0;
 }
 ```
+
+---
+references:
+  - id: Phipps2017
+    citation-label: Phipps 2017
+    title: "'Embedded Ensemble Propagation for Improving Performance, Portability, and Scalability of Uncertainty Quantification on Emerging Computational Architectures,' *SIAM Journal on Scientific Computing*, 39(2), pp. 162 - 193, 2017"
+    author:
+      - family: Phipps
+        given: E.
+      - family: D'Elia
+        given: M.
+      - family: Edwards
+        given: H. C.
+      - family: Hoemmen
+        given: M.
+      - family: others
+    URL: https://doi.org/10.1137/15M1044679
+---
