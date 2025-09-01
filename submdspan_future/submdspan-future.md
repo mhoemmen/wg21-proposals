@@ -102,6 +102,8 @@ toc: true
 
         * Use `remove_cvref_t` for _`canonical-ice`_ and _`subtract-ice`_ wording throughout.
 
+    * Remove enum _`check-static-bounds-result`_, rename _`check-static-bounds`_ to _`is-statically-out-of-bounds`_, and have it return `true` if and only if the slice is statically out of bounds.
+
 # Abstract
 
 Currently, the `submdspan` function can call a `submdspan_mapping` customization with any valid slice type.  This means that `submdspan_mapping` customizations may be ill-formed, possibly even without a diagnosic, if future C++ versions expand the set of valid slice types.  This will happen if [P2769R3](https://wg21.link/p2769r3) is merged into the Working Draft for C++29, as that would generalize _`tuple-like`_ from a concrete list of types to a concept.  It may also happen in the future for other categories of slice types.
@@ -901,83 +903,54 @@ template<size_t k, class Extents, class... SliceSpecifiers>
 
 ::: add
 ```
-enum class @_check-static-bounds-result_@ {
-  @_in-bounds_@,
-  @_out-of-bounds_@,
-  @_unknown_@
-};
-
 template<size_t k, class Slice, class IndexType, size_t... Exts>
-  constexpr @_check-static-bounds-result_@ @_check-static-bounds_@(
+  constexpr bool @_is-statically-out-of-bounds_@(
     const extents<IndexType, Exts...>&);
 ```
 
 [14]{.pnum} *Returns*:
 
-* [14.1]{.pnum} if `is_convertible_v<Slice, full_extent_t>` is `true`, _`check-static-bounds-result`_`::`_`in-bounds`_;
+* [14.1]{.pnum} if `is_convertible_v<Slice, full_extent_t>` is `true`, then `false`;
 
 * [14.2]{.pnum} otherwise, if `Slice` is _`integral-constant-like`_ and `is_convertible_v<Slice, IndexType>` is `true`:
 
-    * [14.2.1]{.pnum} if _`de-ice`_`(Slice{})` &lt; 0, _`check-static-bounds-result`_`::`_`out-of-bounds`_;
+    * [14.2.1]{.pnum} if _`de-ice`_`(Slice{})` &lt; 0, then `true`;
 
-    * [14.2.2]{.pnum} otherwise, if `Exts...[`$k$`]` does not equal `dynamic_extent` and if `Exts...[`$k$`]` &le; _`de-ice`_`(Slice{})`, _`check-static-bounds-result`_`::`_`out-of-bounds`_;
+    * [14.2.2]{.pnum} otherwise, if `Exts...[`$k$`]` does not equal `dynamic_extent` and if `Exts...[`$k$`]` &le; _`de-ice`_`(Slice{})`, then `true`;
 
-    * [14.2.3]{.pnum} otherwise, if `Exts...[`$k$`]` does not equal `dynamic_extent` and if _`de-ice`_`(Slice{})` &lt; `Exts...[`$k$`]`, _`check-static-bounds-result`_`::`_`in-bounds`_;
-
-    * [14.2.4]{.pnum} otherwise, _`check-static-bounds-result`_`::`_`unknown`_;
+    * [14.2.3]{.pnum} otherwise, `false`;
 
 * [14.3]{.pnum} otherwise, if `Slice` is a specialization of `strided_slice` and each of `Slice::offset_type`, `Slice::extent_type`, and `Slice::stride_type` are convertible to `IndexType`:
 
     * [14.3.1]{.pnum} if `Slice::offset_type` models _`integral-constant-like`_:
 
-        * [14.3.1.1]{.pnum} if _`de-ice`_`(Slice::offset_type{})` &lt; 0, _`check-static-bounds-result`_`::`_`out-of-bounds`_;
+        * [14.3.1.1]{.pnum} if _`de-ice`_`(Slice::offset_type{})` &lt; 0, then `true`;
 
-        * [14.3.1.2]{.pnum} otherwise, if `Exts...[`$k$`]` does not equal `dynamic_extent` and if `Exts...[`$k$`]` &lt; _`de-ice`_`(Slice::offset_type{})`, _`check-static-bounds-result`_`::`_`out-of-bounds`_;
+        * [14.3.1.2]{.pnum} otherwise, if `Exts...[`$k$`]` does not equal `dynamic_extent` and if `Exts...[`$k$`]` &lt; _`de-ice`_`(Slice::offset_type{})`, then `true`;
 
-        * [14.3.1.3]{.pnum} otherwise, if `Slice::extent_type` models _`integral-constant-like`_ and if _`de-ice`_`(Slice::offset_type{})` + _`de-ice`_`(Slice::extent_type{})` &lt; 0, _`check-static-bounds-result`_`::`_`out-of-bounds`_;
+        * [14.3.1.3]{.pnum} otherwise, if `Slice::extent_type` models _`integral-constant-like`_ and if _`de-ice`_`(Slice::offset_type{})` + _`de-ice`_`(Slice::extent_type{})` &lt; 0, then `true`;
 
-        * [14.3.1.4]{.pnum} otherwise, if `Exts...[`$k$`]` does not equal `dynamic_extent`, if `Slice::extent_type` models _`integral-constant-like`_, and if `Exts...[`$k$`]` &lt; _`de-ice`_`(Slice::offset_type{})` + _`de-ice`_`(Slice::extent_type{})`, _`check-static-bounds-result`_`::`_`out-of-bounds`_;
+        * [14.3.1.4]{.pnum} otherwise, if `Exts...[`$k$`]` does not equal `dynamic_extent`, if `Slice::extent_type` models _`integral-constant-like`_, and if `Exts...[`$k$`]` &lt; _`de-ice`_`(Slice::offset_type{})` + _`de-ice`_`(Slice::extent_type{})`, then `true`;
 
-        * [14.3.1.5]{.pnum} otherwise,  if `Exts...[`$k$`]` does not equal `dynamic_extent`, if `Slice::extent_type` models _`integral-constant-like`_, and if 0 &le; _`de-ice`_`(Slice::offset_type{})` &le; _`de-ice`_`(Slice::offset_type{})` + _`de-ice`_`(Slice::extent_type{})` &le; `Exts...[`$k$`]`, _`check-static-bounds-result`_`::`_`in-bounds`_;
+        * [14.3.1.5]{.pnum} otherwise, `false`;
 
-        * [14.3.1.6]{.pnum} otherwise, _`check-static-bounds-result`_`::`_`unknown`_;
-
-    * [14.3.2]{.pnum} otherwise, _`check-static-bounds-result`_`::`_`unknown`_;
+    * [14.3.2]{.pnum} otherwise, `false`;
 
 * [14.4]{.pnum} otherwise, let `s_k0` and `s_k1` be produced by `auto [s_k0, s_k1] = declval<Slice>();`, let `S_k0` be `decltype(s_k0)`, and let `S_k1` be `decltype(s_k1)`:
 
     * [14.4.1]{.pnum} if `S_k0` is _`integral-constant-like`_:
 
-        * [14.4.1.1]{.pnum} if _`de-ice`_`(S_k0{})` &lt; 0, _`check-static-bounds-result`_`::`_`out-of-bounds`_;
+        * [14.4.1.1]{.pnum} if _`de-ice`_`(S_k0{})` &lt; 0, then `true`;
 
-        * [14.4.1.2]{.pnum} otherwise, if `Exts...[`$k$`]` does not equal `dynamic_extent` and if `Exts...[`$k$`]` &lt; _`de-ice`_`(S_k0{})`, _`check-static-bounds-result`_`::`_`out-of-bounds`_;
+        * [14.4.1.2]{.pnum} otherwise, if `Exts...[`$k$`]` does not equal `dynamic_extent` and if `Exts...[`$k$`]` &lt; _`de-ice`_`(S_k0{})`, then `true`;
 
-        * [14.4.1.3]{.pnum} otherwise, if `S_k1` is _`integral-constant-like`_ and if _`de-ice`_`(S_k1{})` &lt; _`de-ice`_`(S_k0{})`, _`check-static-bounds-result`_`::`_`out-of-bounds`_;
+        * [14.4.1.3]{.pnum} otherwise, if `S_k1` is _`integral-constant-like`_ and if _`de-ice`_`(S_k1{})` &lt; _`de-ice`_`(S_k0{})`, then `true`;
 
-        * [14.4.1.4]{.pnum} otherwise, if `Exts...[`$k$`]` does not equal `dynamic_extent`, if `S_k1` is _`integral-constant-like`_, and if `Exts...[`$k$`]` &lt; _`de-ice`_`(S_k1{})`, _`check-static-bounds-result`_`::`_`out-of-bounds`_;
+        * [14.4.1.4]{.pnum} otherwise, if `Exts...[`$k$`]` does not equal `dynamic_extent`, if `S_k1` is _`integral-constant-like`_, and if `Exts...[`$k$`]` &lt; _`de-ice`_`(S_k1{})`, then `true`;
 
-        * [14.4.1.5]{.pnum} otherwise, if `Exts...[`$k$`]` does not equal `dynamic_extent`, if `S_k1` is _`integral-constant-like`_, and if 0 &le; _`de-ice`_`(S_k0{})` &le; _`de-ice`_`(S_k1{})` &le; `Exts...[`$k$`]`, _`check-static-bounds-result`_`::`_`in-bounds`_;
+        * [14.4.1.6]{.pnum} otherwise, `false`;
 
-        * [14.4.1.6]{.pnum} otherwise, _`check-static-bounds-result`_`::`_`unknown`_;
-
-    * [14.4.2]{.pnum} otherwise, _`check-static-bounds-result`_`::`_`unknown`_.
-
-[*Editorial Note*: The intent of 14.4 is that if none of 14.1, 14.2, or 14.3 hold, then 14.4 effectively implements a Mandate that `auto [s_k0, s_k1] = declval<Slice>();` be well-formed.  We implemented this using an `if constexpr` (14.1 condition) ... `else if constexpr` (14.2 condition) ... `else if constexpr` (14.3 condition) ... `else` chain.  Note that the 14.4 case should not require that `Slice` be default-constructible.  In case the `constexpr`-ability of this is not clear, here is how we implemented getting `decltype(s_k0)` and `decltype(s_k1)` in the final `else` branch.
-
-```
-auto get_first = [] (Slice s_k) {
-  auto [s_k0, _] = s_k;
-  return s_k0;
-};
-auto get_second = [] (Slice s_k) {
-  auto [_, s_k1] = s_k;
-  return s_k1;
-};
-using S_k0 = decltype(get_first(std::declval<Slice>()));
-using S_k1 = decltype(get_second(std::declval<Slice>()));
-```
-
--- *end note*]
+    * [14.4.2]{.pnum} otherwise, `false`.
 :::
 
 ```
@@ -1017,7 +990,7 @@ template<class IndexType, size_t N, class... SliceSpecifiers>
 
 * [3.1]{.pnum} $S_k$ is a canonical `submdspan` slice type for `E::index_type`, and
 
-* [3.2]{.pnum} _`check-static-bounds`_`<`$k$`, `$S_k$`>(E{})` does not equal _`check-static-bounds-result`_`::`_`out-of-bounds`_.
+* [3.2]{.pnum} _`is-statically-out-of-bounds`_`<`$k$`, `$S_k$`>(E{})` is `false`.
 
 [4]{.pnum} Given a signed or unsigned integer `IndexType`, a type $S$ is a *valid `submdspan` slice type for `IndexType`* if exactly one of the following is `true`:
 
@@ -1035,7 +1008,7 @@ template<class IndexType, size_t N, class... SliceSpecifiers>
 
 * [5.1]{.pnum} $S_k$ is a valid `submdspan` slice type for `E::index_type`, and
 
-* [5.2]{.pnum} _`check-static-bounds`_`<`$k$`, `$S_k$`>(E{})` does not equal _`check-static-bounds-result`_`::`_`out-of-bounds`_.
+* [5.2]{.pnum} _`is-statically-out-of-bounds`_`<`$k$`, `$S_k$`>(E{})` is `false`.
 
 [*Note 2*: If $S_k$ is a valid $k^{th}$ `submdspan` slice type for `E`, then it is also a canonical $k^{th}$ `submdspan` slice type for `E`. -- *end note*]
 
