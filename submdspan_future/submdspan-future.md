@@ -2,7 +2,7 @@
 ---
 title: "Future-proof `submdspan_mapping`"
 document: D3663R2
-date: 2025-06-30
+date: 2025-08-31
 audience: LEWG
 author:
   - name: Mark Hoemmen
@@ -83,6 +83,24 @@ toc: true
     * Ensure that _`canonical-ice`_ returns either `cw<IndexType(Value)>` or `IndexType(Value)` for the value `Value`.
 
     * Expand discussion of implementation, and add preliminary benchmark results.
+
+* Revision 3 to be submitted 2025-09-?? post LWG review
+
+    * [mdspan.sub.helpers] changes
+
+        * Fix formatting issue (italicize _`integral-constant-like`_ when constraining template parameter of _`de-ice`_).
+
+        * Change paragraph 1 to express constraint with `convertible_to` instead of English words ("is convertible to"), and add Editorial Note asking about `convertible_to` vs. `is_convertible_v`.
+
+        * Fix Mandates on _`canonical-ice`_.
+
+        * Fix formatting issue in mdspan.sub.helpers 4.1 (_`index-cast`_ needs to have a hyphen, not an underscore).
+
+        * Remove Editorial Note after _`subtract-ice`_.
+
+        * Change _`subtract-ice`_ to return `IndexType` or `cw<IndexType>`, imitating the _`canonical-ice`_ *Returns* clause, in order to prevent promotion.
+
+        * Use `remove_cvref_t` for _`canonical-ice`_ and _`subtract-ice`_ wording throughout.
 
 # Abstract
 
@@ -725,7 +743,7 @@ In [version.syn], increase the value of the `__cpp_lib_submdspan` macro by repla
 ```
 template<class T>
   constexpr T @_de-ice_@(T val) { return val; }
-template<integral-constant-like T>
+template<@_integral-constant-like_@ T>
   constexpr auto @_de-ice_@(T) { return T::value; }
 ```
 
@@ -735,30 +753,36 @@ template<class IndexType, class S>
 constexpr auto @_canonical-ice_@(S s);
 ```
 
-[1]{.pnum} *Constraints*: `S` is convertible to `IndexType`.
+[1]{.pnum} *Constraints*: `convertible_to<S, IndexType>` is `true`.
+:::
 
+[*Editorial note*: Original LWG suggestion when reviewing R2 was `is_convertible_v<S, IndexType>`.  We chose `convertible_to` because it gives stronger semantic guarantees. -- *end note*]
+
+::: add
 [2]{.pnum} *Mandates*:
 
 * [2.1]{.pnum} `IndexType` is a signed or unsigned integer type.
 
-* [2.2]{.pnum} If `S` models _`integral-constant-like`_ and if `decltype(S::value)` is a signed or unsigned integer type, then `S::value` is representable as a value of type `IndexType`.
+* [2.2]{.pnum} If `remove_cvref_t<S>` models _`integral-constant-like`_, then `remove_cvref_t<S>::value` is representable as a value of type `IndexType`.
 
-[3]{.pnum} *Preconditions*: If `S` is a signed or unsigned integer type, then `s` is representable as a value of type `IndexType`.
+[3]{.pnum} *Preconditions*: If `remove_cvref_t<S>` is a signed or unsigned integer type, then `s` is representable as a value of type `IndexType`.
 
 [4]{.pnum} *Returns*:
 
-* [4.1]{.pnum} `cw<IndexType(extents<IndexType>::`_`index_cast`_`(S::value))>` if `S` models _`integral-constant-like`_;
+* [4.1]{.pnum} `cw<IndexType(extents<IndexType>::`_`index-cast`_`(remove_cvref_t<S>::value))>` if `remove_cvref_t<S>` models _`integral-constant-like`_;
 
 * [4.2]{.pnum} `IndexType(extents<IndexType>::`_`index-cast`_`(s))` otherwise.
 
 ```
 template<class IndexType, class X, class Y>
-constexpr auto @_subtract-ice_@(X x, Y y) {
-  return @_canonical-ice_@<IndexType>(y) - @_canonical-ice_@<IndexType>(x);
-}
+constexpr auto @_subtract-ice_@(X x, Y y);
 ```
 
-[*Editorial note*: Even though `submdspan` only uses the difference between `y` and `x` to compute an extent, each of `y` and `x` must be a valid index in the slice's extent.  This is why _`subtract-ice`_ retains _`canonical-ice`_'s precondition. -- *end note*]
+[5]{.pnum} *Returns*:
+
+* [5.1]{.pnum} `cw<IndexType(`_`canonical-ice`_`<IndexType>(y) - `_`canonical-ice`_`<IndexType>(x))>` if `remove_cvref_t<X>` and `remove_cvref_t<Y>` both model _`integral-constant-like`_;
+
+* [5.2]{.pnum} `IndexType(`_`canonical-ice`_`<IndexType>(y) - `_`canonical-ice`_`<IndexType>(x))` otherwise.
 :::
 
 ```c++
