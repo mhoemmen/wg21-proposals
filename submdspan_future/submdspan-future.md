@@ -936,7 +936,7 @@ template<size_t k, class Slice, class IndexType, size_t... Exts>
 
     * [14.3.2]{.pnum} otherwise, `false`;
 
-* [14.4]{.pnum} otherwise, let `s_k0` and `s_k1` be produced by `auto [s_k0, s_k1] = declval<Slice>();`, let `S_k0` be `decltype(s_k0)`, and let `S_k1` be `decltype(s_k1)`:
+* [14.4]{.pnum} otherwise, let `s_k0` and `s_k1` be produced by `auto [s_k0, s_k1] = `$s_k$, let `S_k0` be `decltype(s_k0)`, and let `S_k1` be `decltype(s_k1)`:
 
     * [14.4.1]{.pnum} if `S_k0` is _`integral-constant-like`_:
 
