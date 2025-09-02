@@ -735,7 +735,7 @@ template<integral-constant-like T>
 template<class T>
 concept @_is-strided-slice_@ = _see below_;
 ```
-[1]{.pnum} The concept _`is-strided-slice`_`<T>` is satisfied and modleded if `T` is specialization of _`is-strided-slice`_.
+[1]{.pnum} The concept _`is-strided-slice`_`<T>` is satisfied and modleded if `T` is specialization of `strided_slice`.
 
 
 ```
@@ -1027,95 +1027,76 @@ auto [...slices] = submdspan_canonicalize_slices(src, raw_slices...).
 > Right before [mdspan.sub.map.common] ("Specializations of `submdspan_mapping`), insert a new section [mdspan.sub.sliceable], "Sliceable layout mapping requirements," with the following content.
 
 ::: add
-```
-template<@_layout-mapping-alike_@ LayoutMapping>
-constexpr auto
-@_submdspan-mapping-with-full-extents_@(const LayoutMapping& mapping);
-```
 
-[1]{.pnum} *Constraints*: `LayoutMapping` meets the layout mapping requirements ([mdspan.layout.reqmts]).
+[1]{.pnum} Let:
 
-[2]{.pnum} *Returns*: `submdspan_mapping(mapping,` $P$ `)`, where $P$ is a pack of `typename LayoutMapping::extents_type::rank()` object(s) of type `full_extent_t`.
+* [1.1]{.pnum} `M` denote a layout mapping class.
 
-[*Note 1*: This invocation of `submdspan_mapping` selects a function call via overload resolution on a candidate set that includes the lookup set found by argument-dependent lookup ([basic.lookup.argdep]). — *end note*]
+* [1.2]{.pnum} `IT` denote a `M::extent_type::index_type`,
 
-```
-template<class T>
-constexpr bool @_is-submdspan-mapping-result_@ = false;
+* [1.3]{.pnum} `m` denotes a (possibly const) value of type `M`.
 
-template<class LayoutMapping>
-constexpr bool @_is-submdspan-mapping-result_@<
-  submdspan_mapping_result<LayoutMapping>> = true;
+* [1.4]{.pnum} `r` is equal to `M::extent_type::rank()`.
 
-template<class LayoutMapping>
-concept @_submdspan-mapping-result_@ =
-  @_is-submdspan-mapping-result_@<LayoutMapping>;
+* [1.5]{.pnum} `slcs` is a pack of (possibly const) object for which `sizeof...(slcs) == r` is `true`,
+               the `i^{th}` element of the pack is valid `submdspan` slice for $i$ dimension of `m`.
+* [1.6]{.pnum} `inv_slcs` is a pack of (possibly const) object for which `sizeof...(slcs) == r` is `true`,
+               and there exists $i$ such that type of `i^{th}` element `inv_slc` of the pack is neither:
 
-template<class LayoutMapping>
-concept @_mapping-sliceable-with-full-extents_@ =
-  requires(const LayoutMapping& mapping) {
-    {
-      @_submdspan-mapping-with-full-extents_@(mapping)
-    } -> @_submdspan-mapping-result_@;
-  };
-```
+  * [1.6.1]{.pnum} `IT`,
 
-[3]{.pnum} A type `T` models _`mapping-sliceable-with-full-extents`_ only if `T` is an object type that meets the layout mapping requirements ([mdspan.layout.reqmts]).
+  * [1.6.2]{.pnum} `full_exent_t`,
 
-[*Editorial Note*: The exposition-only concept _`mapping-sliceable-with-full-extents`_ exists because it is impossible to constrain `submdspan` ([mdspan.sub.sub]) on whether `submdspan_mapping(src.mapping(), slices...)` is well-formed.  This is because it is impossible to constrain a function template on whether one of its arguments (a member of the `SliceSpecifiers` pack, in this case) can be on the right-hand side of a structured binding declaration with two elements.  This, in turn, is because a structured binding declaration is a declaration, but constraints cannot use declarations, only expressions. — *end note*]
+  * [1.6.3]{.pnum} specialization of `constant_wrapper`, nor
 
-```
-template<@_layout-mapping-alike_@ LayoutMapping, class... Slices>
-constexpr auto
-@_invoke-submdspan-mapping_@(const LayoutMapping& mapping, Slices... slices) {
-  return submdspan_mapping(mapping, slices...);
-}
-```
+  * [1.6.3]{.pnum} specialization of `strided_slice`.
 
-[4]{.pnum} Let `M` be a type, and let `m` be an object of type `M`.  `M` meets the *sliceable layout mapping* requirements if all of the following are true.
+* [1.7]{.pnum} `fe` is pack of object of type `full_extent_t` for which `sizeof...(slcs) == r`.
 
-* [4.1]{.pnum} `M` models _`mapping-sliceable-with-full-extents`_.
 
-* [4.2]{.pnum} the expression _`invoke-submdspan-mapping`_`(mapping, slices...)` is well-formed only if `sizeof...(slices)` equals `LayoutMapping::extent_type::rank()`.
+[2]{.pnum} For the purpose of this section, the that meaning of `submdspan_mapping` mapping is established
+as if by performing argument-dependent lookup only ([basic.lookup.argdep]).
 
-[*Editorial Note*: This forms the Constraints on any `submdspan_mapping` customization. — *end note*]
+[3]{.pnum} A type `M` meets sliceable layout mappings requirements if:
 
-* [4.3]{.pnum} Let `sizeof...(Slices)` equal `LayoutMapping::extents_type::rank()`, and for every rank index $k$ of `LayoutMapping::extents_type`, let `Slices...[`$k$`]` be a canonical $k^{th}$ `submdspan` slice type for `LayoutMapping::extents_type`.  Then,
+* [3.1]{.pnum} `M` meets layout mapping expressions (TODO link),
 
-    * [4.3.1]{.pnum} the expression _`invoke-submdspan-mapping`_`(mapping, slices...)` is well-formed; and
-    
-    * [4.3.2]{.pnum} `decltype(`_`invoke-submdspan-mapping`_`(mapping, slices...))` is a specialization of `submdspan_mapping_result`.
+* [3.2]{.pnum} the expression `submdspan_mapping(m, inv_slcs)` is ill-formed, and
 
-* [4.4]{.pnum} Let `sizeof...(Slices)` equal `LayoutMapping::extents_type::rank()`.  If there exists a $k$ in $[0,$ `sizeof...(Slices)`$)$ such that `Slices...[`$k$`]` is not a canonical $k^{th}$ `submdspan` slice type for `LayoutMapping::extents_type`, then the expression _`invoke-submdspan-mapping`_`(mapping, slices...)` is ill-formed.
-
-[*Note 2*: Restricting `submdspan_mapping` customizations to accept only canonical slice types makes it possible for the set of valid slice types to grow in the future. — *end note*]
-
-[*Editorial Note*: It is our belief that this wording and the as-if rule together permit Standard layout mappings to accept any valid `submdspan` slice types, and thus permit `submdspan` not to canonicalize for Standard layout mappings.  Here is alternate wording if we need a special call-out for Standard layout mappings.
-
-* [4.4]{.pnum} Let `sizeof...(Slices)` equal `LayoutMapping::extents_type::rank()`.
-
-    * [4.4.1]{.pnum} If `LayoutMapping::layout_type` is a layout defined in this Standard, then if there exists a rank index $k$ of `LayoutMapping::extents_type` such that `Slices...[`$k$`]` is not a valid $k^{th}$ `submdspan` slice type for `LayoutMapping::extents_type`, then the expression _`invoke-submdspan-mapping`_`(mapping, slices...)` is ill-formed.
-
-    * [4.4.2]{.pnum} Otherwise, if there exists a rank index $k$ of `LayoutMapping::extents_type` such that `Slices...[`$k$`]` is not a canonical $k^{th}$ `submdspan` slice type for `LayoutMapping::extents_type`, then the expression _`invoke-submdspan-mapping`_`(mapping, slices...)` is ill-formed.
-
-— *end note*]
-
-[*Editorial Note*: The above two points form the Mandates on any `submdspan_mapping` customization. — *end note*]
-
-* [4.5]{.pnum} Let `sizeof...(Slices)` equal `LayoutMapping::extents_type::rank()`, and for every rank index $k$ of `LayoutMapping::extents_type`, let `slices...[`$k$`]` be a canonical $k^{th}$ `submdspan` slice for `mapping.extents()`.  Let `sub_map_offset` be the result of _`invoke-submdspan-mapping`_`(mapping, slices...)`.  Then,
-
-    * [4.5.1]{.pnum} `sub_map_offset.mapping.extents() == submdspan_extents(src.mapping(), slices...)` is `true`; and
-
-    * [4.5.2]{.pnum} for each integer pack `I` which is a multidimensional index in `sub_map_offset.mapping.extents()`,
+* [3.3]{.pnum} the following expressions are well-formed and have the specified semantic.
 
 ```
-sub_map_offset.mapping(I...) + sub_map_offset.offset ==
-  src.mapping()(@_src-indices_@(array{I...}, slices...))
+submdspan_mapping(m, slcs...)
 ```
 
-is `true`.
+[4]{.pnum} Let `or` be the number of elements `slc` of `slcs`, such that `is_convertible_v<decltype(slc), IT>` is `false`.
 
-[*Editorial Note*: This forms the Effects of `submdspan_mapping`, and the Preconditions on using any `submdspan_mapping` customization in `submdspan` ([mdspan.sub.sub]). — *end note*]
+[5]{.pnum} *Result*: A type that is specialization of type `submdspan_mapping_result<SM>` for some type `SM` such that:
+
+* [5.1]{.pnum} `SM` meets layout mappings requirements,
+
+* [5.2]{.pnum} `SM::extents_type` is specialiation of `extents`,
+
+* [5.3]{.pnum} `SM::extents_type::rank()` is equal to `or`,
+
+* [5.4]{.pnum} `SM::extents_type::index_type` denotes `IT`.
+
+[6]{.pnum} *Return*: An object `smr` of type `OM` such:
+
+* [6.1]{.pnum} `smr.mapping.extents() == submdspan_extents(m.extentsi(), slcs...)` is true,
+
+* [6.2]{.pnum} for each integer pack `i` which is multidimensional index into `sm.mapping.extents()`,
+    `smr.mapping(i...) + smr.offset == m(`_`src-indicies`_`(array{i...}, slcs...))` is `true`.
+
+
+```
+template<typenaem LayouMapping>
+  concept @sliceable-mapping@ = @see_below@
+```
+
+A type `M` statisfies _`sliceable-mapping`_  if the expressions `submdspan_mapping(m, fe...)` is well-formed when treated as an unevaluated operand.
+The `M` models  _`sliceable-mapping`_ if `M` meets sliceable layout mappings requirement.
+
 :::
 
 ## Change [mdspan.sub.map.common]
@@ -1181,21 +1162,12 @@ auto [...canonical_slices] = submdspan_canonicalize_slices(src.extents(), slices
 
 [*Note 1*: This invocation of `submdspan_mapping` selects a function call via overload resolution on a candidate set that includes the lookup set found by argument-dependent lookup ([basic.lookup.argdep]). — *end note*]
 
-::: add
-[4]{.pnum} `M` shall meet the sliceable layout mapping requirements.
-
-[*Editorial Note*: (4) cannot be fully implemented as a Constraint.  The syntactic requirements have the effect of Mandates.  The semantic requirements have the effect of Preconditions. — *end note*]
-:::
-
 [5]{.pnum} *Constraints*:
 
 * [5.1]{.pnum} `sizeof...(slices)` equals `Extents​::​rank()`, and
 
-* [5.2]{.pnum} [the expression `submdspan_mapping(src.mapping(),` `slices...)` is well-formed when treated as an unevaluated operand]{.rm}[`Layout::mapping<Extents>` meets the requirements of _`mapping-sliceable-with-full-extents`_]{.add}.
+* [5.2]{.pnum} [the expression `submdspan_mapping(src.mapping(),` `slices...)` is well-formed when treated as an unevaluated operand]{.rm}[`Layout::mapping<Extents>` models _`sliceable-mapping`_]{.add}.
 
-// This goes here.
-[2]{.pnum} *Mandates*: submdspan_canonicalize_slices(src, raw_slices...) is valid expressions. 
-For each rank index $k$ of `src`, `decltype(slices...[k])` is a valid slice type for `k` dimension of `src`.
 
 [3]{.pnum} *Preconditions*: For each rank index $k$ of `src`, $slices...[k]$ is a valid slice for `k` dimension of `src`.
 
