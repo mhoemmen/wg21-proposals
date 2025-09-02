@@ -735,7 +735,8 @@ template<integral-constant-like T>
 template<class T>
 concept @_is-strided-slice_@ = _see below_;
 ```
-[1]{.pnum} The concept _`is-strided-slice`_`<T>` is satisfied and modleded if `T` is specialization of `strided_slice`.
+[1]{.pnum} The concept _`is-strided-slice`_`<T>` is satisfied and modeled if `T` is a specialization of `strided_slice`.
+
 
 
 ```
@@ -743,7 +744,8 @@ template<class IndexType, class S>
 constexpr auto @_canonical-index_@(S s);
 ```
 
-[2]{.pnum} *Mandates*: If `S` models _`integral-constant-like`_ and if, then `extents<IndexType>::`_`index-cast`_`(S::value)` is 
+[2]{.pnum} *Mandates*: If `S` models _`integral-constant-like`_, then `extents<IndexType>::`_`index-cast`_`(S::value)` is 
+
 representable as a value of type `IndexType`.
 
 [3]{.pnum} *Preconditions*: `extents<IndexType>::`_`index_cast`_`(std::move(s))` is representable as a value of type `IndexType`.
@@ -760,7 +762,8 @@ template<class IndexType, class S>
 constexpr auto @_canonical-slice_@(S s);
 ```
 
-[5]{.pnum} *Mandates*: `S` is a `submdspan` slice type for `IndexType` ([mdspan.sub.slices]) 
+[5]{.pnum} *Mandates*: `S` is a `submdspan` slice type for `IndexType` ([mdspan.sub.slices]).
+
 
 [6]{.pnum} *Effects*: Equivalent to:
 ```
@@ -827,7 +830,8 @@ template<class IndexType, size_t k, class... SliceSpecifiers>
 
 [5]{.pnum} *Mandates*: `SliceSpecifiers...[k]` is canonical `k`^{th} `mdspan` slice type of `Extents`.
 
-[8]{.pnum} *Returns*: l, where [l, u) is `submdspan` slice range of `slices...[k]` for `k` dimension of `src`.
+[8]{.pnum} *Returns*: $L$, where $[L, U)$ is the `submdspan` slice range of `slices...[k]` for the `k`^{th} dimension of `src`.
+
 
 :::
 
@@ -861,7 +865,8 @@ template<size_t k, class Extents, class... SliceSpecifiers>
 
 ::: add
 
-[0]{.pnum} *Mandates*: `SliceSpecifiers...[k]` is canonical `mdspan` slice type for `k` dimension of `Extents`.
+[0]{.pnum} *Mandates*: `SliceSpecifiers...[k]` is a canonical `mdspan` slice type for the `k`^{th} extent of `Extents`.
+
 
 [8]{.pnum} *Returns*: u, where [l, u) is `submdspan` slice range of `slices...[k]` for `k` dimension of `src`.
 
@@ -1133,11 +1138,14 @@ The `M` models  _`sliceable-mapping`_ if `M` meets sliceable layout mappings req
 
 [3]{.pnum} *Mandates*: For each rank index $k$ of `src`:
 
-* [3.1]{.pnum} `SliceSpecifiers...[k]` is `submdspan` slice type for `k` dimension of `Extents`, and
+* [3.1]{.pnum} `SliceSpecifiers...[k]` is a `submdspan` slice type for the `k`^{th} extent of `Extents`, and
 
-* [3.2]{.pnum} `decltype(`_`canonical-slice`_`<IndexType>(slices...[k]))` is valid `submdspan` slice type for `k` dimension of `Extents`.
 
-[4]{.pnum} *Preconditions*: For each rank index $k$ of `src`, _`canonical-slice`_`<IndexType>(slices...[k])` is a valid slice for `k` dimension of `src`.
+* [3.2]{.pnum} `decltype(`_`canonical-slice`_`<IndexType>(slices...[k]))` is a `submdspan` slice type for the `k`^{th} extent of `Extents`.
+
+
+[4]{.pnum} *Preconditions*: For each rank index $k$ of `src`, _`canonical-slice`_`<IndexType>(slices...[k])` is a valid slice for the `k`^{th} extent of `src`.
+
 
 :::
 
@@ -1169,7 +1177,8 @@ auto [...canonical_slices] = submdspan_canonicalize_slices(src.extents(), slices
 * [5.2]{.pnum} [the expression `submdspan_mapping(src.mapping(),` `slices...)` is well-formed when treated as an unevaluated operand]{.rm}[`Layout::mapping<Extents>` models _`sliceable-mapping`_]{.add}.
 
 
-[3]{.pnum} *Preconditions*: For each rank index $k$ of `src`, $slices...[k]$ is a valid slice for `k` dimension of `src`.
+[3]{.pnum} *Preconditions*: For each rank index $k$ of `src`, $slices...[k]$ is a valid slice for the `k`^{th} extent of `src`.
+
 
 
 [6]{.pnum} *Mandates*:
