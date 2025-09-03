@@ -726,6 +726,41 @@ In [version.syn], increase the value of the `__cpp_lib_submdspan` macro by repla
     constexpr auto submdspan_extents(const extents<IndexType, Extents...>&, SliceSpecifiers...);
 ```
 
+## Change [mdspan.sub.overview]
+
+> Change [mdspan.sub.overview] as follows.
+
+::: add
+```
+// TODO This is just context.
+// Please add required changes (e.g., definition of "known statically").
+```
+:::
+
+[1]{.pnum} The `submdspan` facilities create a new `mdspan` viewing a subset of elements of an existing input `mdspan`.  The subset viewed by the created `mdspan` is determined by the `SliceSpecifier` arguments.
+
+[2]{.pnum} For each function defined in [mdspan.sub] that takes a parameter pack named `slices` as an argument:
+
+* [2.1]{.pnum} let `index_type` be
+
+    * `M::index_type` if the function is a member of a class `M`,
+    
+    * otherwise, `remove_reference_t<decltype(src)>::index_type` if the function has a parameter named `src`,
+
+    * otherwise, the same type as the function's template argument `IndexType`;
+
+* [2.2]{.pnum} let `rank` be the number of elements in `slices`;
+
+* [2.3]{.pnum} let $s_k$ be the $k^{th}$ element of `slices`;
+  
+* [2.4]{.pnum} let $S_k$ be the type of $s_k$; and
+
+* [2.5]{.pnum} let  _`map-rank`_ be an `array<size_t, rank>` such that for each $k$ in the range $[0,$ `rank`$)$, _`map-rank`_`[`$k$`]` equals:
+
+    * [2.5.1]{.pnum} `dynamic_extent` if $S_k$ models `convertible_to<index_type>`,
+
+    * [2.5.2]{.pnum} otherwise, the number of types $S_j$ with $j < k$ that do not model `convertible_to<index_type>`.
+
 ## Change [mdspan.sub.helpers]
 
 > Change [mdspan.sub.helpers] as follows.
@@ -807,7 +842,6 @@ template<class IndexType, size_t k, class... SliceSpecifiers>
 [5]{.pnum} *Mandates*: [`IndexType` is a signed or unsigned integer type.]{.rm}[`SliceSpecifiers...[`$k$`]` is a canonical $k^{th}$ `mdspan` slice type of `Extents`.]{.add}
 
 ::: rm
-
 [6]{.pnum} Let $ϕ_k$ denote the following value:
 
 * [6.1]{.pnum} $s_k$ if $S_k$ models `convertible_to<IndexType>`;
