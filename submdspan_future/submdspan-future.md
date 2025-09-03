@@ -1314,6 +1314,31 @@ A type `M` statisfies _`sliceable-mapping`_  if the expression `submdspan_mappin
 
 * [1.5]{.pnum} otherwise, `submdspan_mapping_result{layout_stride::mapping(sub_ext, sub_strides), offset}`
 
+## Change [mdspan.sub.map.stride], `layout_stride` specialization of `submdspan_mapping`
+
+> Change [mdspan.sub.map.stride] ("`layout_stride` specialization of `submdspan_mapping`") as follows.
+
+::: add
+```
+//
+// TODO Fix context below here; thanks!
+//
+```
+:::
+
+```c++
+  template<class Extents>
+  template<class... SliceSpecifiers>
+  constexpr auto layout_stride::mapping<Extents>::@_submdspan-mapping-impl_@(
+    SliceSpecifiers ... slices) const -> @_see below_@;
+```
+
+[1]{.pnum} *Returns:*
+
+* [1.1]{.pnum} `submdspan_mapping_result{*this, 0}`, if `Extents::rank() == 0` is `true`;
+
+* [1.2]{.pnum} otherwise, `submdspan_mapping_result{layout_stride::mapping(sub_ext, sub_strides), offset}`
+
 ## Change [mdspan.sub.sub], `submdspan` function template
 
 > Change [mdspan.sub.sub] ("`submdspan` function template") as follows.
