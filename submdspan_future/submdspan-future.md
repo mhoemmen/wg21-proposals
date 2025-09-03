@@ -1243,9 +1243,9 @@ If [_`first_`_`<index_type, `$k$`>(slices...)`]{.rm}[`ls...[`$k$`]`]{.add} equal
 
     * [1.3.1]{.pnum} for each $k$ in the range $[0,$ `SubExtents::rank() - 1`$)$, [`is_convertible_v<`$S_k$`, full_extent_t>` is `true`]{.rm}[`SliceSpecifiers...[`$k$`]` denotes `full_extent_t`]{.add}; and
 
-    * [1.3.2]{.pnum} for $k$ equal to `SubExtents::rank() - 1`, $S_k$ is a unit-stride slice for `mapping`;
+    * [1.3.2]{.pnum} for $k$ equal to `SubExtents::rank() - 1`, [$S_k$]{.rm}[`SliceSpecifiers...[`$k$`]`]{.add} is a unit-stride slice for `mapping`;
 
-    <i>[Note: </i> If the above conditions are true, all $S_k$ with `k` larger than `SubExtents::rank() - 1` are convertible to `index_type`. <i>- end note]</i>
+    <i>[Note: </i> If the above conditions are true, all [$S_k$]{.rm}[`SliceSpecifiers...[`$k$`]`]{.add} with `k` larger than `SubExtents::rank() - 1` are convertible to `index_type`. <i>- end note]</i>
 
 * [1.4]{.pnum} otherwise, `submdspan_mapping_result{layout_left_padded<S_static>::mapping(sub_ext, stride(u+1)), offset}`,
     if for a value $u$ for which $u + 1$ is the smallest value $p$ larger than zero for which [$S_p$]{.rm}[`SliceSpecifiers...[`$p$`]`]{.add} is a unit-stride slice for `mapping`, the following conditions are met:
@@ -1287,11 +1287,11 @@ If [_`first_`_`<index_type, `$k$`>(slices...)`]{.rm}[`ls...[`$k$`]`]{.add} equal
 
     * [1.3.1]{.pnum} for each $k$ in the range $[$_`rank_`_` - SubExtents::rank() + 1`, _`rank_`_$)$, [`is_convertible_v<`$S_k$`, full_extent_t>` is `true`]{.rm}[`SliceSpecifiers...[`$k$`]` denotes `full_extent_t`]{.add}; and
 
-    * [1.3.2]{.pnum} for $k$ equal to [_`_rank`_]{.rm}[_`rank_`_]{.add} ` - SubExtents::rank()`, $S_k$ is a unit-stride slice for `mapping`;
+    * [1.3.2]{.pnum} for $k$ equal to [_`_rank`_]{.rm}[_`rank_`_]{.add} ` - SubExtents::rank()`, [$S_k$]{.rm}[`SliceSpecifiers...[`$k$`]`]{.add} is a unit-stride slice for `mapping`;
 
     <i>[Editorial Note: </i> Please note drive-by fix in 1.3.2. <i>- end note]</i>
 
-    <i>[Note: </i> If the above conditions are true, all $S_k$ with $k$ $\lt$ _`rank_`_ `- SubExtents::rank()` are convertible to `index_type`. <i>- end note]</i>
+    <i>[Note: </i> If the above conditions are true, all [$S_k$]{.rm}[`SliceSpecifiers...[`$k$`]`]{.add} with $k$ $\lt$ _`rank_`_ `- SubExtents::rank()` are convertible to `index_type`. <i>- end note]</i>
 
 * [1.4]{.pnum} otherwise, `submdspan_mapping_result{layout_right_padded<S_static>::template mapping(sub_ext, stride(`_`rank_`_ `-` $u$ `- 2)), offset}` if for a value $u$ for which _`rank_`_ `-` $u$ `- 2` is the largest value $p$ smaller than _`rank_`_ `- 1` for which [$S_p$]{.rm}[`SliceSpecifiers...[`$p$`]`]{.add} is a unit-stride slice for `mapping`, the following conditions are met:
 
@@ -1341,7 +1341,7 @@ If [_`first_`_`<index_type, `$k$`>(slices...)`]{.rm}[`ls...[`$k$`]`]{.add} equal
 ```c++
   template<class Extents>
   template<class... SliceSpecifiers>
-  constexpr auto layout_left_padded::mapping<Extents>::@_submdspan-mapping-impl_@(    // @_exposition only_@
+  constexpr auto layout_left_padded::mapping<Extents>::@_submdspan-mapping-impl_@(
     SliceSpecifiers... slices) const -> @_see below_@;
 ```
 
