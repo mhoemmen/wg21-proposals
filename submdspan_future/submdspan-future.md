@@ -726,6 +726,22 @@ In [version.syn], increase the value of the `__cpp_lib_submdspan` macro by repla
     constexpr auto submdspan_extents(const extents<IndexType, Extents...>&, SliceSpecifiers...);
 ```
 
+## Change [mdspan.extents.overview]
+
+> Change [mdspan.extents.overview] as follows.
+
+[1]{.pnum} *Mandates*:
+
+* [1.1]{.pnum} `IndexType` is a signed or unsigned integer type, and
+
+* [1.2]{.pnum} each element of `Extents` is either equal to `dynamic_extent`, or is representable as a value of type `IndexType`.
+
+[2]{.pnum} Each specialization of `extents` models `regular` and is trivally copyable.
+
+[3]{.pnum} Let $E_r$ be the $r^{th}$ element of `Extents`.  $E_r$ is a *dynamic extent* if it is equal to `dynamic_extent`, otherwise $E_r$ is a *static extent*.  Let $D_r$ be the value of _`dynamic-extents`_`[`_`dynamic-index`_`(`$r$`)]` if $E_r$ is a dynamic extent, otherwise $E_r$.
+
+[4]{.pnum} The $r^{th}$ interval of the multidimensional index space represented by an `extents` object is $[0, D_r)$.  [The $r^{th}$ interval is *known statically* if $E_r$ is a static extent.]{.add}
+
 ## Change [mdspan.sub.overview]
 
 > Change [mdspan.sub.overview] as follows.
