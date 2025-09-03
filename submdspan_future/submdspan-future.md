@@ -1313,14 +1313,6 @@ If [_`first_`_`<index_type, `$k$`>(slices...)`]{.rm}[`ls...[`$k$`]`]{.add} equal
 
 > Change [mdspan.sub.map.stride] ("`layout_stride` specialization of `submdspan_mapping`") as follows.
 
-::: add
-```
-//
-// TODO Apply changes similiar to layout_left
-//
-```
-:::
-
 ```c++
   template<class Extents>
   template<class... SliceSpecifiers>
