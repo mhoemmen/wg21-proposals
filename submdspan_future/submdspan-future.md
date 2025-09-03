@@ -1330,14 +1330,6 @@ If [_`first_`_`<index_type, `$k$`>(slices...)`]{.rm}[`ls...[`$k$`]`]{.add} equal
 
 > Change [mdspan.sub.map.leftpad] ("`layout_left_padded` specialization of `submdspan_mapping`") as follows.
 
-::: add
-```
-//
-// TODO Fix context below here; thanks!
-//
-```
-:::
-
 ```c++
   template<class Extents>
   template<class... SliceSpecifiers>
@@ -1355,15 +1347,15 @@ If [_`first_`_`<index_type, `$k$`>(slices...)`]{.rm}[`ls...[`$k$`]`]{.add} equal
 
     * [1.3.1]{.pnum} `SubExtents::rank() == 1` is `true` and
 
-    * [1.3.2]{.pnum} $S_0$ is a unit-stride slice for `mapping`;
+    * [1.3.2]{.pnum} [$S_0$]{.rm}[`SliceSpecifiers[0]`]{.add} is a unit-stride slice for `mapping`;
 
-* [1.4]{.pnum} otherwise, `submdspan_mapping_result{layout_left_padded<S_static>::mapping(sub_ext, stride(`$u$ ` + 1)), offset}`, if for a value $u$ for which $u$ `+ 1` is the smallest value $p$ larger than zero for which $S_p$ is a unit-stride slice for `mapping`, the following conditions are met:
+* [1.4]{.pnum} otherwise, `submdspan_mapping_result{layout_left_padded<S_static>::mapping(sub_ext, stride(`$u$ ` + 1)), offset}`, if for a value $u$ for which $u$ `+ 1` is the smallest value $p$ larger than zero for which [$S_p$]{.rm}[`SliceSpecifiers[`$p$`]`]{.add} is a unit-stride slice for `mapping`, the following conditions are met:
       
-    * [1.4.1]{.pnum} $S_0$ is a unit-stride slice for `mapping`; and
+    * [1.4.1]{.pnum} [$S_0$]{.rm}[`SliceSpecifiers[0]`]{.add} is a unit-stride slice for `mapping`; and
 
-    * [1.4.2]{.pnum} for each $k$ in the range $[u$ `+ 1`, $u$ `+ SubExtents::rank() - 1`$)$, `is_convertible_v<`$S_k$`, full_extent_t>` is `true`; and
+    * [1.4.2]{.pnum} for each $k$ in the range $[u$ `+ 1`, $u$ `+ SubExtents::rank() - 1`$)$, [`is_convertible_v<`$S_k$`, full_extent_t>` is `true`]{.rm}[`SliceSpecifiers[`$k$`]` denotes `full_extent_t`]{.add}; and
 
-    * [1.4.3]{.pnum} for $k$ equal to $u$ `+ SubExtents::rank() - 1`, $S_k$ is a unit-stride slice for `mapping`;
+    * [1.4.3]{.pnum} for $k$ equal to $u$ `+ SubExtents::rank() - 1`, [$S_k$]{.rm}[`SliceSpecifiers[`$k$`]`]{.add} is a unit-stride slice for `mapping`;
 
     where `S_static` is:
 
