@@ -1202,6 +1202,14 @@ template<typename LayoutMapping>
     0 &le; _`extents().extent(`$k$`)`
 :::
 
+```
+//
+// TODO I find it a bit hard to remember that "valid slice type"
+// is stronger than "slice type" or "canonical slice type."
+// "Valid" sounds like the weakest possible requirement.
+//
+```
+
 ::: add
 [3]{.pnum} *Mandates*: For each rank index $k$ of `src`, `SliceSpecifiers...[`$k$`]` is a valid `submdspan` slice type for the $k^{th}$ extent of `Extents`, and
 
@@ -1210,28 +1218,20 @@ template<typename LayoutMapping>
 
 [5]{.pnum} Let `sub_ext` be the result of `submdspan_extents(extents(), slices...)` and let `SubExtents` be `decltype(sub_ext)`.
 
-
-* [5.2]{.pnum} for each rank index $k$ of `Extents` [such that _`map-rank`_`[`$k$`] != dynamic_extent` is `true`]{.rm}[let `S` denote a type of `slices...[`$k$`]`]{.add}, `SubExtents::static_extent(`[_`map-rank`_`[`$k$`]`]{.rm}[$MAPRANK$`(slices, `$k$`)`]{.add}`)` equals:
-
-:::
-
 [6]{.pnum} Let `sub_strides` be an `array<SubExtents::index_type, SubExtents::rank()>` such that for each rank index $k$ of `extents()` for which [_`map-rank`_`[`$k$`]` is not `dynamic_extent`]{.rm}[`is_convertible_v<decltype(slices...[`$k$`]), SubExtents::index_type>` is `false`]{.add}, `sub_strides[`[_`map-rank`_`[`$k$`]`]{.rm}[$MAPRANK$`(slices, `$k$`)`]{.add}`]` equals:
 
 * [6.1]{.pnum} `stride(`$k$`) * `[_`de-ice`_`(`$s_k$`.stride)`]{.rm}[`s.stride`]{.add} if [$S_k$]{.rm}[`s`]{.add} is a specialization of `strided_slice` and [$s_k$`.stride M `$s_k$`.extent`]{.rm}[`s.stride < s.extent`]{.add} is `true` [where `s` is `slices...[`$k$`]`]{.add};
 
 * [6.2]{.pnum} otherwise, `stride(`$k$`)`.
 
-[7]{.pnum} [Let `P` be a parameter pack such that `is_same_v<make_index_sequence<rank()>, index_sequence<P...>>` is `true`.]{.rm}
+[7]{.pnum} [Let `P` be a parameter pack such that `is_same_v<make_index_sequence<rank()>, index_sequence<P...>>` is `true`.]{.rm}[Let `ls` be a pack of integers whose $\rho^{th}$ element equals the lower bound of the `submdspan` slice range of `slices...[`$\rho$`]` for each rank index $\rho$ of `(*this).extents()`.]{.add}
 
-[8]{.pnum} 
-
-[Let `ls` be a pack of integers whose $\rho^{th}$ element equals the lower bound of the `submdspan` slice range of `slices..[`$\rho$`]` for each rank index $\rho$ of `(*this).extents()`.]{.add}
-If [_`first_`_`<index_type, `$k$`>(slices...)`]{.rm}[`ls...[`$k$`]`]{.add} equals [`(*this).`]{.add}`extents().extent(`$k$`)` for any rank index $k$ of `extents()`, then let `offset` be a value of type `size_t` equal to `(*this).required_span_size()`.  Otherwise, let `offset` be a value of type `size_t` equal to `(*this)(` [_`first_`_`<index_type, P>(slices...)...`]{.rm}[`ls...`]{.add} `)`.
+[8]{.pnum} If [_`first_`_`<index_type, `$k$`>(slices...)`]{.rm}[`ls...[`$k$`]`]{.add} equals [`(*this).`]{.add}`extents().extent(`$k$`)` for any rank index $k$ of `extents()`, then let `offset` be a value of type `size_t` equal to `(*this).required_span_size()`.  Otherwise, let `offset` be a value of type `size_t` equal to `(*this)(` [_`first_`_`<index_type, P>(slices...)...`]{.rm}[`ls...`]{.add} `)`.
 
 ::: add
 ```
 //
-// TODO Should we say "canonical unit-stride slice" instead?
+// TODO Should we say "canonical (or valid) unit-stride slice" instead?
 //
 ```
 :::
