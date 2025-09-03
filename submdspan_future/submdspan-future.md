@@ -810,20 +810,22 @@ In [version.syn], increase the value of the `__cpp_lib_submdspan` macro by repla
     * [3.3.2]{.pnum} if $S$`::stride_type` and $S$`::extent_type` are both specializations of  `constant_wrapper`,
       then $S$::`stride_type::value` is greater than zero.
 
-[5]{.pnum} An object `s` of type `S` is *collapsing slice* if it's type is canonical `submdspan` index type for `IndexType`.
+[4]{.pnum} An object `s` of type `S` is a *collapsing slice* if `S` is a canonical `submdspan` index type for `IndexType`.
+
+[*Note 1*: Each collapsing slice reduces the rank of the result of `submdspan` ([mdspan.sub.sub]) by one. — *end note*]
 
 [5]{.pnum} Given an object `e` of a type `E` that is a specialization of `extents`,
 and an object `s` of type `S` that is a canonical `submdspan` slice type for `E::index_type`,
-the *`submdspan` slice range of `s` for the `k`$^{th}$ extent of `e`* is:
+the *`submdspan` slice range of `s` for the $k^{th}$ extent of `e`* is:
 
-* [5.1]{.pnum} $[0,$ `e.extent(k)`$)$ if `S` is `full_extent_t`
-    (the slice range is known statically if `e.static_extent(k)` is not equal to `dynamic_extent`);
+* [5.1]{.pnum} $[0,$ `e.extent(`$k$`)`$)$ if `S` is `full_extent_t`
+    (the slice range is *known statically* if `e.static_extent(`$k$`)` is not equal to `dynamic_extent`);
 
 * [5.2]{.pnum} $[$`E::index_type(s.offset)`, `E::index_type(s.offset + s.extent)`$)$ if `S` is a specialization of `strided_slice`
-    (the slice range is known statically if both `S::offset_type` and `S::extent_type` are specializations of `constant_wrapper`); otherwise
+    (the slice range is *known statically* if both `S::offset_type` and `S::extent_type` are specializations of `constant_wrapper`); otherwise
 
 * [5.3]{.pnum} $[$`E::index_type(s)`, `E::index_type(s)` $+ 1)$
-    (the slice range is known statically if `S` is a specialization of `constant_wrapper`).
+    (the slice range is *known statically* if `S` is a specialization of `constant_wrapper`).
 
 [6]{.pnum} Given a type `E` that is a specialization of `extents`,
 a type `S` is a *valid `submdspan` slice type for the $k^{th}$ extent of `E`*,
@@ -849,7 +851,6 @@ and an object `s` of type `S`, `s` is a *valid `submdspan` slice for the $k^{th}
 
 * [7.3]{.pnum} the interval of the $k^{th}$ extent of `e` contains the `submdspan` slice range of `s` for the $k^{th}$ extent of `e`; and,
 
-
 ```
 template<class IndexType, size_t... Extents, class... SlicesSpecifiers>
 constexpr auto submdspan_canonicalize_slices(
@@ -868,7 +869,6 @@ constexpr auto submdspan_canonicalize_slices(
 
 [11]{.pnum} *Returns*: `make_tuple(`_`canonical-slice`_`<IndexType>(slices)...)`
 :::
-
 
 ## Change [mdspan.sub.helpers]
 
@@ -944,14 +944,7 @@ template<class IndexType, size_t N, class... SliceSpecifiers>
 :::
 
 ::: add
-
-```
-//
-// TODO Have we defined "collapsing slices"?
-//
-```
-
-[1] For a pack `p` and an integer $i$, let $MAPRANK$(`p`, $i$) be the number of elements `p...[`$j$`]` for 0 &le; $j$ &lt; $i$ that are collapsing slices.
+[1]{.pnum} For a pack `p` and an integer $i$, let $MAP\_RANK$(`p`, $i$) be the number of elements `p...[`$j$`]` for 0 &le; $j$ &lt; $i$ that are collapsing slices.
 
 ```
 template<class T>
@@ -990,16 +983,20 @@ if constexpr (is_convertible_v<S, full_extent_t>)
   return static_cast<full_extent_t>(std::move(s));
 else if constexpr (is_convertible_v<S, IndexType>)
   return @_canonical-index_@<IndexType>(std::move(s));
-else if constexpr (@_is-strided-slice_@<S>)
-auto c_extent = @_canonical-index_@<IndexType>(std::move(s.extent));
-{
+else if constexpr (@_is-strided-slice_@<S>) {
+  auto c_extent = @_canonical-index_@<IndexType>(std::move(s.extent));
   auto c_offset  = @_canonical-index_@<IndexType>(std::move(s.offset));
   auto c_extent = @_canonical-index_@<IndexType>(std::move(s.extent));
   if constexpr (is_same_v<decltype(c_extent), constant_wrapper<IndexType(0)>>)
-    return strided_slice{.offset = c_offset, .extent = c_extent, .stride = cw<1> };
+    return strided_slice{
+      .offset = c_offset,
+      .extent = c_extent,
+      .stride = cw<IndexType(1)>
+    };
   else
     return strided_slice{
-      .offset = c_offset, .extent = c_extent,
+      .offset = c_offset,
+      .extent = c_extent,
       .stride = @_canonical-index_@<IndexType>(std::move(s.stride))
     };
 }
@@ -1010,13 +1007,11 @@ else {
   return strided_slice{
     .offset = c_first,
     .extent = @_canonical-index_@<IndexType>(c_last - c_first),
-    .stide = cw<IndexType(1))>
+    .stride = cw<IndexType(1)>
   };
 }
 ```
 :::
-
-
 
 ## Change section [mdspan.sub.extents]
 
@@ -1028,7 +1023,11 @@ template<class IndexType, class... Extents, class... SliceSpecifiers>
                                    SliceSpecifiers... @[raw_]{.add}@slices);
 ```
 
-[1]{.pnum} *Constraints*: `sizeof...(Slices)` equals `Extents::rank()`.
+::: add
+[1]{.pnum} Let `slices` be the pack _`canonical-slice`_`<IndexType>(raw_slices)`.
+:::
+
+[2]{.pnum} *Constraints*: `sizeof...(Slices)` equals `Extents::rank()`.
 
 ::: rm
 [2]{.pnum} *Mandates*: For each rank index $k$ of `src.extents()`, exactly one of the following is true:
@@ -1053,23 +1052,20 @@ template<class IndexType, class... Extents, class... SliceSpecifiers>
 ::: 
 
 ::: add
-[X]{.pnum} Let `slices` be the pack _`canonical-slice`_`<IndexType>(raw_slices)`.
+[3]{.pnum} *Mandates*: For each rank index $k$ of `src`:
 
-[2]{.pnum} *Mandates*: For each rank index $k$ of `src`:
-
-* [2.1]{.pnum} `SliceSpecifiers...[`$k$`]` is a `submdspan` slice type for the $k^{th}$ extent of `Extents`, and
+* [3.1]{.pnum} `SliceSpecifiers...[`$k$`]` is a `submdspan` slice type for the $k^{th}$ extent of `Extents`, and
 
 * [3.2]{.pnum} `slices...[`$k$`]` is a valid `submdspan` slice type for the $k^{th}$ extent of `Extents`.
 
-[3]{.pnum} *Preconditions*: For each rank index $k$ of `src`, `slices...[`$k$`]` is a valid slice for the $k^{th}$ extent of `src`.
-
+[4]{.pnum} *Preconditions*: For each rank index $k$ of `src`, `slices...[`$k$`]` is a valid slice for the $k^{th}$ extent of `src`.
 :::
 
 [5]{.pnum} Let `SubExtents` be a specialization of `extents` such that:
 
-* [5.1]{.pnum} `SubExtents::rank()` equals [the number of $k$ such that $S_k$ does not model `convertible_to<IndexType>`]{.rm}[$MAPRANK$`(slices, Extents::rank())`]{.add}; and
+* [5.1]{.pnum} `SubExtents::rank()` equals [the number of $k$ such that $S_k$ does not model `convertible_to<IndexType>`]{.rm}[$MAP\_RANK$`(slices, Extents::rank())`]{.add}; and
 
-* [5.2]{.pnum} for each rank index $k$ of `Extents` such that [_`map-rank`_`[`$k$`] != dynamic_extent` is `true`]{.rm}[`slices...[`$k$`]` is a collapsing slice, let `S_k` denote the type of `slices...[`$k$`]`]{.add}; then, `SubExtents::static_extent(`[_`map-rank`_`[`$k$`]`]{.rm}[$MAPRANK$`(slices, `$k$`)`]{.add}`)` equals:
+* [5.2]{.pnum} for each rank index $k$ of `Extents` such that [_`map-rank`_`[`$k$`] != dynamic_extent` is `true`]{.rm}[`slices...[`$k$`]` is a collapsing slice, let `S_k` denote the type of `slices...[`$k$`]`]{.add}; then, `SubExtents::static_extent(`[_`map-rank`_`[`$k$`]`]{.rm}[$MAP\_RANK$`(slices, `$k$`)`]{.add}`)` equals:
 
     * [5.2.1]{.pnum} `Extents::static_extent(`$k$`)` if [`is_convertible_v<`$S_k$`, full_extent_t>` is `true`]{.rm}[`S_k` denotes `full_extent_t`]{.add}; otherwise
 
@@ -1084,8 +1080,7 @@ template<class IndexType, class... Extents, class... SliceSpecifiers>
 
     * [5.2.5]{.pnum} otherwise, `dynamic_extent`.
 
-
-[6]{.pnum} *Returns:* A value `ext` of type `SubExtents` such that for each [rank index]{.add} $k$ [of `Extents`]{.add} [for which _`map-rank`_`[`$k$`] != dynamic_extent` is `true`]{.rm}[such that `slices...[`$k$`]` is a collapsing slice, let `s_k` be `slices...[`$k$`]`]{.add}; then, `ext.extent(`[_`map-rank`_`[`$k$`]`]{.rm}[$MAPRANK$`(slices, `$k$`)`]{.add}`)` equals:
+[6]{.pnum} *Returns:* A value `ext` of type `SubExtents` such that for each [rank index]{.add} $k$ [of `Extents`]{.add} [for which _`map-rank`_`[`$k$`] != dynamic_extent` is `true`]{.rm}[where `slices...[`$k$`]` is a collapsing slice]{.add}, `ext.extent(`[_`map-rank`_`[`$k$`]`]{.rm}[$MAP\_RANK$`(slices, `$k$`)`]{.add}`)` equals [the following, where `s_k` denotes `slices...[`$k$`]`]{.add}:
 
 * [6.1]{.pnum} [$s_k$`.extent == 0 ? 0 : 1 + (`_`de-ice`_`(`$s_k$`.extent) - 1) / ` _`de-ice`_`(`$s_k$`.stride)`]{.rm}
                [s_k.extent == 0 ? 0  1 + (s_k.extent - 1) / s_k.stride]{.add}
@@ -1167,7 +1162,7 @@ submdspan_mapping(m, slcs...)
      
     * [6.2.3]{.pnum} zero if `slcs...[`$\rho$`]` is a collapsing slice,
 
-    * [6.3.4]{.pnum} `j...[`$MAPRANK$`(`$k$`)]`, otherwise.
+    * [6.3.4]{.pnum} `j...[`$MAP\_RANK$`(`$k$`)]`, otherwise.
 
 ```
 //
@@ -1234,7 +1229,7 @@ template<typename LayoutMapping>
 
 [5]{.pnum} Let `sub_ext` be the result of `submdspan_extents(extents(), slices...)` and let `SubExtents` be `decltype(sub_ext)`.
 
-[6]{.pnum} Let `sub_strides` be an `array<SubExtents::index_type, SubExtents::rank()>` such that for each rank index $k$ of `extents()` for which [_`map-rank`_`[`$k$`]` is not `dynamic_extent`]{.rm}[`is_convertible_v<decltype(slices...[`$k$`]), SubExtents::index_type>` is `false`]{.add}, `sub_strides[`[_`map-rank`_`[`$k$`]`]{.rm}[$MAPRANK$`(slices, `$k$`)`]{.add}`]` equals:
+[6]{.pnum} Let `sub_strides` be an `array<SubExtents::index_type, SubExtents::rank()>` such that for each rank index $k$ of `extents()` for which [_`map-rank`_`[`$k$`]` is not `dynamic_extent`]{.rm}[`is_convertible_v<decltype(slices...[`$k$`]), SubExtents::index_type>` is `false`]{.add}, `sub_strides[`[_`map-rank`_`[`$k$`]`]{.rm}[$MAP\_RANK$`(slices, `$k$`)`]{.add}`]` equals:
 
 * [6.1]{.pnum} `stride(`$k$`) * `[_`de-ice`_`(`$s_k$`.stride)`]{.rm}[`s.stride`]{.add} if [$S_k$]{.rm}[`s`]{.add} is a specialization of `strided_slice` and [$s_k$`.stride M `$s_k$`.extent`]{.rm}[`s.stride < s.extent`]{.add} is `true` [where `s` is `slices...[`$k$`]`]{.add};
 
