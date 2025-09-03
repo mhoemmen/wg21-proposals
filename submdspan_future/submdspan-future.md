@@ -1226,7 +1226,7 @@ A type `M` statisfies _`sliceable-mapping`_  if the expression `submdspan_mappin
 ```c++
   template<class Extents>
   template<class... SliceSpecifiers>
-  constexpr auto layout_left::mapping<Extents>::@_submdspan-mapping-impl_@(    // @_exposition only_@
+  constexpr auto layout_left::mapping<Extents>::@_submdspan-mapping-impl_@(
     SliceSpecifiers... slices) const -> @_see below_@;
 ```
 
@@ -1259,7 +1259,60 @@ A type `M` statisfies _`sliceable-mapping`_  if the expression `submdspan_mappin
 
     * [1.4.5]{.pnum} otherwise, the product of all values `static_extent(`$k$`)` for $k$ in the range $[$`0`, $u$ + `1`$)$;
 
-* [1.5]{.pnum} otherwise, `submdspan_mapping_result{layout_stride::mapping(sub_ext, sub_strides), offset}`.
+* [1.5]{.pnum} otherwise, `submdspan_mapping_result{layout_stride::mapping(sub_ext, sub_strides), offset}`
+
+## Change [mdspan.sub.map.right], `layout_right` specialization of `submdspan_mapping`
+
+> Change [mdspan.sub.map.right] ("`layout_right` specialization of `submdspan_mapping`") as follows.
+
+::: add
+```
+//
+// TODO Fix context below here; thanks!
+//
+```
+:::
+
+```c++
+  template<class Extents>
+  template<class... SliceSpecifiers>
+  constexpr auto layout_right::mapping<Extents>::@_submdspan-mapping-impl_@(
+    SliceSpecifiers... slices) const -> @_see below_@;
+```
+
+[1]{.pnum} *Returns:*
+
+* [1.1]{.pnum} `submdspan_mapping_result{*this, 0}`, if `Extents::rank() == 0` is `true`;
+   
+* [1.2]{.pnum} otherwise, `submdspan_mapping_result{layout_right::mapping(sub_ext), offset}`, if `SubExtents::rank() == 0` is `true`;
+
+* [1.3]{.pnum} otherwise, `submdspan_mapping_result{layout_left::mapping(sub_ext), offset}`, if
+
+    <i>[Editorial Note: </i> For 1.3, the current working draft uses `layout_left`, not `layout_right`.  This looks wrong; it should probably be `layout_right`. <i>- end note]</i>
+
+    * for each $k$ in the range $[$_`rank_`_` - SubExtents::rank() + 1`, _`rank_`_$)$, `is_convertible_v<`$S_k$`, full_extent_t>` is `true`; and
+
+    * for $k$ equal to [_`_rank`_]{.rm}[_`rank_`_]{.add} ` - SubExtents::rank()`, $S_k$ is a unit-stride slice for `mapping`;
+
+    <i>[Editorial Note: </i> Please note drive-by fix. <i>- end note]</i>
+
+    <i>[Note: </i> If the above conditions are true, all $S_k$ with $k$ $\lt$ _`rank_`_ `- SubExtents::rank()` are convertible to `index_type`. <i>- end note]</i>
+
+* [1.4]{.pnum} otherwise, `submdspan_mapping_result{layout_right_padded<S_static>::template mapping(sub_ext, stride(`_`rank_`_ `-` $u$ `- 2)), offset}` if for a value $u$ for which _`rank_`_ `-` $u$ `- 2` is the largest value $p$ smaller than _`rank_`_ `- 1` for which $S_p$ is a unit-stride slice for `mapping`, the following conditions are met:
+
+    * [1.4.1]{.pnum} for $k$ equal to _`rank_`_ `- 1`, $S_k$ is a unit-stride slice for `mapping`; and
+
+    * [1.4.2]{.pnum} for each $k$ in the range $[$_`rank_`_` - SubExtents::rank() -` $u$ `+ 1`, _`rank_`_ `-` $u$ `- 1`$)$, `is_convertible_v<`$S_k$`, full_extent_t>` is `true`; and
+  
+    * [1.4.3]{.pnum} for $k$ equal to _`rank`_ ` - SubExtents::rank() -` $u$, $S_k$ is a unit-stride slice for `mapping`;
+
+    and where `S_static` is:
+
+    * [1.4.4]{.pnum} `dynamic_extent`, if `static_extent(`$k$`)` is `dynamic_extent` for any $k$ in the range $[$_`rank_`_ `-` $u$ `- 1`, _`rank_`_$)$,
+
+    * [1.4.5]{.pnum} otherwise, the product of all values `static_extent(`$k$`)` for `k` in the range $[$_`rank_`_ `- `$u$` - 1`, _`rank_`_$)$;
+
+* [1.5]{.pnum} otherwise, `submdspan_mapping_result{layout_stride::mapping(sub_ext, sub_strides), offset}`
 
 ## Change [mdspan.sub.sub], `submdspan` function template
 
