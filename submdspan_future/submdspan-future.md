@@ -1070,6 +1070,8 @@ auto [...slices] = submdspan_canonicalize_slices(src, raw_slices...);
 
 ## Requirements of all `submdspan_mapping` customizations
 
+### New section [mdspan.sub.sliceable], "Sliceable layout mapping requirements"
+
 > Right before [mdspan.sub.map.common] ("Specializations of `submdspan_mapping`), insert a new section [mdspan.sub.sliceable], "Sliceable layout mapping requirements," with the following content.
 
 ::: add
@@ -1182,6 +1184,32 @@ A type `M` statisfies _`sliceable-mapping`_  if the expression `submdspan_mappin
 :::
 
 [5]{.pnum} Let `sub_ext` be the result of `submdspan_extents(extents(), slices...)` and let `SubExtents` be `decltype(sub_ext)`.
+
+::: add
+```
+//
+// TODO Fix context below here; thanks!
+//
+```
+:::
+
+[6]{.pnum} Let `sub_strides` be an `array<SubExtents::index_type, SubExtents::rank()>` such that for each rank index $k$ of `extents()` for which _`map-rank`_`[`$k$`]` is not `dynamic_extent`, `sub_strides[`_`map-rank`_`[`$k$`]]` equals:
+
+* [6.1]{.pnum} `stride(`$k$`) * `_`de-ice`_`(`$s_k$`.stride)` if $S_k$ is a specialization of `strided_slice` and $s_k$`.stride` $\lt s_k$`.extent` is `true`;
+
+* [6.2]{.pnum} otherwise, `stride(`$k$`)`.
+
+[7]{.pnum} Let `P` be a parameter pack such that `is_same_v<make_index_sequence<rank()>, index_sequence<P...>>` is `true`.
+
+[8]{.pnum} If _`first_`_`<index_type, `$k$`>(slices...)` equals `extents().extent(`$k$`)` for any rank index $k$ of `extents()`, then let `offset` be a value of type `size_t` equal to `(*this).required_span_size()`.  Otherwise, let `offset` be a value of type `size_t` equal to `(*this)(`_`first_`_`<index_type, P>(slices...)...)`.
+
+[9]{.pnum} Given a layout mapping type `M`, a type `S` is a *unit-stride slice for `M`* if
+
+* [9.1]{.pnum} `S` is a specialization of `strided_slice` where `S​::​stride_type` models _`integral-constant-like`_ and `S​::​stride_type​::​value` equals `1`,
+
+* [9.2]{.pnum} `S` models _`index-pair-like`_`<M​::​index_type>`, or
+
+* [9.3]{.pnum} `is_convertible_v<S, full_extent_t>` is `true`.
 
 ## `submdspan` function template
 
