@@ -1033,7 +1033,6 @@ template<class IndexType, class... Extents, class... SliceSpecifiers>
 ::: add
 [X]{.pnum} Let `slices` be the pack _`canonical-slice`_`<IndexType>(raw_slices)`.
 
-
 [2]{.pnum} *Mandates*: For each rank index $k$ of `src`:
 
 * [2.1]{.pnum} `SliceSpecifiers...[`$k$`]` is a `submdspan` slice type for the $k^{th}$ extent of `Extents`, and
@@ -1446,20 +1445,16 @@ template<class ElementType, class Extents, class LayoutPolicy,
          class AccessorPolicy, class... SliceSpecifiers>
   constexpr auto submdspan(
     const mdspan<ElementType, Extents, LayoutPolicy, AccessorPolicy>& src,
-    SliceSpecifiers... slices) -> @_see below_@;
+    SliceSpecifiers... @[raw_]{.add}@slices) -> @_see below_@;
 ```
 
 [1]{.pnum} Let `index_type` be `typename Extents::index_type`.
 
 ::: add
-[2]{.pnum} Let `canonical_slices` be the pack resulting from the following statement.
-
-```
-auto [...canonical_slices] = submdspan_canonicalize_slices(src.extents(), slices...).
-```
+[2]{.pnum} Let `slices` be the pack _`canonical-slice`_`<IndexType>(raw_slices)`.
 :::
 
-[3]{.pnum} Let `sub_map_offset` be the result of `submdspan_mapping(src.mapping(),` [`slices`]{.rm}[`canonical_slices`]{.add} `...)`.
+[3]{.pnum} Let `sub_map_offset` be the result of `submdspan_mapping(src.mapping(), slices...)`.
 
 [*Note 1*: This invocation of `submdspan_mapping` selects a function call via overload resolution on a candidate set that includes the lookup set found by argument-dependent lookup ([basic.lookup.argdep]). — *end note*]
 
@@ -1471,39 +1466,29 @@ auto [...canonical_slices] = submdspan_canonicalize_slices(src.extents(), slices
 
 [5]{.pnum} *Mandates*:
 
-::: add
-```
-//
-// TODO Is removing these right?
-//
-```
-:::
+* [5.1]{.pnum} For each rank index $k$ of `src`:
+
+  * [5.1.1]{.pnum} `SliceSpecifiers...[`$k$`]` is a `submdspan` slice type for the $k^{th}$ extent of `Extents`, and
+
+  * [5.1.2]{.pnum} `slices...[`$k$`]` is a valid `submdspan` slice type for the $k^{th}$ extent of `Extents`.
+
+* [5.2]{.pnum} `decltype(submdspan_mapping(src.mapping(),` `slices...))` is a specialization of `submdspan_mapping_result`.
 
 ::: rm
-* [5.1]{.pnum} `decltype(submdspan_mapping(src.mapping(),` `slices...))` is a specialization of `submdspan_mapping_result`.
-
 * [5.2]{.pnum} `is_same_v<remove_cvref_t<decltype(sub_map_offset.mapping.extents())>, decltype(submdspan_extents(src.mapping(), slices...))>` is `true`.
+
+* [5.3]{.pnum} For each rank index $k$ of `src.extents()`, exactly one of the following is true:
+
+    * [5.3.1]{.pnum} [$S_k$ models `convertible_to<index_type>`,]{.rm}
+
+    * [5.3.2]{.pnum} [$S_k$ models _`index-pair-like`_`<index_type>`,]{.rm}
+
+    * [5.3.3]{.pnum} [`is_convertible_v<`$S_k$`, full_extent_t>` is `true`, or]{.rm}
+
+    * [5.3.4]{.pnum} [$S_k$ is a specialization of `strided_slice`.]{.rm}
 :::
 
-::: add
-```
-//
-// TODO Please fix below here; thanks!
-//
-```
-:::
-
-* [6.1]{.pnum} For each rank index $k$ of `src.extents()`, [exactly one of the following is true:]{.rm}[$S_k$ is a valid $k^{th}$ `submdspan` slice type for `Extents`.]{.add}
-
-    * [6.1.1]{.pnum} [$S_k$ models `convertible_to<index_type>`,]{.rm}
-
-    * [6.1.2]{.pnum} [$S_k$ models _`index-pair-like`_`<index_type>`,]{.rm}
-
-    * [6.1.3]{.pnum} [`is_convertible_v<`$S_k$`, full_extent_t>` is `true`, or]{.rm}
-
-    * [6.1.4]{.pnum} [$S_k$ is a specialization of `strided_slice`.]{.rm}
-
-[7]{.pnum} *Preconditions*: [For each rank index $k$ of `src`, `slices...[`$k$`]` is a valid slice for the $k^{th}$ extent of `src`.]{.add}
+[7]{.pnum} *Preconditions*: [For each rank index $k$ of `src`, `slices...[`$k$`]` is a valid `submdspan` slice for the $k^{th}$ extent of `src`.]{.add}
 
 ::: rm
 * [7.1]{.pnum} For each rank index $k$ of `src.extents()`, all of the following are `true`:
@@ -1532,15 +1517,9 @@ is `true`.
 
 [8]{.pnum} *Effects*: Equivalent to:
 
-::: add
-```
-auto [...canonical_slices] =
-  submdspan_canonicalize_slices(src.extents(), slices...);
-```
-:::
 ```
 auto sub_map_result =
-  submdspan_mapping(src.mapping(), @[canonical_]{.add}@slices...);
+  submdspan_mapping(src.mapping(), slices...);
 return mdspan(
   src.accessor().offset(src.data@[_handle]{.add}@(), sub_map_result.offset),
   sub_map_result.mapping,
