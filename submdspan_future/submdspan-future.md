@@ -973,13 +973,14 @@ and an object `s` of type `S`, `s` is a *valid `submdspan` slice for the $k^{th}
 
 * [6.1]{.pnum} `S` is a valid `submdspan` slice type for the $k^{th}$ extent of `E`;
 
-* [6.2]{.pnum} the interval of the $k^{th}$ extent of `e` contains the `submdspan` slice range of `s` for the $k^{th}$ extent of `e`; and,
+* [6.2]{.pnum} if `S` is a specialization of `strided_slice`, then:
 
-* [6.3]{.pnum} if `S` is a specialization of `strided_slice`, then:
+  * [6.2.1]{.pnum}  `s.offset` and `s.extent` are both greater than or equal to zero, and
 
- * [6.3.2]{.pnum}  `s.offset` and `s.extent` are both greater than or equal to zero, and
+  * [6.2.2]{.pnum}  either `s.extent` equals zero or `s.stride` is greater than zero.
 
- * [6.3.2]{.pnum}  either `s.extent` equals zero or `s.stride` is greater than zero.
+* [6.3]{.pnum} the interval of the $k^{th}$ extent of `e` contains the `submdspan` slice range of `s` for the $k^{th}$ extent of `e`; and,
+
 
 ```
 template<class IndexType, size_t... Extents, class... SlicesSpecifiers>
@@ -1007,7 +1008,7 @@ constexpr auto submdspan_canonicalize_slices(
 ```
 template<class IndexType, class... Extents, class... SliceSpecifiers>
   constexpr auto submdspan_extents(const extents<IndexType, Extents...>& src,
-                                   SliceSpecifiers... [slices]{.rm}[raw_slices]{.add});
+                                   SliceSpecifiers... {.rm}[raw_]{.add}slices);
 ```
 
 [1]{.pnum} *Constraints*: `sizeof...(Slices)` equals `Extents::rank()`.
@@ -1032,8 +1033,6 @@ template<class IndexType, class... Extents, class... SliceSpecifiers>
     * [3.1.2]{.pnum} $s_k$`.stride` &gt; 0
 
 * [3.2]{.pnum} 0 &le; _`first_`_`<IndexType,`$k$`>(slices...)` &le; _`last_`_`<`$k$`>(src, slices...)` &le; `src.extent(`$k$`)`
-
-
 ::: 
 
 ::: add
@@ -1054,7 +1053,7 @@ template<class IndexType, class... Extents, class... SliceSpecifiers>
 
 * [5.1]{.pnum} `SubExtents::rank()` equals [the number of $k$ such that $S_k$ does not model `convertible_to<IndexType>`]{.rm}[$MAPRANK$`(slices, Extents::rank())`]{.add}; and
 
-* [5.2]{.pnum} for each rank index $k$ of `Extents` [such that _`map-rank`_`[`$k$`] != dynamic_extent` is `true`]{.rm}[let `S` denote a type of `slices...[`$k$`]`]{.add}, `SubExtents::static_extent(`[_`map-rank`_`[`$k$`]`]{.rm}[$MAPRANK$`(slices, `$k$`)`]{.add}`)` equals:
+* [5.2]{.pnum} for each rank index $k$ of `Extents` such that [_`map-rank`_`[`$k$`] != dynamic_extent` is `true`]{.rm}[`is_convertible_v<decltype(slices...[`$k$`]), SubExtents::index_type>` is `false`, let `S` denote a type of `slices...[`$k$`]`]{.add}, `SubExtents::static_extent(`[_`map-rank`_`[`$k$`]`]{.rm}[$MAPRANK$`(slices, `$k$`)`]{.add}`)` equals:
 
     * [5.2.1]{.pnum} `Extents::static_extent(`$k$`)` if [`is_convertible_v<`$S_k$`, full_extent_t>` is `true`]{.rm}[`S` denote `full_extent_t`]{.add}; otherwise
 
@@ -1069,7 +1068,7 @@ template<class IndexType, class... Extents, class... SliceSpecifiers>
     * [5.2.5]{.pnum} otherwise, `dynamic_extent`.
 
 
-[6]{.pnum} *Returns:* A value `ext` of type `SubExtents` such that for each $k$[ for which _`map-rank`_`[`$k$`] != dynamic_extent` is `true`]{.rm}[let `s` be `slices...[`$k$`]`]{.add}, `ext.extent(`[_`map-rank`_`[`$k$`]`]{.rm}[$MAPRANK$`(slices, `$k$`)`]{.add}`)` equals:
+[6]{.pnum} *Returns:* A value `ext` of type `SubExtents` such that for each [rankd index]{.add} $k$ [of `Extents`]{.add} [for which_`map-rank`_`[`$k$`] != dynamic_extent` is `true`]{.rm}[such that `is_convertible_v<decltype(slices...[`$k$`]), SubExtents::index_type>` is `false`, let `s` be `slices...[`$k$`]`]{.add}, `ext.extent(`[_`map-rank`_`[`$k$`]`]{.rm}[$MAPRANK$`(slices, `$k$`)`]{.add}`)` equals:
 
 * [6.1]{.pnum} [$s_k$`.extent == 0 ? 0 : 1 + (`_`de-ice`_`(`$s_k$`.extent) - 1) / ` _`de-ice`_`(`$s_k$`.stride)`]{.rm}
                [s.extent == 0 ? 0  1 + (s.extent - 1) / s.stride]{.add}
@@ -1192,56 +1191,49 @@ A type `M` statisfies _`sliceable-mapping`_  if the expression `submdspan_mappin
 
 * [3.1]{.pnum} `SliceSpecifiers...[`$k$`]` is a `submdspan` slice type for the $k^{th}$ extent of `Extents`, and
 
-* [3.2]{.pnum} `decltype(`_`canonical-slice`_`<IndexType>(slices...[`$k$`]))` is a `submdspan` slice type for the $k^{th}$ extent of `Extents`.
+* [3.2]{.pnum} `decltype(slices...[`$k$`])` is a `submdspan` slice type for the $k^{th}$ extent of `Extents`.
 
-[4]{.pnum} *Preconditions*: For each rank index $k$ of `src`, _`canonical-slice`_`<IndexType>(slices...[`$k$`])` is a valid slice for the $k^{th}$ extent of `src`.
+[4]{.pnum} *Preconditions*: For each rank index $k$ of `src`, `slices...[`$k$`])` is a valid slice for the $k^{th}$ extent of `src`.
 :::
 
 [5]{.pnum} Let `sub_ext` be the result of `submdspan_extents(extents(), slices...)` and let `SubExtents` be `decltype(sub_ext)`.
 
-::: add
-```
-//
-// TODO Fix context below here; thanks!
-//
-```
+
+* [5.2]{.pnum} for each rank index $k$ of `Extents` [such that _`map-rank`_`[`$k$`] != dynamic_extent` is `true`]{.rm}[let `S` denote a type of `slices...[`$k$`]`]{.add}, `SubExtents::static_extent(`[_`map-rank`_`[`$k$`]`]{.rm}[$MAPRANK$`(slices, `$k$`)`]{.add}`)` equals:
+
 :::
 
-[6]{.pnum} Let `sub_strides` be an `array<SubExtents::index_type, SubExtents::rank()>` such that for each rank index $k$ of `extents()` for which _`map-rank`_`[`$k$`]` is not `dynamic_extent`, `sub_strides[`_`map-rank`_`[`$k$`]]` equals:
+[6]{.pnum} Let `sub_strides` be an `array<SubExtents::index_type, SubExtents::rank()>` such that for each rank index $k$ of `extents()` for which [_`map-rank`_`[`$k$`]` is not `dynamic_extent`]{.rm}[`is_convertible_v<decltype(slices...[`$k$`]), SubExtents::index_type>` is `false`]{.add}, `sub_strides[`[_`map-rank`_`[`$k$`]`]{.rm}[$MAPRANK$`(slices, `$k$`)`]{.add}`]` equals:
 
-* [6.1]{.pnum} `stride(`$k$`) * `_`de-ice`_`(`$s_k$`.stride)` if $S_k$ is a specialization of `strided_slice` and $s_k$`.stride` $\lt s_k$`.extent` is `true`;
+* [6.1]{.pnum} `stride(`$k$`) * `[_`de-ice`_`(`$s_k$`.stride)`]{.rm}[`s.stride`]{.add} if [$S_k$]{.rm}[`s`]{.add} is a specialization of `strided_slice` and [$s_k$`.stride M `$s_k$`.extent`]{.rm}[`s.stride < s.extent`]{.add} is `true`[ where `s` is `slices...[`$k$`]`]{.add};
 
 * [6.2]{.pnum} otherwise, `stride(`$k$`)`.
 
-[7]{.pnum} Let `P` be a parameter pack such that `is_same_v<make_index_sequence<rank()>, index_sequence<P...>>` is `true`.
+[7]{.pnum} [Let `P` be a parameter pack such that `is_same_v<make_index_sequence<rank()>, index_sequence<P...>>` is `true`.]{.rm}
 
-[8]{.pnum} If _`first_`_`<index_type, `$k$`>(slices...)` equals `extents().extent(`$k$`)` for any rank index $k$ of `extents()`, then let `offset` be a value of type `size_t` equal to `(*this).required_span_size()`.  Otherwise, let `offset` be a value of type `size_t` equal to `(*this)(`_`first_`_`<index_type, P>(slices...)...)`.
+[8]{.pnum} 
+
+[Let `ls` be pack of integers, where $i^{th}$ element is equal to lower bound of `sumbdspan` slice range of `slices..[`$i$`]` for dimension $i$ of `(*this).extents()`.]{.add}
+If [_`first_`_`<index_type, `$k$`>(slices...)`]{.rm}[`ls...[`$k$`]`]{.add} equals [`(*this)`]{.add}`extents().extent(`$k$`)` for any rank index $k$ of `extents()`, then let `offset` be a value of type `size_t` equal to `(*this).required_span_size()`.  Otherwise, let `offset` be a value of type `size_t` equal to `(*this)(`[_`first_`_`<index_type, P>(slices...)...`]{.rm}[`ls...`]{.add})`.
 
 [9]{.pnum} Given a layout mapping type `M`, a type `S` is a *unit-stride slice for `M`* if
 
-* [9.1]{.pnum} `S` is a specialization of `strided_slice` where `S​::​stride_type` models _`integral-constant-like`_ and `S​::​stride_type​::​value` equals `1`,
+* [9.1]{.pnum} `S` is a specialization of `strided_slice` where `S::stride_type` [models _`integral-constant-like`_ and `S::stride_type::value` equals `1`,]{.rm}[denotes `contant_wrapper<IndexType(1)>`, or]{.add}
 
-* [9.2]{.pnum} `S` models _`index-pair-like`_`<M​::​index_type>`, or
+* [9.2]{.pnum} [`S` models _`index-pair-like`_`<M::index_type>`, or]{.rm}
 
-* [9.3]{.pnum} `is_convertible_v<S, full_extent_t>` is `true`.
+* [9.3]{.pnum} [`is_convertible_v<S, full_extent_t>` is `true`]{.rm}[`S` denotes `full_extent_t`]{.add}.
 
 ## Change [mdspan.sub.map.left], `layout_left` specialization of `submdspan_mapping`
 
 > Change [mdspan.sub.map.left] ("`layout_left` specialization of `submdspan_mapping`") as follows.
 
-::: add
-/raw```
-//
-// TODO Fix context below here; thanks!
-//
-```
-:::
 
 ```c++
   template<class Extents>
   template<class... SliceSpecifiers>
   constexpr auto layout_left::mapping<Extents>::@_submdspan-mapping-impl_@(
-    SliceSpecifiers... slices) const -> @_see below_@;
+    SliceSpecifiers... [raw_]{.add}slices) const -> @_see below_@;
 ```
 
 [1]{.pnum} *Returns:*
@@ -1252,20 +1244,20 @@ A type `M` statisfies _`sliceable-mapping`_  if the expression `submdspan_mappin
 
 * [1.3]{.pnum} otherwise, `submdspan_mapping_result{layout_left::mapping(sub_ext), offset}`, if
 
-    * [1.3.1]{.pnum} for each $k$ in the range $[0,$ `SubExtents::rank() - 1`$)$, `is_convertible_v<`$S_k$`, full_extent_t>` is `true`; and
+    * [1.3.1]{.pnum} for each $k$ in the range $[0,$ `SubExtents::rank() - 1`$)$, [`is_convertible_v<`$S_k$`, full_extent_t>` is `true`]{.rm}[`SliceSpecifiers...[`$k$`]` denotes `full_extent_t`]{.add}; and
 
     * [1.3.2]{.pnum} for $k$ equal to `SubExtents::rank() - 1`, $S_k$ is a unit-stride slice for `mapping`;
 
     <i>[Note: </i> If the above conditions are true, all $S_k$ with `k` larger than `SubExtents::rank() - 1` are convertible to `index_type`. <i>- end note]</i>
 
 * [1.4]{.pnum} otherwise, `submdspan_mapping_result{layout_left_padded<S_static>::mapping(sub_ext, stride(u+1)), offset}`,
-    if for a value $u$ for which $u + 1$ is the smallest value $p$ larger than zero for which $S_p$ is a unit-stride slice for `mapping`, the following conditions are met:
+    if for a value $u$ for which $u + 1$ is the smallest value $p$ larger than zero for which [$S_p$]{.rm}[`SliceSpecifiers...[`$p$`]`]{.add} is a unit-stride slice for `mapping`, the following conditions are met:
 
-    * [1.4.1]{.pnum} $S_0$ is a unit-stride slice for `mapping`; and
+    * [1.4.1]{.pnum} [$S_p$]{.rm}[`SliceSpecifiers...[0]`]{.add} is a unit-stride slice for `mapping`; and
 
-    * [1.4.2]{.pnum} for each $k$ in the range $[u + 1$, $u$ + `SubExtents::rank() - 1`$)$, `is_convertible_v<`$S_k$`, full_extent_t>` is `true`; and
+    * [1.4.2]{.pnum} for each $k$ in the range $[u + 1$, $u$ + `SubExtents::rank() - 1`$)$, [`is_convertible_v<`$S_k$`, full_extent_t>` is `true`]{.rm}[`SliceSpecifiers...[`$k$`]` denotes `full_extent_t`]{.add}; and
 
-    * [1.4.3]{.pnum} for $k$ equal to $u$ + `SubExtents::rank() - 1`, $S_k$ is a unit-stride slice for `mapping`;
+    * [1.4.3]{.pnum} for $k$ equal to $u$ + `SubExtents::rank() - 1`, [$S_k$]{.rm}[`SliceSpecifiers...[`$k$`]`]{.add} is a unit-stride slice for `mapping`;
 
     and where `S_static` is:
 
