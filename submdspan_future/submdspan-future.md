@@ -841,15 +841,15 @@ and for any object `s` of type `S` and object `e` of type `E`:
 [7]{.pnum} Given an object `e` of type `E` that is a specialization of `extents`
 and an object `s` of type `S`, `s` is a *valid `submdspan` slice for the $k^{th}$ extent of `e`* if
 
-* [7.1]{.pnum} `S` is a valid `submdspan` slice type for the $k^{th}$ extent of `E`;
+* [7.1]{.pnum} `S` is a valid `submdspan` slice type for the $k^{th}$ extent of `E`; and
 
 * [7.2]{.pnum} if `S` is a specialization of `strided_slice`, then:
 
-  * [7.2.1]{.pnum}  `s.offset` and `s.extent` are both greater than or equal to zero, and
+  * [7.2.1]{.pnum} `s.offset` and `s.extent` are both greater than or equal to zero, and
 
-  * [7.2.2]{.pnum}  either `s.extent` equals zero or `s.stride` is greater than zero.
+  * [7.2.2]{.pnum} either `s.extent` equals zero or `s.stride` is greater than zero; and
 
-* [7.3]{.pnum} the interval of the $k^{th}$ extent of `e` contains the `submdspan` slice range of `s` for the $k^{th}$ extent of `e`; and,
+* [7.3]{.pnum} the interval of the $k^{th}$ extent of `e` contains the `submdspan` slice range of `s` for the $k^{th}$ extent of `e`.
 
 ```
 template<class IndexType, size_t... Extents, class... SlicesSpecifiers>
@@ -1101,16 +1101,16 @@ template<class IndexType, class... Extents, class... SliceSpecifiers>
 
 * [1.1]{.pnum} `M` denote a layout mapping class;
 
-* [1.2]{.pnum} `IT` denote an `M::extent_type::index_type`;
+* [1.2]{.pnum} `IT` denote `M::extent_type::index_type`;
 
 * [1.3]{.pnum} `m` denote a (possibly const) value of type `M`;
 
-* [1.4]{.pnum} `r` be equal to `M::extent_type::rank()`;
+* [1.4]{.pnum} `M_rank` be equal to `M::extent_type::rank()`;
 
-* [1.5]{.pnum} `slcs` denote a pack of (possibly const) objects for which `sizeof...(slcs) == r` is `true` and
+* [1.5]{.pnum} `slcs` denote a pack of (possibly const) objects for which `sizeof...(slcs) == M_rank` is `true` and
     the $i^{th}$ element of the pack is a valid `submdspan` slice for the $i^{th}$ extent of `m`;
 
-* [1.6]{.pnum} `inv_slcs` denote a pack of (possibly const) objects for which `sizeof...(slcs) == r` is `true` and
+* [1.6]{.pnum} `inv_slcs` denote a pack of (possibly const) objects for which `sizeof...(slcs) == M_rank` is `true` and
     there exists an integer $i$ such that the type of the $i^{th}$ element `inv_slc` of the pack is none of the following:
 
     * [1.6.1]{.pnum} `IT`,
@@ -1155,20 +1155,14 @@ submdspan_mapping(m, slcs...)
 * [6.2]{.pnum} for each integer pack `i` which is a multidimensional index in `sm.mapping.extents()`,
   `smr.mapping(i...) + smr.offset == m(j)` is `true`, where `j` is an integer pack such that:
  
-  * [6.2.1]{.pnum} `sizeof...(j)` is equal to `r`,
-     
-  * [6.2.2]{.pnum} for each rank index $\rho$ of `M::extents_type`, `i...[`$\rho$`]` is equal to the sum of the lower bound of
-    the `submdspan` slice range of `slcs...[`$\rho$`]` for dimension $\rho$ of `m.extents()` and:
-     
-    * [6.2.3]{.pnum} zero if `slcs...[`$\rho$`]` is a collapsing slice,
+    * [6.2.1]{.pnum} `sizeof...(j)` is equal to `M_rank`,
 
-    * [6.3.4]{.pnum} `j...[`$MAP\_RANK$`(`$k$`)]`, otherwise.
+    * [6.2.2]{.pnum} for each rank index $\rho$ of `M::extents_type`, `i...[`$\rho$`]` is equal to the sum of the lower bound of
+        the `submdspan` slice range of `slcs...[`$\rho$`]` for extent $\rho$ of `m.extents()` and:
+     
+        * [6.2.2.1]{.pnum} zero if `slcs...[`$\rho$`]` is a collapsing slice,
 
-```
-//
-// TODO In 6.2.2 above, the phrase "for dimension $\rho$ of `m.extents()`" sounds superfluous.  Should we delete it?
-// 
-```
+        * [6.2.2.2]{.pnum} `j...[`$MAP\_RANK$`(slcs,` $k$`)]`, otherwise.
 
 ```
 template<typename LayoutMapping>
@@ -1212,14 +1206,6 @@ template<typename LayoutMapping>
     0 &le; _`last_`_`<`$k$`>(extents(), slices...)` <br>
     0 &le; _`extents().extent(`$k$`)`
 :::
-
-```
-//
-// TODO I find it a bit hard to remember that "valid slice type"
-// is stronger than "slice type" or "canonical slice type."
-// "Valid" sounds like the weakest possible requirement.
-//
-```
 
 ::: add
 [3]{.pnum} *Mandates*: For each rank index $k$ of `src`, `SliceSpecifiers...[`$k$`]` is a valid `submdspan` slice type for the $k^{th}$ extent of `Extents`, and
