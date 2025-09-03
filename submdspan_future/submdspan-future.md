@@ -1155,7 +1155,7 @@ submdspan_mapping(m, slcs...)
 * [6.2]{.pnum} for each integer pack `i` which is a multidimensional index in `sm.mapping.extents()`,
   `smr.mapping(i...) + smr.offset == m(j)` is `true`, where `j` is an integer pack such that:
  
-    * [6.2.1]{.pnum} `sizeof...(j)` is equal to `M_rank`,
+    * [6.2.1]{.pnum} `sizeof...(j)` is equal to `M_rank`, and
 
     * [6.2.2]{.pnum} for each rank index $\rho$ of `M::extents_type`, `i...[`$\rho$`]` is equal to the sum of the lower bound of
         the `submdspan` slice range of `slcs...[`$\rho$`]` for extent $\rho$ of `m.extents()` and:
@@ -1228,7 +1228,13 @@ template<typename LayoutMapping>
 ::: add
 ```
 //
-// TODO Should we say "canonical (or valid) unit-stride slice" instead?
+// TODO Consider moving the definition of unit-stride slice for `M` this up to [mdspan.sub.slices].
+// If we do that, we should really call it "unit-stride slice for `IndexType`,
+// because the new definition only depends on `IndexType`.
+//
+// TODO Given that the definition only depends on `IndexType`
+// and that the slice must be a canonical `submdspan` slice type for `IndexType`,
+// should we call this "canonical unit-stride slice for `IndexType`" instead?
 //
 ```
 :::
