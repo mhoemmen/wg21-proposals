@@ -999,7 +999,6 @@ template<class IndexType, class... Extents, class... SliceSpecifiers>
   constexpr auto submdspan_extents(const extents<IndexType, Extents...>& src,
                                    SliceSpecifiers... raw_slices);
 ```
-// TODO copy rest of current wording we need more exposition
 
 [1]{.pnum} *Constraints*: `sizeof...(Slices)` equals `Extents::rank()`.
 
@@ -1041,7 +1040,33 @@ auto [...slices] = submdspan_canonicalize_slices(src, raw_slices...);
 [4]{.pnum} *Preconditions*: For each rank index $k$ of `src`, `slices...[`$k$`]` is a valid slice for the $k^{th}$ extent of `src`.
 :::
 
+::: add
+```
+// TODO Context is pasted below; please update; thanks!
+```
+:::
+
 [5]{.pnum} Let `SubExtents` be a specialization of `extents` such that:
+
+* [5.1]{.pnum} `SubExtents::rank()` equals the number of $k$ such that $S_k$ does not model `convertible_to<IndexType>`; and
+
+* [5.2]{.pnum} for each rank index $k$ of `Extents` such that _`map-rank`_`[`$k$`] != dynamic_extent` is `true`, `SubExtents::static_extent(`_`map-rank`_`[`$k$`])` equals:
+
+    * [5.2.1]{.pnum} `Extents::static_extent(`$k$`)` if `is_convertible_v<`$S_k$`, full_extent_t>` is `true`; otherwise
+
+    * [5.2.2]{.pnum} _`de-ice`_`(tuple_element_t<1, `$S_k$`>()) - ` _`de-ice`_`(tuple_element_t<0, `$S_k$`>())` if $S_k$ models _`index-pair-like`_`<IndexType>`, and both `tuple_element_t<0, `$S_k$`>` and `tuple_element_t<1, `$S_k$`>` model _`integral-constant-like`_; otherwise
+
+    * [5.2.3]{.pnum} `0`, if $S_k$ is a specialization of `strided_slice`, whose `extent_type` models _`integral-constant-like`_, for which `extent_type()` equals zero; otherwise
+
+    * [5.2.4]{.pnum} `1 + (` _`de-ice`_`(`$S_k$`::extent_type()) - 1) / ` _`de-ice`_`(`$S_k$`::stride_type())`, if $S_k$ is a specialization of `strided_slice` whose `extent_type` and `stride_type` model _`integral-constant-like`_;
+
+    * [5.2.5]{.pnum} otherwise, `dynamic_extent`.
+
+[6]{.pnum} *Returns:* A value `ext` of type `SubExtents` such that for each $k$ for which _`map-rank`_`[`$k$`] != dynamic_extent` is `true`, `ext.extent(`_`map-rank`_`[`$k$`])` equals:
+
+* [6.1]{.pnum} $s_k$`.extent == 0 ? 0 : 1 + (`_`de-ice`_`(`$s_k$`.extent) - 1) / ` _`de-ice`_`(`$s_k$`.stride)` if $S_k$ is a specialization of `strided_slice`,
+
+* [6.2]{.pnum} otherwise, _`last_`_`<`$k$`>(src, slices...) - ` _`first_`_`<IndexType, `$k$`>(slices...)`.
 
 ## Requirements of all `submdspan_mapping` customizations
 
