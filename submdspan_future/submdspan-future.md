@@ -1,4 +1,4 @@
-
+ Any object of type `s` is *collapsing slice*.
 ---
 title: "Future-proof `submdspan_mapping`"
 document: D3663R3
@@ -730,14 +730,9 @@ In [version.syn], increase the value of the `__cpp_lib_submdspan` macro by repla
 
 > Change [mdspan.sub.overview] as follows.
 
-::: add
-```
-// TODO This is just context.
-// Please add required changes (e.g., definition of "known statically").
-```
-:::
-
 [1]{.pnum} The `submdspan` facilities create a new `mdspan` viewing a subset of elements of an existing input `mdspan`.  The subset viewed by the created `mdspan` is determined by the `SliceSpecifier` arguments.
+
+::: rm
 
 [2]{.pnum} For each function defined in [mdspan.sub] that takes a parameter pack named `slices` as an argument:
 
@@ -761,9 +756,109 @@ In [version.syn], increase the value of the `__cpp_lib_submdspan` macro by repla
 
     * [2.5.2]{.pnum} otherwise, the number of types $S_j$ with $j < k$ that do not model `convertible_to<index_type>`.
 
+:::
+
+## Add section [mdspan.sub.slices], "Slices definitions and canonicalization"
+
+> Add a new section [mdspan.sub.slices], "Slices definitions and canonicalization," after [mdspan.sub.overview] and before [mdspan.sub.helpers].  The new section has the following contents.
+
+::: add
+[1]{.pnum} Given a signed or unsigned integer `IndexType`, a type $S$ is a *`submdspan` slice type for `IndexType`* if one of the following holds:
+
+* [1.1]{.pnum} `is_convertible_v<`$S$`, full_extent_t>` is `true`;
+
+* [1.2]{.pnum} `is_convertible_v<`$S$`, IndexType>` is `true`;
+
+* [1.3]{.pnum} $S$ is a specialization of `strided_slice`; or
+
+* [1.4]{.pnum} all of the following hold:
+
+    * [1.4.1]{.pnum} the declaration `auto [L, U] = std::move(s);` is well-formed for some object `s` of type `S`,
+
+    * [1.4.2]{.pnum} `is_convertible_v<decltype(std::move(L))>, IndexType>` is `true`, and
+
+    * [1.4.3]{.pnum} `is_convertible_v<decltype(std::move(U))>, IndexType>` is `true`.
+
+[2]{.pnum} Given a signed or unsigned integer `IndexType`, a type $S$ is a *canonical `submdspan` index type for `IndexType`* if $S$ is either `IndexType` or `constant_wrapper<v, IndexType>` for some `v` of type `IndexType`, such that `v` is greater than or equal to zero.
+
+[3]{.pnum} Given a signed or unsigned integer `IndexType`, a type $S$ is a *canonical `submdspan` slice type for `IndexType`* if exactly one of the following is `true`:
+
+* [3.1]{.pnum} $S$ is `full_extent_t`;
+
+* [3.2]{.pnum} $S$ is a canonical `submdspan` index type for `IndexType`; or
+
+* [3.3]{.pnum} $S$ is a specialization of `strided_slice` where all of the following hold:
+
+    * [3.3.1]{.pnum} $S$`::offset_type`, $S$`::extent_type`, and $S$`::stride_type` are all canonical `submdspan` index types for `IndexType`; and
+
+    * [3.3.2]{.pnum} if $S$`::stride_type` and $S$`::extent_type` are both specializations of  `constant_wrapper`,
+      then $S$::`stride_type::value` is greater than zero.
+
+[5]{.pnum} An object `s` of type `S` is *collapsing slice* if it's type is canonical `submdspan` index type for `IndexType`.
+
+[5]{.pnum} Given an object `e` of a type `E` that is a specialization of `extents`,
+and an object `s` of type `S` that is a canonical `submdspan` slice type for `E::index_type`,
+the *`submdspan` slice range of `s` for the `k`$^{th}$ extent of `e`* is:
+
+* [5.1]{.pnum} $[0,$ `e.extent(k)`$)$ if `S` is `full_extent_t`
+    (the slice range is known statically if `e.static_extent(k)` is not equal to `dynamic_extent`);
+
+* [5.2]{.pnum} $[$`E::index_type(s.offset)`, `E::index_type(s.offset + s.extent)`$)$ if `S` is a specialization of `strided_slice`
+    (the slice range is known statically if both `S::offset_type` and `S::extent_type` are specializations of `constant_wrapper`); otherwise
+
+* [5.3]{.pnum} $[$`E::index_type(s)`, `E::index_type(s)` $+ 1)$
+    (the slice range is known statically if `S` is a specialization of `constant_wrapper`).
+
+[6]{.pnum} Given a type `E` that is a specialization of `extents`,
+a type `S` is a *valid `submdspan` slice type for the $k^{th}$ extent of `E`*,
+if `S` is a canonical slice type for `E::index_type`,
+and for any object `s` of type `S` and object `e` of type `E`:
+  
+* [6.1]{.pnum} the `submdspan` slice range of `s` for the $k^{th}$ extent of `e` is not known statically,
+
+* [6.2]{.pnum} the interval of the $k^{th}$ extent of `e` is not known statically, or
+
+* [6.2]{.pnum} the interval of the $k^{th}$ extent of `e` contains the `submdspan` slice range of `s` for the $k^{th}$ extent of `e`.
+
+[7]{.pnum} Given an object `e` of type `E` that is a specialization of `extents`
+and an object `s` of type `S`, `s` is a *valid `submdspan` slice for the $k^{th}$ extent of `e`* if
+
+* [7.1]{.pnum} `S` is a valid `submdspan` slice type for the $k^{th}$ extent of `E`;
+
+* [7.2]{.pnum} if `S` is a specialization of `strided_slice`, then:
+
+  * [7.2.1]{.pnum}  `s.offset` and `s.extent` are both greater than or equal to zero, and
+
+  * [7.2.2]{.pnum}  either `s.extent` equals zero or `s.stride` is greater than zero.
+
+* [7.3]{.pnum} the interval of the $k^{th}$ extent of `e` contains the `submdspan` slice range of `s` for the $k^{th}$ extent of `e`; and,
+
+
+```
+template<class IndexType, size_t... Extents, class... SlicesSpecifiers>
+constexpr auto submdspan_canonicalize_slices(
+  const extents<IndexType, Extents...>& src, Slices... slices);
+```
+
+[8]{.pnum} *Constraints*: `sizeof...(Slices)` equals `sizeof...(Extents)`.
+
+[9]{.pnum} *Mandates*: For each rank index $k$ of `src`:
+
+* [9.1]{.pnum} `SliceSpecifiers...[`$k$`]` is a `submdspan` slice type for the $k^{th}$ extent of `Extents`, and
+
+* [9.2]{.pnum} `decltype(`_`canonical-slice`_`<IndexType>(slices...[`$k$`]))` is a valid `submdspan` slice type for the $k^{th}$ extent of `Extents`.
+
+[10]{.pnum} *Preconditions*: For each rank index $k$ of `src`, _`canonical-slice`_`<IndexType>(slices...[`$k$`])` is a valid slice for the $k^{th}$ extent of `src`.
+
+[11]{.pnum} *Returns*: `make_tuple(`_`canonical-slice`_`<IndexType>(slices)...)`
+:::
+
+
 ## Change [mdspan.sub.helpers]
 
 > Change [mdspan.sub.helpers] as follows.
+
+::: rm
 
 ```
 template<class T>
@@ -772,9 +867,69 @@ template<integral-constant-like T>
   constexpr auto @_de-ice_@(T) { return T::value; }
 ```
 
+```c++
+template<class IndexType, size_t k, class... SliceSpecifiers>
+  constexpr IndexType @_first_@_(SliceSpecifiers... slices);
+```
+[5]{.pnum} *Mandates*: `IndexType` is a signed or unsigned integer type.
+
+[6]{.pnum} Let $ϕ_k$ denote the following value:
+
+* [6.1]{.pnum} $s_k$ if $S_k$ models `convertible_to<IndexType>`;
+
+* [6.2]{.pnum} otherwise, `get<0>(`$s_k$`)` if $S_k$ models _`index-pair-like`_`<IndexType>`;
+
+* [6.3]{.pnum} otherwise, _`de-ice`_`(`$s_k$`.offset)` if $S_k$ is a specialization of `strided_slice`;
+
+* [6.4]{.pnum} otherwise, `0`.
+
+[7]{.pnum} *Preconditions*: $ϕ_k$ is representable as a value of type `IndexType`.
+
+[8]{.pnum} *Returns*: `extents<IndexType>::`_`index-cast`_`(`$ϕ_k$`)`.
+
+```
+template<size_t k, class Extents, class... SliceSpecifiers>
+  constexpr auto @_last_@_(const Extents& src, SliceSpecifiers... slices);
+```
+
+[9]{.pnum} *Mandates*: `Extents` is a specialization of `extents`.]{.rm}
+
+[10]{.pnum} Let `index_type` be `typename Extents::index_type`.
+
+[11]{.pnum} Let $λ_k$ denote the following value:
+
+* [11.1]{.pnum} _`de-ice`_`(`$s_k$`) + 1` if $S_k$ models `convertible_to<index_type>`.
+
+
+* [11.2]{.pnum} `get<1>(`$s_k$`)` if $S_k$ models _`index-pair-like`_`<index_type>`; otherwise
+
+* [11.3]{.pnum} _`de-ice`_`(`$s_k$`.offset) + `_`de-ice`_`(`$s_k$`.extent)` if $S_k$ is a specialization of `strided_slice`; otherwise
+
+* [11.4]{.pnum} `src.extent(k)`.
+
+[12]{.pnum} *Preconditions*: $λ_k$ is representable as a value of `type index_type`.
+
+[13]{.pnum} *Returns*: `Extents​::`_`​index-cast`_`(`$λ_k$`)`.
+
+```
+template<class IndexType, size_t N, class... SliceSpecifiers>
+  constexpr array<IndexType, sizeof...(SliceSpecifiers)>
+    @_src-indices_@(const array<IndexType, N>& indices, SliceSpecifiers... slices);
+```
+
+[11]{.pnum} *Mandates*: `IndexType` is a signed or unsigned integer type.
+
+[12]{.pnum} *Returns*: An `array<IndexType, sizeof...(SliceSpecifiers)>` `src_idx` such that for each $k$ in the range $[$`0`, `sizeof...(SliceSpecifiers)`$)$, `src_idx[`$k$`]` equals
+
+* [12.1]{.pnum} _`first_`_`<IndexType,`$k$`>(slices...)` for each $k$ where _`map-rank`_`[`$k$`]` equals `dynamic_extent`,
+
+* [12.2]{.pnum} otherwise, _`first_`_`<IndexType,`$k$`>(slices...) + indices[`_`map-rank`_`[`$k$`]]`.
+
+:::
+
 ::: add
 
-[1] For pach `p` and integer $i$, let $MAPRANK$(`p`, $i$) be number of elements `p...[j]` for `j` $< i$, whose type is neither `full_extent_t` or specialization of `stided_slice`.
+[1] For pach `p` and integer $i$, let $MAPRANK$(`p`, $i$) be number of elements `p...[j]` for `j` $< i$ that are collapsing slices.
 
 ```
 template<class T>
@@ -839,167 +994,7 @@ else {
 ```
 :::
 
-```c++
-template<class IndexType, size_t k, class... SliceSpecifiers>
-  constexpr IndexType @_first_@_(SliceSpecifiers... slices);
-```
-// TODO add extents parameter, make non variadic
 
-[5]{.pnum} *Mandates*: [`IndexType` is a signed or unsigned integer type.]{.rm}[`SliceSpecifiers...[`$k$`]` is a canonical $k^{th}$ `mdspan` slice type of `Extents`.]{.add}
-
-::: rm
-[6]{.pnum} Let $ϕ_k$ denote the following value:
-
-* [6.1]{.pnum} $s_k$ if $S_k$ models `convertible_to<IndexType>`;
-
-* [6.2]{.pnum} otherwise, `get<0>(`$s_k$`)` if $S_k$ models _`index-pair-like`_`<IndexType>`;
-
-* [6.3]{.pnum} otherwise, _`de-ice`_`(`$s_k$`.offset)` if $S_k$ is a specialization of `strided_slice`;
-
-* [6.4]{.pnum} otherwise, `0`.
-
-[7]{.pnum} *Preconditions*: $ϕ_k$ is representable as a value of type `IndexType`.
-:::
-
-[8]{.pnum} *Returns*: [`extents<IndexType>::`_`index-cast`_`(`$ϕ_k$`)`]{.rm}[$L$, where $[L, U)$ is the `submdspan` slice range of `slices...[`$k$`]` for the $k^{th}$ extent of `src`.]{.add}
-
-```
-template<size_t k, class Extents, class... SliceSpecifiers>
-  constexpr auto @_last_@_(const Extents& src, SliceSpecifiers... slices);
-```
-// TODO make non variadic
-
-[9]{.pnum} *Mandates*: [`Extents` is a specialization of `extents`.]{.rm}[`SliceSpecifiers...[`$k$`]` is a canonical `mdspan` slice type for the $k^{th}$ extent of `Extents`.]{.add}
-
-::: rm
-[10]{.pnum} Let `index_type` be `typename Extents::index_type`.
-
-[11]{.pnum} Let $λ_k$ denote the following value:
-
-* [11.1]{.pnum} _`de-ice`_`(`$s_k$`) + 1` if $S_k$ models `convertible_to<index_type>`.
-
-
-* [11.2]{.pnum} `get<1>(`$s_k$`)` if $S_k$ models _`index-pair-like`_`<index_type>`; otherwise
-
-* [11.3]{.pnum} _`de-ice`_`(`$s_k$`.offset) + `_`de-ice`_`(`$s_k$`.extent)` if $S_k$ is a specialization of `strided_slice`; otherwise
-
-* [11.4]{.pnum} `src.extent(k)`.
-
-[12]{.pnum} *Preconditions*: $λ_k$ is representable as a value of `type index_type`.
-
-[13]{.pnum} *Returns*: `Extents​::`_`​index-cast`_`(`$λ_k$`)`.
-:::
-
-::: add
-[10]{.pnum} *Returns*: $U$, where $[L, U)$ is the `submdspan` slice range of `slices...[`$k$`]` for the $k^{th}$ extent of `src`.
-:::
-
-```
-template<class IndexType, size_t N, class... SliceSpecifiers>
-  constexpr array<IndexType, sizeof...(SliceSpecifiers)>
-    @_src-indices_@(const array<IndexType, N>& indices, SliceSpecifiers... slices);
-```
-
-[11]{.pnum} *Mandates*: `IndexType` is a signed or unsigned integer type.
-
-[12]{.pnum} *Returns*: An `array<IndexType, sizeof...(SliceSpecifiers)>` `src_idx` such that for each $k$ in the range $[$`0`, `sizeof...(SliceSpecifiers)`$)$, `src_idx[`$k$`]` equals
-
-* [12.1]{.pnum} _`first_`_`<IndexType,`$k$`>(slices...)` for each $k$ where _`map-rank`_`[`$k$`]` equals `dynamic_extent`,
-
-* [12.2]{.pnum} otherwise, _`first_`_`<IndexType,`$k$`>(slices...) + indices[`_`map-rank`_`[`$k$`]]`.
-
-## Add section [mdspan.sub.slices], "Slices definitions and canonicalization"
-
-> Add a new section [mdspan.sub.slices], "Slices definitions and canonicalization," after [mdspan.sub.helpers] and before [mdspan.sub.extents].  The new section has the following contents.
-
-::: add
-[1]{.pnum} Given a signed or unsigned integer `IndexType`, a type $S$ is a *`submdspan` slice type for `IndexType`* if one of the following holds:
-
-* [1.1]{.pnum} `is_convertible_v<`$S$`, full_extent_t>` is `true`;
-
-* [1.2]{.pnum} `is_convertible_v<`$S$`, IndexType>` is `true`;
-
-* [1.3]{.pnum} $S$ is a specialization of `strided_slice`; or
-
-* [1.4]{.pnum} all of the following hold:
-
-    * [1.4.1]{.pnum} the declaration `auto [L, U] = std::move(s);` is well-formed for some object `s` of type `S`,
-
-    * [1.4.2]{.pnum} `is_convertible_v<decltype(std::move(L))>, IndexType>` is `true`, and
-
-    * [1.4.3]{.pnum} `is_convertible_v<decltype(std::move(U))>, IndexType>` is `true`.
-
-[2]{.pnum} Given a signed or unsigned integer `IndexType`, a type $S$ is a *canonical `submdspan` index type for `IndexType`* if $S$ is either `IndexType` or `constant_wrapper<v, IndexType>` for some `v` of type `IndexType`, such that `v` is greater than or equal to zero.
-
-[3]{.pnum} Given a signed or unsigned integer `IndexType`, a type $S$ is a *canonical `submdspan` slice type for `IndexType`* if exactly one of the following is `true`:
-
-* [3.1]{.pnum} $S$ is `full_extent_t`;
-
-* [3.2]{.pnum} $S$ is a canonical `submdspan` index type for `IndexType`; or
-
-* [3.3]{.pnum} $S$ is a specialization of `strided_slice` where all of the following hold:
-
-    * [3.3.1]{.pnum} $S$`::offset_type`, $S$`::extent_type`, and $S$`::stride_type` are all canonical `submdspan` index types for `IndexType`; and
-
-    * [3.3.2]{.pnum} if $S$`::stride_type` and $S$`::extent_type` are both specializations of  `constant_wrapper`,
-      then $S$::`stride_type::value` is greater than zero.
-
-[4]{.pnum} Given an object `e` of a type `E` that is a specialization of `extents`,
-and an object `s` of type `S` that is a canonical `submdspan` slice type for `E::index_type`,
-the *`submdspan` slice range of `s` for the `k`$^{th}$ extent of `e`* is:
-
-* [4.1]{.pnum} $[0,$ `e.extent(k)`$)$ if `S` is `full_extent_t`
-    (the slice range is known statically if `e.static_extent(k)` is not equal to `dynamic_extent`);
-
-* [4.2]{.pnum} $[$`E::index_type(s.offset)`, `E::index_type(s.offset + s.extent)`$)$ if `S` is a specialization of `strided_slice`
-    (the slice range is known statically if both `S::offset_type` and `S::extent_type` are specializations of `constant_wrapper`); otherwise
-
-* [4.3]{.pnum} $[$`E::index_type(s)`, `E::index_type(s)` $+ 1)$
-    (the slice range is known statically if `S` is a specialization of `constant_wrapper`).
-
-[5]{.pnum} Given a type `E` that is a specialization of `extents`,
-a type `S` is a *valid `submdspan` slice type for the $k^{th}$ extent of `E`*,
-if `S` is a canonical slice type for `E::index_type`,
-and for any object `s` of type `S` and object `e` of type `E`:
-  
-* [5.1]{.pnum} the `submdspan` slice range of `s` for the $k^{th}$ extent of `e` is not known statically,
-
-* [5.2]{.pnum} the interval of the $k^{th}$ extent of `e` is not known statically, or
-
-* [5.2]{.pnum} the interval of the $k^{th}$ extent of `e` contains the `submdspan` slice range of `s` for the $k^{th}$ extent of `e`.
-
-[6]{.pnum} Given an object `e` of type `E` that is a specialization of `extents`
-and an object `s` of type `S`, `s` is a *valid `submdspan` slice for the $k^{th}$ extent of `e`* if
-
-* [6.1]{.pnum} `S` is a valid `submdspan` slice type for the $k^{th}$ extent of `E`;
-
-* [6.2]{.pnum} if `S` is a specialization of `strided_slice`, then:
-
-  * [6.2.1]{.pnum}  `s.offset` and `s.extent` are both greater than or equal to zero, and
-
-  * [6.2.2]{.pnum}  either `s.extent` equals zero or `s.stride` is greater than zero.
-
-* [6.3]{.pnum} the interval of the $k^{th}$ extent of `e` contains the `submdspan` slice range of `s` for the $k^{th}$ extent of `e`; and,
-
-
-```
-template<class IndexType, size_t... Extents, class... SlicesSpecifiers>
-constexpr auto submdspan_canonicalize_slices(
-  const extents<IndexType, Extents...>& src, Slices... slices);
-```
-
-[8]{.pnum} *Constraints*: `sizeof...(Slices)` equals `sizeof...(Extents)`.
-
-[9]{.pnum} *Mandates*: For each rank index $k$ of `src`:
-
-* [9.1]{.pnum} `SliceSpecifiers...[`$k$`]` is a `submdspan` slice type for the $k^{th}$ extent of `Extents`, and
-
-* [9.2]{.pnum} `decltype(`_`canonical-slice`_`<IndexType>(slices...[`$k$`]))` is a valid `submdspan` slice type for the $k^{th}$ extent of `Extents`.
-
-[10]{.pnum} *Preconditions*: For each rank index $k$ of `src`, _`canonical-slice`_`<IndexType>(slices...[`$k$`])` is a valid slice for the $k^{th}$ extent of `src`.
-
-[11]{.pnum} *Returns*: `make_tuple(`_`canonical-slice`_`<IndexType>(slices)...)`
-:::
 
 ## Change section [mdspan.sub.extents]
 
@@ -1008,7 +1003,7 @@ constexpr auto submdspan_canonicalize_slices(
 ```
 template<class IndexType, class... Extents, class... SliceSpecifiers>
   constexpr auto submdspan_extents(const extents<IndexType, Extents...>& src,
-                                   SliceSpecifiers... {.rm}[raw_]{.add}slices);
+                                   SliceSpecifiers... @[raw_]{.add}@slices);
 ```
 
 [1]{.pnum} *Constraints*: `sizeof...(Slices)` equals `Extents::rank()`.
@@ -1053,7 +1048,7 @@ template<class IndexType, class... Extents, class... SliceSpecifiers>
 
 * [5.1]{.pnum} `SubExtents::rank()` equals [the number of $k$ such that $S_k$ does not model `convertible_to<IndexType>`]{.rm}[$MAPRANK$`(slices, Extents::rank())`]{.add}; and
 
-* [5.2]{.pnum} for each rank index $k$ of `Extents` such that [_`map-rank`_`[`$k$`] != dynamic_extent` is `true`]{.rm}[`is_convertible_v<decltype(slices...[`$k$`]), SubExtents::index_type>` is `false`, let `S` denote a type of `slices...[`$k$`]`]{.add}, `SubExtents::static_extent(`[_`map-rank`_`[`$k$`]`]{.rm}[$MAPRANK$`(slices, `$k$`)`]{.add}`)` equals:
+* [5.2]{.pnum} for each rank index $k$ of `Extents` such that [_`map-rank`_`[`$k$`] != dynamic_extent` is `true`]{.rm}[`slices...[`$k$`]` is collapsing slice, let `S` denote a type of `slices...[`$k$`]`]{.add}, `SubExtents::static_extent(`[_`map-rank`_`[`$k$`]`]{.rm}[$MAPRANK$`(slices, `$k$`)`]{.add}`)` equals:
 
     * [5.2.1]{.pnum} `Extents::static_extent(`$k$`)` if [`is_convertible_v<`$S_k$`, full_extent_t>` is `true`]{.rm}[`S` denote `full_extent_t`]{.add}; otherwise
 
@@ -1068,7 +1063,7 @@ template<class IndexType, class... Extents, class... SliceSpecifiers>
     * [5.2.5]{.pnum} otherwise, `dynamic_extent`.
 
 
-[6]{.pnum} *Returns:* A value `ext` of type `SubExtents` such that for each [rankd index]{.add} $k$ [of `Extents`]{.add} [for which_`map-rank`_`[`$k$`] != dynamic_extent` is `true`]{.rm}[such that `is_convertible_v<decltype(slices...[`$k$`]), SubExtents::index_type>` is `false`, let `s` be `slices...[`$k$`]`]{.add}, `ext.extent(`[_`map-rank`_`[`$k$`]`]{.rm}[$MAPRANK$`(slices, `$k$`)`]{.add}`)` equals:
+[6]{.pnum} *Returns:* A value `ext` of type `SubExtents` such that for each [rankd index]{.add} $k$ [of `Extents`]{.add} [for which_`map-rank`_`[`$k$`] != dynamic_extent` is `true`]{.rm}[such that `slices...[`$k$`]` is collapsing slice, let `s` be `slices...[`$k$`]`]{.add}, `ext.extent(`[_`map-rank`_`[`$k$`]`]{.rm}[$MAPRANK$`(slices, `$k$`)`]{.add}`)` equals:
 
 * [6.1]{.pnum} [$s_k$`.extent == 0 ? 0 : 1 + (`_`de-ice`_`(`$s_k$`.extent) - 1) / ` _`de-ice`_`(`$s_k$`.stride)`]{.rm}
                [s.extent == 0 ? 0  1 + (s.extent - 1) / s.stride]{.add}
@@ -1109,7 +1104,6 @@ template<class IndexType, class... Extents, class... SliceSpecifiers>
 
     * [1.6.3]{.pnum} a specialization of `strided_slice`.
 
-* [1.7]{.pnum} `fe` denote a pack of objects of type `full_extent_t` for which `sizeof...(fe) == r` is `true`.
 
 [2]{.pnum} For the purpose of this section, the meaning of `submdspan_mapping` mapping is established
 as if by performing argument-dependent lookup only ([basic.lookup.argdep]).
@@ -1142,16 +1136,28 @@ submdspan_mapping(m, slcs...)
 
 * [6.1]{.pnum} `smr.mapping.extents() == submdspan_extents(m.extents(), slcs...)` is `true`,
 
-* [6.2]{.pnum} for each integer pack `i` which is a multidimensional index in `sm.mapping.extents()`,
-    `smr.mapping(i...) + smr.offset == m(`_`src-indices`_`(array{i...}, slcs...))` is `true`.
+* [6.2]{.pnum} for each integer pack `i` which is a multidimensional index in `sm.mapping.extents()`
+  `smr.mapping(i...) + smr.offset == m(j)` is `true`, where `j` is integer pack such that:
+ 
+  * [6.2.1]{.pnum} `sizeof..(j)` is equal to r,
+     
+  * [6.2.2]{.pnum} for each rank index $r$ of `M::extents_type`, `i...[`$r$`]` is equal to sum of lower bound of
+    `submdpsan` slice range of `slcs...[`$r$`]` for dimension $r$ of `m.exents()` and:
+     
+    * [6.2.3]{.pnum} zero if `slcs...[`$r$`]` is collapsing slice,
+
+    * [6.3.4]{.pnum} `j...[`$MAPRANK$`(`k`)]`, otherwise.
+
 
 ```
 template<typenaem LayouMapping>
   concept @sliceable-mapping@ = @_see-below_@;
 ```
 
-A type `M` statisfies _`sliceable-mapping`_  if the expression `submdspan_mapping(m, fe...)` is well-formed when treated as an unevaluated operand.
-`M` models  _`sliceable-mapping`_ if `M` meets the sliceable layout mapping requirements.
+[7]{.pnum} Let `lm` be an object of type `LayouMapping` and `fe` denote a pack of objects of type `full_extent_t` for which `sizeof...(fe) == LayouMapping::extents_type::rank()` is `true`, a type `LayouMapping` statisfies _`sliceable-mapping`_  if the expression `submdspan_mapping(m, fe...)` is well-formed when treated as an unevaluated operand, and it's type is specialization of `submdspan_mapping_result`.
+
+[8]{.pnum} A type `LayouMapping` models  _`sliceable-mapping`_ if `LayouMapping` meets the sliceable layout mapping requirements.
+
 :::
 
 ## Change [mdspan.sub.map.common]
@@ -1159,10 +1165,6 @@ A type `M` statisfies _`sliceable-mapping`_  if the expression `submdspan_mappin
 > Change [mdspan.sub.map.common] as follows.
 
 [1]{.pnum} The following elements apply to all functions in [mdspan.sub.map].
-
-::: add
-[X]{.pnum} Let `slices` be the pack _`canonical-slice`_`<IndexType>(raw_slices)`.
-:::
 
 [2]{.pnum} *Constraints*: `sizeof...(slices)` equals `extents_type::rank()`.
 
@@ -1187,11 +1189,7 @@ A type `M` statisfies _`sliceable-mapping`_  if the expression `submdspan_mappin
 :::
 
 ::: add
-[3]{.pnum} *Mandates*: For each rank index $k$ of `src`:
-
-* [3.1]{.pnum} `SliceSpecifiers...[`$k$`]` is a `submdspan` slice type for the $k^{th}$ extent of `Extents`, and
-
-* [3.2]{.pnum} `decltype(slices...[`$k$`])` is a `submdspan` slice type for the $k^{th}$ extent of `Extents`.
+[3]{.pnum} *Mandates*: For each rank index $k$ of `src`, `SliceSpecifiers...[`$k$`]` is a valid `submdspan` slice type for the $k^{th}$ extent of `Extents`, and
 
 [4]{.pnum} *Preconditions*: For each rank index $k$ of `src`, `slices...[`$k$`])` is a valid slice for the $k^{th}$ extent of `src`.
 :::
@@ -1233,7 +1231,7 @@ If [_`first_`_`<index_type, `$k$`>(slices...)`]{.rm}[`ls...[`$k$`]`]{.add} equal
   template<class Extents>
   template<class... SliceSpecifiers>
   constexpr auto layout_left::mapping<Extents>::@_submdspan-mapping-impl_@(
-    SliceSpecifiers... [raw_]{.add}slices) const -> @_see below_@;
+    SliceSpecifiers... @slices) const -> @_see below_@;
 ```
 
 [1]{.pnum} *Returns:*
@@ -1274,7 +1272,7 @@ If [_`first_`_`<index_type, `$k$`>(slices...)`]{.rm}[`ls...[`$k$`]`]{.add} equal
 ::: add
 ```
 //
-// TODO Fix context below here; thanks!
+// TODO Apply changes similiar to layout_left
 //
 ```
 :::
@@ -1327,7 +1325,7 @@ If [_`first_`_`<index_type, `$k$`>(slices...)`]{.rm}[`ls...[`$k$`]`]{.add} equal
 ::: add
 ```
 //
-// TODO Fix context below here; thanks!
+// TODO Apply changes similiar to layout_left
 //
 ```
 :::
@@ -1399,7 +1397,7 @@ If [_`first_`_`<index_type, `$k$`>(slices...)`]{.rm}[`ls...[`$k$`]`]{.add} equal
 ::: add
 ```
 //
-// TODO Fix context below here; thanks!
+// TODO Apply changes similiar to layout_left
 //
 ```
 :::
