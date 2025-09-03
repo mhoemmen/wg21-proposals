@@ -1339,6 +1339,53 @@ A type `M` statisfies _`sliceable-mapping`_  if the expression `submdspan_mappin
 
 * [1.2]{.pnum} otherwise, `submdspan_mapping_result{layout_stride::mapping(sub_ext, sub_strides), offset}`
 
+## Change [mdspan.sub.map.leftpad], `layout_left_padded` specialization of `submdspan_mapping`
+
+> Change [mdspan.sub.map.leftpad] ("`layout_left_padded` specialization of `submdspan_mapping`") as follows.
+
+::: add
+```
+//
+// TODO Fix context below here; thanks!
+//
+```
+:::
+
+```c++
+  template<class Extents>
+  template<class... SliceSpecifiers>
+  constexpr auto layout_left_padded::mapping<Extents>::@_submdspan-mapping-impl_@(    // @_exposition only_@
+    SliceSpecifiers... slices) const -> @_see below_@;
+```
+
+[1]{.pnum} *Returns:*
+
+* [1.1]{.pnum} `submdspan_mapping_result{*this, 0}`, if `Extents::rank() == 0` is `true`;
+
+* [1.2]{.pnum} otherwise, `submdspan_mapping_result{layout_left::mapping(sub_ext), offset}`, if _`rank_`_ ` == 1` is `true` or `SubExtents::rank() == 0` is `true`;
+
+* [1.3]{.pnum} otherwise, `submdspan_mapping_result{layout_left::mapping(sub_ext), offset}`, if
+
+    * [1.3.1]{.pnum} `SubExtents::rank() == 1` is `true` and
+
+    * [1.3.2]{.pnum} $S_0$ is a unit-stride slice for `mapping`;
+
+* [1.4]{.pnum} otherwise, `submdspan_mapping_result{layout_left_padded<S_static>::mapping(sub_ext, stride(`$u$ ` + 1)), offset}`, if for a value $u$ for which $u$ `+ 1` is the smallest value $p$ larger than zero for which $S_p$ is a unit-stride slice for `mapping`, the following conditions are met:
+      
+    * [1.4.1]{.pnum} $S_0$ is a unit-stride slice for `mapping`; and
+
+    * [1.4.2]{.pnum} for each $k$ in the range $[u$ `+ 1`, $u$ `+ SubExtents::rank() - 1`$)$, `is_convertible_v<`$S_k$`, full_extent_t>` is `true`; and
+
+    * [1.4.3]{.pnum} for $k$ equal to $u$ `+ SubExtents::rank() - 1`, $S_k$ is a unit-stride slice for `mapping`;
+
+    where `S_static` is:
+
+    * [1.4.4]{.pnum} `dynamic_extent`, if _`static-padding-stride`_ is `dynamic_extent` or `static_extent(`$k$`)` is `dynamic_extent` for any $k$ in the range $[$`1`, $u$ `+ 1`$)$,
+
+    * [1.4.5]{.pnum} otherwise, the product of _`static-padding-stride`_ and all values `static_extent(`$k$`)` for $k$ in the range $[$`1`, $u$ `+ 1`$)$;
+
+* [1.5]{.pnum} otherwise, `submdspan_mapping_result{layout_stride::mapping(sub_ext, sub_strides), offset}`
+
 ## Change [mdspan.sub.sub], `submdspan` function template
 
 > Change [mdspan.sub.sub] ("`submdspan` function template") as follows.
