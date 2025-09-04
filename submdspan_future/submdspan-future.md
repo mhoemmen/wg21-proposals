@@ -916,7 +916,7 @@ constexpr auto submdspan_canonicalize_slices(
 
 * [11.2]{.pnum} `decltype(`_`canonical-slice`_`<IndexType>(slices...[`$k$`]))` is a valid `submdspan` slice type for the $k^{th}$ extent of `Extents`.
 
-[12]{.pnum} *Preconditions*: For each rank index $k$ of `src`, _`canonical-slice`_`<IndexType>(slices...[`$k$`])` is a valid slice for the $k^{th}$ extent of `src`.
+[12]{.pnum} *Preconditions*: For each rank index $k$ of `src`, _`canonical-slice`_`<IndexType>(slices...[`$k$`])` is a valid `submdspan` slice for the $k^{th}$ extent of `src`.
 
 [13]{.pnum} *Returns*: `make_tuple(`_`canonical-slice`_`<IndexType>(slices)...)`
 :::
@@ -1160,7 +1160,7 @@ template<class IndexType, class... Extents, class... SliceSpecifiers>
 
 * [1.5]{.pnum} `valid_slices` denote a pack of (possibly const) objects for which `sizeof...(valid_slices) == M_rank` is `true` and,
     for each rank index $i$ of `m.extents()`, `valid_slices[`$i$`]` is a valid `submdspan` slice for the $i^{th}$ extent of `m.extents()`;
-[]
+
 * [1.6]{.pnum} `invalid_slices` denote a pack of (possibly const) objects for which `sizeof...(invalid_slices) == M_rank` is `true` and
     there exists an integer $k$ such that the type of `invalid_slices[`$k$`]` is none of the following:
 
