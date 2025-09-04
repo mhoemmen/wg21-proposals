@@ -1496,28 +1496,28 @@ template<class ElementType, class Extents, class LayoutPolicy,
 
 * [4.2]{.pnum} [the expression `submdspan_mapping(src.mapping(),` `slices...)` is well-formed when treated as an unevaluated operand]{.rm}[`Layout::mapping<Extents>` models _`sliceable-mapping`_]{.add}.
 
-[5]{.pnum} *Mandates*:
+[5]{.pnum} *Mandates*: [For each rank index $k$ of `src`:]{.add}
 
-* [5.1]{.pnum} For each rank index $k$ of `src`:
+::: add
+* [5.1]{.pnum} `SliceSpecifiers...[`$k$`]` is a `submdspan` slice type for the $k^{th}$ extent of `Extents`, and
 
-  * [5.1.1]{.pnum} `SliceSpecifiers...[`$k$`]` is a `submdspan` slice type for the $k^{th}$ extent of `Extents`, and
-
-  * [5.1.2]{.pnum} `slices...[`$k$`]` is a valid `submdspan` slice type for the $k^{th}$ extent of `Extents`.
-
-* [5.2]{.pnum} `decltype(submdspan_mapping(src.mapping(),` `slices...))` is a specialization of `submdspan_mapping_result`.
+* [5.2]{.pnum} `slices...[`$k$`]` is a valid `submdspan` slice type for the $k^{th}$ extent of `Extents`.
+:::
 
 ::: rm
+* [5.1]{.pnum} `decltype(submdspan_mapping(src.mapping(),` `slices...))` is a specialization of `submdspan_mapping_result`.
+
 * [5.2]{.pnum} `is_same_v<remove_cvref_t<decltype(sub_map_offset.mapping.extents())>, decltype(submdspan_extents(src.mapping(), slices...))>` is `true`.
 
 * [5.3]{.pnum} For each rank index $k$ of `src.extents()`, exactly one of the following is true:
 
-    * [5.3.1]{.pnum} [$S_k$ models `convertible_to<index_type>`,]{.rm}
+    * [5.3.1]{.pnum} $S_k$ models `convertible_to<index_type>`,
 
-    * [5.3.2]{.pnum} [$S_k$ models _`index-pair-like`_`<index_type>`,]{.rm}
+    * [5.3.2]{.pnum} $S_k$ models _`index-pair-like`_`<index_type>`,
 
-    * [5.3.3]{.pnum} [`is_convertible_v<`$S_k$`, full_extent_t>` is `true`, or]{.rm}
+    * [5.3.3]{.pnum} `is_convertible_v<`$S_k$`, full_extent_t>` is `true`, or
 
-    * [5.3.4]{.pnum} [$S_k$ is a specialization of `strided_slice`.]{.rm}
+    * [5.3.4]{.pnum} $S_k$ is a specialization of `strided_slice`.
 :::
 
 [6]{.pnum} *Preconditions*: [For each rank index $k$ of `src`, `slices...[`$k$`]` is a valid `submdspan` slice for the $k^{th}$ extent of `src`.]{.add}
@@ -1561,5 +1561,3 @@ return mdspan(
 [*Editorial note*: Please note drive-by fix for `src.data_handle()` (original was `src.data()`). -- *end note*]
 
 [*Editorial note*: Please note drive-by fix adding missing `typename` before `AccessorPolicy::offset_policy`. -- *end note*]
-
-[*Editorial note*: We believe that the above wording permits, but does not require canonicalization, for Standard layout mappings.  If LWG does not agree, we can come up with alternative wording. -- *end note*]
