@@ -1113,29 +1113,29 @@ template<class IndexType, class... Extents, class... SliceSpecifiers>
 
 * [5.1]{.pnum} `SubExtents::rank()` equals [the number of $k$ such that $S_k$ does not model `convertible_to<IndexType>`]{.rm}[$MAP\_RANK$`(slices, Extents::rank())`]{.add}; and
 
-* [5.2]{.pnum} for each rank index $k$ of `Extents` such that [_`map-rank`_`[`$k$`] != dynamic_extent` is `true`]{.rm}[`slices...[`$k$`]` is not a collapsing slice, let `S_k` denote `decltype(slices...[`$k$`])`; then]{.add}, `SubExtents::static_extent(`[_`map-rank`_`[`$k$`]`]{.rm}[$MAP\_RANK$`(slices, `$k$`)`]{.add}`)` equals:
+* [5.2]{.pnum} for each rank index $k$ of `Extents` such that [_`map-rank`_`[`$k$`] != dynamic_extent` is `true`]{.rm}[`slices...[`$k$`]` is not a collapsing slice]{.add}, `SubExtents::static_extent(`[_`map-rank`_`[`$k$`]`]{.rm}[$MAP\_RANK$`(slices, `$k$`)`]{.add}`)` equals [the following, where $\Sigma_k$ denotes `decltype(slices...[`$k$`])`]{.add}:
 
-    * [5.2.1]{.pnum} `Extents::static_extent(`$k$`)` if [`is_convertible_v<`$S_k$`, full_extent_t>` is `true`]{.rm}[`S_k` denotes `full_extent_t`]{.add}; otherwise
+    * [5.2.1]{.pnum} `Extents::static_extent(`$k$`)` if [`is_convertible_v<`$S_k$`, full_extent_t>` is `true`]{.rm}[$\Sigma_k$ denotes `full_extent_t`]{.add}; otherwise
 
     * [5.2.2]{.pnum} [_`de-ice`_`(tuple_element_t<1, `$S_k$`>()) - ` _`de-ice`_`(tuple_element_t<0, `$S_k$`>())` if $S_k$ models _`index-pair-like`_`<IndexType>`, and both `tuple_element_t<0, `$S_k$`>` and `tuple_element_t<1, `$S_k$`>` model _`integral-constant-like`_; otherwise]{.rm}
 
-    * [5.2.3]{.pnum} `0`, if [$S_k$]{.rm}[`S_k`]{.add} is a specialization of `strided_slice`[, whose `extent_type` models _`integral-constant-like`_, for which `extent_type()` equals zero]{.rm}[ and `S_k::extent_type` denotes `constant_wrapper<IndexType(0)>`]{.add}; otherwise
+    * [5.2.3]{.pnum} `0`, if [$S_k$]{.rm}[$\Sigma_k$]{.add} is a specialization of `strided_slice`[, whose `extent_type` models _`integral-constant-like`_, for which `extent_type()` equals zero]{.rm}[ and $\Sigma_k$`::extent_type` denotes `constant_wrapper<IndexType(0)>`]{.add}; otherwise
 
     * [5.2.4]{.pnum} [`1 + (` _`de-ice`_`(`$S_k$`::extent_type()) - 1) / ` _`de-ice`_`(`$S_k$`::stride_type())`]{.rm}
-                     [`1 + (S_k::extent_type::value - 1) / S_k::stride_type::value)`]{.add},
-                     if [$S_k$]{.rm}[`S_k`]{.add} is a specialization of `strided_slice` whose `extent_type` and `stride_type`
+                     [`1 + (`$\Sigma_k$`::extent_type::value - 1) / `$\Sigma_k$`::stride_type::value)`]{.add},
+                     if [$S_k$]{.rm}[$\Sigma_k$]{.add} is a specialization of `strided_slice` whose `extent_type` and `stride_type`
                      [model _`integral-constant-like`_]{.rm}[denote specializations of `constant_wrapper`]{.add};
 
     * [5.2.5]{.pnum} otherwise, `dynamic_extent`.
 
-[6]{.pnum} *Returns:* A value `ext` of type `SubExtents` such that for each [rank index]{.add} $k$ [of `Extents`]{.add} [for which _`map-rank`_`[`$k$`] != dynamic_extent` is `true`]{.rm}[where `slices...[`$k$`]` is not a collapsing slice]{.add}, `ext.extent(`[_`map-rank`_`[`$k$`]`]{.rm}[$MAP\_RANK$`(slices, `$k$`)`]{.add}`)` equals [the following, where `s_k` denotes `slices...[`$k$`]`]{.add}:
+[6]{.pnum} *Returns:* A value `ext` of type `SubExtents` such that for each [rank index]{.add} $k$ [of `Extents`]{.add} [for which _`map-rank`_`[`$k$`] != dynamic_extent` is `true`]{.rm}[where `slices...[`$k$`]` is not a collapsing slice]{.add}, `ext.extent(`[_`map-rank`_`[`$k$`]`]{.rm}[$MAP\_RANK$`(slices, `$k$`)`]{.add}`)` equals [the following, where $\sigma_k$ denotes `slices...[`$k$`]`]{.add}:
 
 * [6.1]{.pnum} [$s_k$`.extent == 0 ? 0 : 1 + (`_`de-ice`_`(`$s_k$`.extent) - 1) / ` _`de-ice`_`(`$s_k$`.stride)`]{.rm}
-               [s_k.extent == 0 ? 0  1 + (s_k.extent - 1) / s_k.stride]{.add}
- if [$S_k$]{.rm}[the type of `s_k`]{.add} is a specialization of `strided_slice`,
+               [$\sigma_k$`.extent == 0 ? 0  1 + (`$\sigma_k$`.extent - 1) / `$\sigma_k$`.stride`]{.add}
+ if [$S_k$]{.rm}[the type of $\sigma_k$]{.add} is a specialization of `strided_slice`,
 
 * [6.2]{.pnum} otherwise, [_`last_`_`<`$k$`>(src, slices...) - ` _`first_`_`<IndexType, `$k$`>(slices...)`]{.rm}
-         [$U - L$, where $[L, U)$ is the `submdspan` splice range of `s_k` for the $k^{th}$ extent of `src`]{.add}.
+         [$U - L$, where $[L, U)$ is the `submdspan` splice range of $\sigma_k$ for the $k^{th}$ extent of `src`]{.add}.
 
 ## Requirements of all `submdspan_mapping` customizations
 
