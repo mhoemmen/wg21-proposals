@@ -198,7 +198,7 @@ Before adoption of [P2819R2](https://wg21.link/p2819r2), a user-defined layout m
 
 It would be reasonable for `submdspan` to generalize _`pair-like`_ into any type for which structured binding into two elements is well-formed.  If the two elements are both convertible to `index_type`, then this has an unambiguous interpretation as a contiguous subrange.  Thus, users should write their customizations generically to that interface.  However, in terms of the Standard, there are two issues with that approach.
 
-1. Standard Library implementers need to assume that users read the Standard as narrowly as possible.  C++26 does not forbid calling a `submdspan_mapping` customization with a user-defined pair type, but it also does not restrict its behavior in that case.
+1. Standard Library implementers need to assume that users read the Standard as narrowly as possible.  The current C++ Working Draft does not forbid calling a `submdspan_mapping` customization with a user-defined pair type, but it also does not restrict its behavior in that case.
 
 2. This approach would not help if other slice categories are expanded, or if a new slice category is added, as the following sections explain.
 
@@ -389,23 +389,27 @@ In summary, the possibility of later generalization of _`tuple-like`_ would natu
 
 We have not measured the performance effects of this approach.  Everything we write here is speculation.
 
-In terms of compile-time performance, canonicalization would minimize the set of instantiations of both `submdspan_mapping` and `submdspan_extents` (which customizations of `submdspan_mapping` may call).
+In terms of compile-time performance, canonicalization would minimize the set of instantiations of both `submdspan_mapping` and `submdspan_extents` (which customizations of `submdspan_mapping` may call).  Specification of `submdspan_canonicalize_slices` in terms of an exposition-only function template _`canonical-slice`_, whose template parameters are just `IndexType` and one slice type (rather than the whole pack of slice types), gives implementations the opportunity to minimize instantiations.
 
-In terms of run-time performance, customizations would likely need to copy slices into their canonical forms.  This would introduce new local variables.  Slices tend to be simple, and are made of combinations of zero to three integers and empty types (like `constant_wrapper` or `full_extent_t`).  Thus, it should be easy for compilers to optimize away all the extra types.  On the other hand, if they can't, then the compiler may need to reserve extra hardware resources (like registers and stack space) for the extra local variables.  This _may_ affect performance, especially in tight loops.  Mitigations generally entail creating subview layout mappings by hand.
+In terms of run-time performance, customizations would likely need to copy slices into their canonical forms.  This would introduce new local variables.  Slices tend to be simple, and are made of combinations of zero to three integers and empty types (like `constant_wrapper` or `full_extent_t`).  Thus, it should be easy for compilers to optimize away all the extra types.  On the other hand, if they can't, then the compiler may need to reserve extra hardware resources (like registers and stack space) for the extra local variables.  This _may_ affect performance, especially in tight loops.
 
-The proposed set of canonicaliation rules would require turning every _`pair-like`_ type into a `strided_slice`.  Pair-like slices are common enough in practice that we may want to optimize specially for them; see below.
+If there are performance issues, users may mitigate them somewhat by preferring use of `strided_slice` over arbitrary "pair-like" types.  It would be natural for users to define a function to create "pair-like" slices that returns `strided_slice` with `cw<1>` as the stride.
 
-## Hypothetical performance mitigations
-
-Here are some options that might mitigate some performance concerns.  All such concerns are hypothetical without actual performance measurements.
-
-1. Let Standard layout mappings accept arbitrary slice types.  Restrict the proposed changes to user-defined layout mappings.  This would optimize for the common case of Standard layout mappings.  On the other hand, performing canonicalization for all `submdspan_mapping` customizations (including the Standard ones) would simplify implementations, especially for checking preconditions.
-
-2. Expand the canonicalization rules so that `pair` and `tuple` slices are passed through, instead of being transformed into `strided_slice`.  This would optimize a common case, at the cost of making `submdspan_mapping` customizations handle more slice types.  That would complicate the code and possibly increase compile-time cost, thus taking away at least some of the benefits of canonicalization.
+```c++
+template<class BeginType, class EndType>
+constexpr auto
+make_index_pair(BeginType beg, EndType end) {
+  return std::strided_slice{
+    beg, end - beg, std::cw<1>
+  };
+}
+```
 
 ## `submdspan` can skip canonicalization for Standard layout mappings
 
-We believe that by the as-if rule, `submdspan` should be able to skip canonicalization for layout mappings provided by the Standard, even though we specify `submdspan` as "Effects: Equivalent to" code that always canonicalizes slices.  If LWG disagrees, we offer alternate wording that enforces this permission.
+The proposed set of canonicalization rules would require turning every "pair-like" type into a `strided_slice`.  Users of `mdspan`-like libraries such as [Kokkos](https://github.com/kokkos/kokkos) rely heavily on pair-like slices.  As a result, implementations may want to optimize specially for them.  By the as-if rule, `submdspan` for Standard layout mappings has permission to pass any `submdspan` slice type straight through to the layout mapping without canonicalization.  This would permit direct use of "pair-like" types in a structured binding declaration, without intermediate conversion to `strided_slice`.
+
+Note that this proposal restricts *all* `submdspan_mapping` customizations, including those for Standard layout mappings, only to accept canonical slice types.  Thus, `submdspan`'s pass-through would need to use a nonpublic interface in the implementation of Standard layout mappings.  The implementation of `submdspan` would not have a way to pass through noncanonical slice types for user-defined layout mappings.
 
 # Implementation
 
