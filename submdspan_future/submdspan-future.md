@@ -785,7 +785,8 @@ In [version.syn], increase the value of the `__cpp_lib_submdspan` macro by repla
 
 * [1.2]{.pnum} `is_convertible_v<`$S$`, IndexType>` is `true`;
 
-* [1.3]{.pnum} $S$ is a specialization of `strided_slice`; or
+* [1.3]{.pnum} $S$ is a specialization of `strided_slice` and `is_convertible_v<`$X$`, IndexType>` is true for $X$ denoting
+  $S$`::offset_type`, $S$`::extent_type` and $S$`::stride_type`; or
 
 * [1.4]{.pnum} all of the following hold:
 
@@ -1071,7 +1072,7 @@ template<class IndexType, class... Extents, class... SliceSpecifiers>
 
     * [5.2.2]{.pnum} [_`de-ice`_`(tuple_element_t<1, `$S_k$`>()) - ` _`de-ice`_`(tuple_element_t<0, `$S_k$`>())` if $S_k$ models _`index-pair-like`_`<IndexType>`, and both `tuple_element_t<0, `$S_k$`>` and `tuple_element_t<1, `$S_k$`>` model _`integral-constant-like`_; otherwise]{.rm}
 
-    * [5.2.3]{.pnum} `0`, if [$S_k$]{.rm}[`S_k`]{.add} is a specialization of `strided_slice`[, whose `extent_type` models _`integral-constant-like`_, for which `extent_type()` equals zero]{.rm}[ and `S_k::extent_type` denotes `constant_wrapper<IndexType(0)>`]{.add}; otherwise
+    * [5.2.3]{.pnum} [`0`, if [$S_k$]{.rm}[`S_k`]{.add} is a specialization of `strided_slice`[, whose `extent_type` models _`integral-constant-like`_, for which `extent_type()` equals zero]{.rm}[ and `S_k::extent_type` denotes `constant_wrapper<IndexType(0)>`]{.add}; otherwise]{.rm}
 
     * [5.2.4]{.pnum} [`1 + (` _`de-ice`_`(`$S_k$`::extent_type()) - 1) / ` _`de-ice`_`(`$S_k$`::stride_type())`]{.rm}
                      [`1 + (S_k::extent_type::value - 1) / S_k::stride_type::value)`]{.add},
@@ -1136,7 +1137,7 @@ as if by performing argument-dependent lookup only ([basic.lookup.argdep]).
 submdspan_mapping(m, slcs...)
 ```
 
-[4]{.pnum} Let `or` be the number of elements `slc` of `slcs` such that `is_convertible_v<decltype(slc), IT>` is `false`.
+[4]{.pnum} Let `or` be the number of elements of `slcs` that are not collapsing slices.
 
 [5]{.pnum} *Result*: A type that is a specialization of type `submdspan_mapping_result<SM>` for some type `SM` such that:
 
@@ -1215,7 +1216,7 @@ template<typename LayoutMapping>
 
 [5]{.pnum} Let `sub_ext` be the result of `submdspan_extents(extents(), slices...)` and let `SubExtents` be `decltype(sub_ext)`.
 
-[6]{.pnum} Let `sub_strides` be an `array<SubExtents::index_type, SubExtents::rank()>` such that for each rank index $k$ of `extents()` for which [_`map-rank`_`[`$k$`]` is not `dynamic_extent`]{.rm}[`is_convertible_v<decltype(slices...[`$k$`]), SubExtents::index_type>` is `false`]{.add}, `sub_strides[`[_`map-rank`_`[`$k$`]`]{.rm}[$MAP\_RANK$`(slices, `$k$`)`]{.add}`]` equals:
+[6]{.pnum} Let `sub_strides` be an `array<SubExtents::index_type, SubExtents::rank()>` such that for each rank index $k$ of `extents()` for which [_`map-rank`_`[`$k$`]` is not `dynamic_extent`]{.rm}[`slices...[`$k$`]` is not collapsing slice]{.add}, `sub_strides[`[_`map-rank`_`[`$k$`]`]{.rm}[$MAP\_RANK$`(slices, `$k$`)`]{.add}`]` equals:
 
 * [6.1]{.pnum} `stride(`$k$`) * `[_`de-ice`_`(`$s_k$`.stride)`]{.rm}[`s.stride`]{.add} if [$S_k$]{.rm}[`s`]{.add} is a specialization of `strided_slice` and [$s_k$`.stride M `$s_k$`.extent`]{.rm}[`s.stride < s.extent`]{.add} is `true` [where `s` is `slices...[`$k$`]`]{.add};
 
