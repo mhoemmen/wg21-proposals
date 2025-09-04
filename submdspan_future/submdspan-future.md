@@ -926,7 +926,6 @@ constexpr auto submdspan_canonicalize_slices(
 > Change [mdspan.sub.helpers] as follows.
 
 ::: rm
-
 ```
 template<class T>
   constexpr T @_de-ice_@(T val) { return val; }
@@ -938,45 +937,44 @@ template<@_integral-constant-like_@ T>
 template<class IndexType, size_t k, class... SliceSpecifiers>
   constexpr IndexType @_first_@_(SliceSpecifiers... slices);
 ```
-[5]{.pnum} *Mandates*: `IndexType` is a signed or unsigned integer type.
+[1]{.pnum} *Mandates*: `IndexType` is a signed or unsigned integer type.
 
-[6]{.pnum} Let $ϕ_k$ denote the following value:
+[2]{.pnum} Let $ϕ_k$ denote the following value:
 
-* [6.1]{.pnum} $s_k$ if $S_k$ models `convertible_to<IndexType>`;
+* [2.1]{.pnum} $s_k$ if $S_k$ models `convertible_to<IndexType>`;
 
-* [6.2]{.pnum} otherwise, `get<0>(`$s_k$`)` if $S_k$ models _`index-pair-like`_`<IndexType>`;
+* [2.2]{.pnum} otherwise, `get<0>(`$s_k$`)` if $S_k$ models _`index-pair-like`_`<IndexType>`;
 
-* [6.3]{.pnum} otherwise, _`de-ice`_`(`$s_k$`.offset)` if $S_k$ is a specialization of `strided_slice`;
+* [2.3]{.pnum} otherwise, _`de-ice`_`(`$s_k$`.offset)` if $S_k$ is a specialization of `strided_slice`;
 
-* [6.4]{.pnum} otherwise, `0`.
+* [2.4]{.pnum} otherwise, `0`.
 
-[7]{.pnum} *Preconditions*: $ϕ_k$ is representable as a value of type `IndexType`.
+[3]{.pnum} *Preconditions*: $ϕ_k$ is representable as a value of type `IndexType`.
 
-[8]{.pnum} *Returns*: `extents<IndexType>::`_`index-cast`_`(`$ϕ_k$`)`.
+[4]{.pnum} *Returns*: `extents<IndexType>::`_`index-cast`_`(`$ϕ_k$`)`.
 
 ```
 template<size_t k, class Extents, class... SliceSpecifiers>
   constexpr auto @_last_@_(const Extents& src, SliceSpecifiers... slices);
 ```
 
-[9]{.pnum} *Mandates*: `Extents` is a specialization of `extents`.]{.rm}
+[5]{.pnum} *Mandates*: `Extents` is a specialization of `extents`.
 
-[10]{.pnum} Let `index_type` be `typename Extents::index_type`.
+[6]{.pnum} Let `index_type` be `typename Extents::index_type`.
 
-[11]{.pnum} Let $λ_k$ denote the following value:
+[7]{.pnum} Let $λ_k$ denote the following value:
 
-* [11.1]{.pnum} _`de-ice`_`(`$s_k$`) + 1` if $S_k$ models `convertible_to<index_type>`.
+* [7.1]{.pnum} _`de-ice`_`(`$s_k$`) + 1` if $S_k$ models `convertible_to<index_type>`; otherwise
 
+* [7.2]{.pnum} `get<1>(`$s_k$`)` if $S_k$ models _`index-pair-like`_`<index_type>`; otherwise
 
-* [11.2]{.pnum} `get<1>(`$s_k$`)` if $S_k$ models _`index-pair-like`_`<index_type>`; otherwise
+* [7.3]{.pnum} _`de-ice`_`(`$s_k$`.offset)` `+` _`de-ice`_`(`$s_k$`.extent)` if $S_k$ is a specialization of `strided_slice`; otherwise
 
-* [11.3]{.pnum} _`de-ice`_`(`$s_k$`.offset) + `_`de-ice`_`(`$s_k$`.extent)` if $S_k$ is a specialization of `strided_slice`; otherwise
+* [7.4]{.pnum} `src.extent(k)`.
 
-* [11.4]{.pnum} `src.extent(k)`.
+[8]{.pnum} *Preconditions*: $λ_k$ is representable as a value of `type index_type`.
 
-[12]{.pnum} *Preconditions*: $λ_k$ is representable as a value of `type index_type`.
-
-[13]{.pnum} *Returns*: `Extents​::`_`​index-cast`_`(`$λ_k$`)`.
+[9]{.pnum} *Returns*: `Extents​::`_`​index-cast`_`(`$λ_k$`)`.
 
 ```
 template<class IndexType, size_t N, class... SliceSpecifiers>
@@ -984,14 +982,13 @@ template<class IndexType, size_t N, class... SliceSpecifiers>
     @_src-indices_@(const array<IndexType, N>& indices, SliceSpecifiers... slices);
 ```
 
-[11]{.pnum} *Mandates*: `IndexType` is a signed or unsigned integer type.
+[10]{.pnum} *Mandates*: `IndexType` is a signed or unsigned integer type.
 
-[12]{.pnum} *Returns*: An `array<IndexType, sizeof...(SliceSpecifiers)>` `src_idx` such that for each $k$ in the range $[$`0`, `sizeof...(SliceSpecifiers)`$)$, `src_idx[`$k$`]` equals
+[11]{.pnum} *Returns*: An `array<IndexType, sizeof...(SliceSpecifiers)>` `src_idx` such that for each $k$ in the range $[$`0`, `sizeof...(SliceSpecifiers)`$)$, `src_idx[`$k$`]` equals
 
-* [12.1]{.pnum} _`first_`_`<IndexType,`$k$`>(slices...)` for each $k$ where _`map-rank`_`[`$k$`]` equals `dynamic_extent`,
+* [11.1]{.pnum} _`first_`_`<IndexType,`$k$`>(slices...)` for each $k$ where _`map-rank`_`[`$k$`]` equals `dynamic_extent`,
 
-* [12.2]{.pnum} otherwise, _`first_`_`<IndexType,`$k$`>(slices...) + indices[`_`map-rank`_`[`$k$`]]`.
-
+* [11.2]{.pnum} otherwise, _`first_`_`<IndexType,`$k$`>(slices...) + indices[`_`map-rank`_`[`$k$`]]`.
 :::
 
 ::: add
