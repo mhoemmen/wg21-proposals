@@ -1184,46 +1184,45 @@ as if by performing argument-dependent lookup only ([basic.lookup.argdep]).
 submdspan_mapping(m, valid_slices...)
 ```
 
-[4]{.pnum} Let `or` be the number of elements of `valid_slices` that are not collapsing slices.
+[4]{.pnum} *Result*: A type `SMR` that is a specialization of type `submdspan_mapping_result<SM>` for some type `SM` such that:
 
-[5]{.pnum} *Result*: A type that is a specialization of type `submdspan_mapping_result<SM>` for some type `SM` such that:
+* [4.1]{.pnum} `SM` meets the layout mapping requirements ([mdspan.layout.policy.reqmts]),
 
-* [5.1]{.pnum} `SM` meets the layout mapping requirements ([mdspan.layout.policy.reqmts]),
+* [4.2]{.pnum} `SM::extents_type` is a specialiation of `extents`,
 
-* [5.2]{.pnum} `SM::extents_type` is a specialiation of `extents`,
+* [4.3]{.pnum} `SM::extents_type::rank()` equals the number of elements of `valid_slices` that are not collapsing slices, and
 
-* [5.3]{.pnum} `SM::extents_type::rank()` is equal to `or`, and
+* [4.4]{.pnum} `SM::extents_type::index_type` denotes `IT`.
 
-* [5.4]{.pnum} `SM::extents_type::index_type` denotes `IT`.
+[5]{.pnum} *Return*: An object `smr` of type `SMR` such:
 
-[6]{.pnum} *Return*: An object `smr` of type `OM` such:
+* [5.1]{.pnum} `smr.mapping.extents() == submdspan_extents(m.extents(), valid_slices...)` is `true`; and
 
-* [6.1]{.pnum} `smr.mapping.extents() == submdspan_extents(m.extents(), valid_slices...)` is `true`,
-
-* [6.2]{.pnum} for each integer pack `i` which is a multidimensional index in `sm.mapping.extents()`,
+* [5.2]{.pnum} for each integer pack `i` which is a multidimensional index in `sm.mapping.extents()`,
   `smr.mapping(i...) + smr.offset == m(j)` is `true`, where `j` is an integer pack such that:
  
-    * [6.2.1]{.pnum} `sizeof...(j)` is equal to `M_rank`, and
+    * [5.2.1]{.pnum} `sizeof...(j)` is equal to `M_rank`; and
 
-    * [6.2.2]{.pnum} for each rank index $\rho$ of `M::extents_type`, `i...[`$\rho$`]` is equal to the sum of the lower bound of
+    * [5.2.2]{.pnum} for each rank index $\rho$ of `m.extents()`,
+        `i...[`$\rho$`]` is equal to the sum of the lower bound of
         the `submdspan` slice range of `valid_slices...[`$\rho$`]` for extent $\rho$ of `m.extents()` and:
      
-        * [6.2.2.1]{.pnum} zero if `valid_slices...[`$\rho$`]` is a collapsing slice,
+        * [5.2.2.1]{.pnum} zero if `valid_slices...[`$\rho$`]` is a collapsing slice,
 
-        * [6.2.2.2]{.pnum} `j...[`$MAP\_RANK$`(valid_slices,` $k$`)]`, otherwise.
+        * [5.2.2.2]{.pnum} `j...[`$MAP\_RANK$`(valid_slices,` $k$`)]`, otherwise.
 
 ```
 template<typename LayoutMapping>
-  concept @sliceable-mapping@ = @_see-below_@;
+  concept @_sliceable-mapping_@ = @_see-below_@;
 ```
 
-[7]{.pnum} Let `lm` be an object of type `LayoutMapping` and let `fe` denote a pack of objects of type `full_extent_t` for which `sizeof...(fe) == LayoutMapping::extents_type::rank()` is `true`.  A type `LayoutMapping` satisfies _`sliceable-mapping`_  if
+[6]{.pnum} Let `lm` be an object of type `LayoutMapping` and let `fe` denote a pack of objects of type `full_extent_t` for which `sizeof...(fe) == LayoutMapping::extents_type::rank()` is `true`.  A type `LayoutMapping` satisfies _`sliceable-mapping`_  if
 
-* [7.1]{.pnum} the expression `submdspan_mapping(m, fe...)` is well-formed when treated as an unevaluated operand, and
+* [6.1]{.pnum} the expression `submdspan_mapping(m, fe...)` is well-formed when treated as an unevaluated operand, and
 
-* [7.2]{.pnum} the type of that expression is a specialization of `submdspan_mapping_result`.
+* [6.2]{.pnum} the type of that expression is a specialization of `submdspan_mapping_result`.
 
-[8]{.pnum} A type `LayoutMapping` models  _`sliceable-mapping`_ if `LayoutMapping` meets the sliceable layout mapping requirements.
+[7]{.pnum} A type `LayoutMapping` models  _`sliceable-mapping`_ if `LayoutMapping` meets the sliceable layout mapping requirements.
 
 :::
 
