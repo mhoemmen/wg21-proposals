@@ -1128,14 +1128,14 @@ template<class IndexType, class... Extents, class... SliceSpecifiers>
 
     * [5.2.5]{.pnum} otherwise, `dynamic_extent`.
 
-[6]{.pnum} *Returns:* A value `ext` of type `SubExtents` such that for each [rank index]{.add} $k$ [of `Extents`]{.add} [for which _`map-rank`_`[`$k$`] != dynamic_extent` is `true`]{.rm}[where `slices...[`$k$`]` is a collapsing slice]{.add}, `ext.extent(`[_`map-rank`_`[`$k$`]`]{.rm}[$MAP\_RANK$`(slices, `$k$`)`]{.add}`)` equals [the following, where `s_k` denotes `slices...[`$k$`]`]{.add}:
+[6]{.pnum} *Returns:* A value `ext` of type `SubExtents` such that for each [rank index]{.add} $k$ [of `Extents`]{.add} [for which _`map-rank`_`[`$k$`] != dynamic_extent` is `true`]{.rm}[where `slices...[`$k$`]` is not a collapsing slice]{.add}, `ext.extent(`[_`map-rank`_`[`$k$`]`]{.rm}[$MAP\_RANK$`(slices, `$k$`)`]{.add}`)` equals [the following, where `s_k` denotes `slices...[`$k$`]`]{.add}:
 
 * [6.1]{.pnum} [$s_k$`.extent == 0 ? 0 : 1 + (`_`de-ice`_`(`$s_k$`.extent) - 1) / ` _`de-ice`_`(`$s_k$`.stride)`]{.rm}
                [s_k.extent == 0 ? 0  1 + (s_k.extent - 1) / s_k.stride]{.add}
  if [$S_k$]{.rm}[the type of `s_k`]{.add} is a specialization of `strided_slice`,
 
 * [6.2]{.pnum} otherwise, [_`last_`_`<`$k$`>(src, slices...) - ` _`first_`_`<IndexType, `$k$`>(slices...)`]{.rm}
-         [$U-L$, where $[L, U)$ is a `submdspan` splice range of `s_k` for the $k^{th}$ extent of `src`]{.add}.
+         [$U - L$, where $[L, U)$ is the `submdspan` splice range of `s_k` for the $k^{th}$ extent of `src`]{.add}.
 
 ## Requirements of all `submdspan_mapping` customizations
 
