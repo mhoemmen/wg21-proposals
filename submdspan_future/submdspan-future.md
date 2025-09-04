@@ -1,4 +1,3 @@
- Any object of type `s` is *collapsing slice*.
 ---
 title: "Future-proof `submdspan_mapping`"
 document: D3663R3
@@ -1216,7 +1215,8 @@ template<typename LayoutMapping>
 
 [5]{.pnum} Let `sub_ext` be the result of `submdspan_extents(extents(), slices...)` and let `SubExtents` be `decltype(sub_ext)`.
 
-[6]{.pnum} Let `sub_strides` be an `array<SubExtents::index_type, SubExtents::rank()>` such that for each rank index $k$ of `extents()` for which [_`map-rank`_`[`$k$`]` is not `dynamic_extent`]{.rm}[`slices...[`$k$`]` is not collapsing slice]{.add}, `sub_strides[`[_`map-rank`_`[`$k$`]`]{.rm}[$MAP\_RANK$`(slices, `$k$`)`]{.add}`]` equals:
+[6]{.pnum} Let `sub_strides` be an `array<SubExtents::index_type, SubExtents::rank()>` such that for each rank index $k$ of `extents()` for which [_`map-rank`_`[`$k$`]` is not `dynamic_extent`]{.rm}[`slices...[`$k$`]` is not a collapsing slice]{.add}, `sub_strides[`[_`map-rank`_`[`$k$`]`]{.rm}[$MAP\_RANK$`(slices, `$k$`)`]{.add}`]` equals:
+
 
 * [6.1]{.pnum} `stride(`$k$`) * `[_`de-ice`_`(`$s_k$`.stride)`]{.rm}[`s.stride`]{.add} if [$S_k$]{.rm}[`s`]{.add} is a specialization of `strided_slice` and [$s_k$`.stride M `$s_k$`.extent`]{.rm}[`s.stride < s.extent`]{.add} is `true` [where `s` is `slices...[`$k$`]`]{.add};
 
