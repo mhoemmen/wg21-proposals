@@ -1,7 +1,7 @@
 ---
 title: "Future-proof `submdspan_mapping`"
 document: D3663R3
-date: 2025-09-02
+date: 2025-09-04
 audience: LEWG
 author:
   - name: Mark Hoemmen
@@ -89,7 +89,9 @@ toc: true
 
     * Add Tomasz Kamiński to the author list
 
-    * Major wording changes based on preliminary LWG review
+    * Major wording changes based on preliminary LWG review.  Wording is now more mathematical and less a description of an implementation (as R2 wording was).  Some exposition-only functions proposed in previous revisions (e.g., _`canonical-ice`_, _`subtract-ice`_, and _`check-static-bounds`_), as well as some preexisting exposition-only functions (e.g., _`first_`_ and _`last_`_), have been renamed, replaced, or removed.  Some words of power, such as "unit-stride slice," have narrower definitions now.
+
+    * Update non-wording sections to reflect wording changes
 
 # Abstract
 
@@ -121,7 +123,7 @@ The Working Draft has four categories of slice types.  Let `S` be an input slice
 
 1. "Full": `S` is convertible to `full_extent_t`.  This means "all of the indices in that extent."
 
-2. "Integer": `S` is convertible to (the layout mapping's) `index_type`.  This means "fix the slice to view that extent at only that index."  Each integer slice reduces the result's rank by one.
+2. "Collapsing": `S` is convertible to (the layout mapping's) `index_type`.  This means "fix the slice to view that extent at only that index."  Each collapsing slice reduces ("collapses") the result's rank by one.
 
 3. "Contiguous subrange": `S` models _`index-pair-like`_`<index_type>`, or `S` is a `strided_slice` specialization whose `stride_type` is _`integral-constant-like`_ with value 1.  A contiguous subrange slice represents a contiguous range of indices in that extent.  The fact that the indices are contiguous (in other words, that they have stride 1) is known at compile time as a function of the slice's type alone.  The special case of `strided_slice` with compile-time stride 1 is the only way to represent a contiguous index range with run-time offset but compile-time extent.  (See [P3355r2](https://wg21.link/p3355r2), which was voted into the Working Draft for C++26 at the 2024 Wrocław meeting.)
 
@@ -285,13 +287,31 @@ Here are the canonicalization rules for an input slice `s` of type `S` and a inp
 
 1. If `S` is convertible to `full_extent_t`, then `full_extent_t`;
 
-2. else, if `S` is convertible to `index_type`, then _`canonical-ice`_`<index_type>(s)`;
+2. else, if `S` is convertible to `index_type`, then _`canonical-index`_`<index_type>(s)`;
 
-3. else, if `S` is a specialization of `strided_slice`, then `strided_slice{.offset=`_`canonical-ice`_`<index_type>(s.offset), .extent=`_`canonical-ice`_`<index_type>(s.extent), .stride=`_`canonical-ice`_`<index_type>(s.stride)}`;
+3. else, if `S` is a specialization of `strided_slice`, then
+```c++
+strided_slice{
+  .offset = @_canonical-index_@<index_type>(s.offset),
+  .extent = @_canonical-index_@<index_type>(s.extent),
+  .stride = @_canonical-index_@<index_type>(s.stride)
+}
+```
 
-4. else, if `s` is destructurable into `[first, last]` that are both convertible to `index_type`, then `strided_slice{.offset=`_`canonical-ice`_`<index_type>(first), .extent=`_`subtract-ice`_`<index_type>(last, first), .stride=cw<index_type(1)>}`.
+4. else, if the structured binding declaration
+```c++
+auto [first, last] = std::move(s);
+```
+is valid and if `first` and `last` are both convertible to `index_type`, then
+```c++
+strided_slice{
+  .offset = @_canonical-index_@<index_type>(first),
+  .extent = @_canonical-index_@<IndexType>(c_last - c_first),
+  .stride = cw<index_type(1)>
+}
+```
 
-The two exposition-only functions _`canonical-ice`_ and _`subtract-ice`_ preserve "compile-time-ness" of any _`integral-constant-like`_ arguments, and force all inputs to either `index_type` or `constant_wrapper<Value, index_type>` for some `Value`.  The _`canonical-ice`_ function also has Mandates or Preconditions (depending on whether its argument is _`integral-constant-like`_) that its argument is representable as a value of type `index_type`.  This lets implementations check for overflow.  The `cw` variable template comes from [P2781](https://wg21.link/p2781).
+The exposition-only function _`canonical-index`_ preserves "compile-time-ness" of any _`integral-constant-like`_ arguments, and forces all inputs to either `index_type` or `constant_wrapper<Value, index_type>` for some `Value`.  The function also has Mandates or Preconditions (depending on whether its argument is _`integral-constant-like`_) that its argument is representable as a value of type `index_type`.  This lets implementations check for overflow.  The `cw` variable template comes from [P2781](https://wg21.link/p2781).
 
 ## How to apply canonicalization
 
@@ -353,9 +373,9 @@ Slice canonicalization needs to have at least the "no overflow" precondition, be
 
 ## Why implementers should do this anyway
 
-Implementers should canonicalize slices anyway, even if this proposal is not adopted.  Suppose, for example, that P2769 (expanding the definition of _`tuple-like`_) is adopted into some future C++ version.  Implementations might thus expose users to an intermediate period in which they implement C++26 but not C++29.  During this period, users might write `submdspan_mapping` customizations to the narrower definition of _`pair-like`_.  For example, users might write `std::get` explicitly, which would only work with Standard Library types that have overloaded `std::get`, instead of using structured binding to get the two elements.  This would, in turn, encourage implementers of `submdspan` to "canonicalize" _`pair-like`_ slice arguments (e.g., into `pair` or `tuple`) before calling `submdspan_mapping` customizations, as that would maximize backwards compatibility.
+Implementers should canonicalize slices anyway, even if this proposal is not adopted.  Suppose, for example, that P2769 (expanding the definition of _`tuple-like`_) is adopted into some future C++ version.  Implementations might thus expose users to an intermediate period in which they implement C++26 but not C++29.  During this period, users might write `submdspan_mapping` customizations to the narrower definition of _`index-pair-like`_ (which depends on _`tuple-like`_).  For example, users might write `std::get` explicitly, which would only work with Standard Library types that have overloaded `std::get`, instead of using structured binding to get the two elements.  This would, in turn, encourage implementers of `submdspan` to "canonicalize" _`index-pair-like`_ slice arguments (e.g., into `pair` or `tuple`) before calling `submdspan_mapping` customizations, as that would maximize backwards compatibility.
 
-In summary, the possibility of later generalization of _`pair-like`_ would naturally lead high-quality implementations to the desired outcome.  That would minimize code changes both for users, and for implementations (as the Standard Library currently has five `submdspan_mapping` customizations of its own).  This proposal merely anticipates the expected implementation approach.
+In summary, the possibility of later generalization of _`tuple-like`_ would naturally lead high-quality implementations to the desired outcome.  That would minimize code changes both for users, and for implementations (as the Standard Library currently has five `submdspan_mapping` customizations of its own).  This proposal merely anticipates the expected implementation approach.
 
 # Performance
 
