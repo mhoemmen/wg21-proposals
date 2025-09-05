@@ -1247,7 +1247,7 @@ template<typename LayoutMapping>
 ::: add
 [3]{.pnum} *Mandates*: For each rank index $k$ of `this->extents()`, `SliceSpecifiers...[`$k$`]` is a valid `submdspan` slice type for the $k^{th}$ extent of `Extents`.
 
-[4]{.pnum} *Preconditions*: For each rank index $k$ of `this->extents()`, `slices...[`$k$`]` is a valid slice for the $k^{th}$ extent of `src`.
+[4]{.pnum} *Preconditions*: For each rank index $k$ of `this->extents()`, `slices...[`$k$`]` is a valid slice for the $k^{th}$ extent of `this->extents()`.
 :::
 
 [5]{.pnum} Let `sub_ext` be the result of `submdspan_extents(extents(), slices...)` and let `SubExtents` be `decltype(sub_ext)`.
@@ -1259,7 +1259,7 @@ template<typename LayoutMapping>
 
 * [6.2]{.pnum} otherwise, `stride(`$k$`)`.
 
-[7]{.pnum} [Let `P` be a parameter pack such that `is_same_v<make_index_sequence<rank()>, index_sequence<P...>>` is `true`.]{.rm}[Let `ls` be a pack of integers whose $\rho^{th}$ element equals the lower bound of the `submdspan` slice range of `slices...[`$\rho$`]` for extent $\rho$ of `(*this).extents()`.]{.add}
+[7]{.pnum} [Let `P` be a parameter pack such that `is_same_v<make_index_sequence<rank()>, index_sequence<P...>>` is `true`.]{.rm}[Let `ls` be a pack of integers whose $\rho^{th}$ element equals the lower bound of the `submdspan` slice range of `slices...[`$\rho$`]` for extent $\rho$ of `this->extents()`.]{.add}
 
 [8]{.pnum} If [_`first_`_`<index_type, `$k$`>(slices...)`]{.rm}[`ls...[`$k$`]`]{.add} equals [`this->`]{.add}`extents().extent(`$k$`)` for any rank index $k$ of `this->extents()`, then let `offset` be a value of type `size_t` equal to `this->required_span_size()`.  Otherwise, let `offset` be a value of type `size_t` equal to `(*this)(` [_`first_`_`<index_type, P>(slices...)...`]{.rm}[`ls...`]{.add} `)`.
 
