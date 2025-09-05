@@ -865,11 +865,10 @@ the *`submdspan` slice range of `s` for the $k^{th}$ extent of `e`* is:
 [10]{.pnum} Given a type `E` that is a specialization of `extents`,
 a type `S` is a *valid `submdspan` slice type for the $k^{th}$ extent of `E`*,
 if `S` is a canonical slice type for `E::index_type`,
-and for any object `s` of type `S` and object `e` of type `E`:
-  
-* [10.1]{.pnum} the `submdspan` slice range of `s` for the $k^{th}$ extent of `e` is not known statically, or
+and for any object `s` of type `S` and object `e` of type `E`,
+either the `submdspan` slice range of `s` for the $k^{th}$ extent of `e` is not known statically, or
 
-* [10.2]{.pnum} the $k^{th}$ interval of `e` is not known statically, or
+* [10.1]{.pnum} the $k^{th}$ interval of `e` is not known statically, or
 
 * [10.2]{.pnum} the $k^{th}$ interval of `e` contains the `submdspan` slice range of `s` for the $k^{th}$ extent of `e`.
 
