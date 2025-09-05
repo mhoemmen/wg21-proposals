@@ -1178,7 +1178,7 @@ submdspan_mapping(m, valid_slices...)
 
 * [4.1]{.pnum} `SM` meets the layout mapping requirements ([mdspan.layout.policy.reqmts]),
 
-* [4.2]{.pnum} `SM::extents_type` is a specialiation of `extents`,
+* [4.2]{.pnum} `SM::extents_type` is a specialization of `extents`,
 
 * [4.3]{.pnum} `SM::extents_type::rank()` equals the number of elements of `valid_slices` whose types are not collapsing slice types, and
 
