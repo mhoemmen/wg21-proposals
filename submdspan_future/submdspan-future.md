@@ -886,25 +886,6 @@ and an object `s` of type `S`, `s` is a *valid `submdspan` slice for the $k^{th}
 
 * [9.3]{.pnum} the $k^{th}$ interval of `e` contains the `submdspan` slice range of `s` for the $k^{th}$ extent of `e`.
 
-```
-template<class IndexType, size_t... Extents, class... SlicesSpecifiers>
-constexpr auto submdspan_canonicalize_slices(
-  const extents<IndexType, Extents...>& src, Slices... slices);
-```
-
-[10]{.pnum} *Constraints*: `sizeof...(Slices)` equals `sizeof...(Extents)`.
-
-[11]{.pnum} *Mandates*: For each rank index $k$ of `src`:
-
-* [11.1]{.pnum} `SliceSpecifiers...[`$k$`]` is a `submdspan` slice type for the $k^{th}$ extent of `Extents`, and
-
-* [11.2]{.pnum} `decltype(`_`canonical-slice`_`<IndexType>(slices...[`$k$`]))` is a valid `submdspan` slice type for the $k^{th}$ extent of `Extents`.
-
-[12]{.pnum} *Preconditions*: For each rank index $k$ of `src`, _`canonical-slice`_`<IndexType>(slices...[`$k$`])` is a valid `submdspan` slice for the $k^{th}$ extent of `src`.
-
-[13]{.pnum} *Returns*: `make_tuple(`_`canonical-slice`_`<IndexType>(slices)...)`
-:::
-
 ## Change [mdspan.sub.helpers]
 
 > Change [mdspan.sub.helpers] as follows.
@@ -1043,6 +1024,30 @@ else {
   };
 }
 ```
+:::
+
+## Add section [mdspan.sub.canonical]
+
+> Add a new section [mdspan.sub.canonical] right before [mdspan.sub.extents],
+> with contents as follows.
+
+```
+template<class IndexType, size_t... Extents, class... SlicesSpecifiers>
+constexpr auto submdspan_canonicalize_slices(
+  const extents<IndexType, Extents...>& src, Slices... slices);
+```
+
+[1]{.pnum} *Constraints*: `sizeof...(Slices)` equals `sizeof...(Extents)`.
+
+[2]{.pnum} *Mandates*: For each rank index $k$ of `src`:
+
+* [3.1]{.pnum} `SliceSpecifiers...[`$k$`]` is a `submdspan` slice type for the $k^{th}$ extent of `Extents`, and
+
+* [3.2]{.pnum} `decltype(`_`canonical-slice`_`<IndexType>(slices...[`$k$`]))` is a valid `submdspan` slice type for the $k^{th}$ extent of `Extents`.
+
+[4]{.pnum} *Preconditions*: For each rank index $k$ of `src`, _`canonical-slice`_`<IndexType>(slices...[`$k$`])` is a valid `submdspan` slice for the $k^{th}$ extent of `src`.
+
+[5]{.pnum} *Returns*: `make_tuple(`_`canonical-slice`_`<IndexType>(slices)...)`
 :::
 
 ## Change section [mdspan.sub.extents]
