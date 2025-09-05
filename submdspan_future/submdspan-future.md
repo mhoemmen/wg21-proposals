@@ -877,7 +877,7 @@ and an object `s` of type `S`, `s` is a *valid `submdspan` slice for the $k^{th}
 
 * [10.3]{.pnum} if `S` is a specialization of `strided_slice`, then:
 
-    * [10.3.1]{.pnum} `s.offset` and `s.extent` are both greater than or equal to zero, and
+    * [10.3.1]{.pnum} `s.extent` is greater than or equal to zero, and
 
     * [10.3.2]{.pnum} either `s.extent` equals zero or `s.stride` is greater than zero.
 :::
