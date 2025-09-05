@@ -999,8 +999,7 @@ else if constexpr (is_convertible_v<S, IndexType>)
   return @_canonical-index_@<IndexType>(std::move(s));
 else if constexpr (@_is-strided-slice_@<S>) {
   auto c_extent = @_canonical-index_@<IndexType>(std::move(s.extent));
-  auto c_offset  = @_canonical-index_@<IndexType>(std::move(s.offset));
-  auto c_extent = @_canonical-index_@<IndexType>(std::move(s.extent));
+  auto c_offset = @_canonical-index_@<IndexType>(std::move(s.offset));
   if constexpr (is_same_v<decltype(c_extent), constant_wrapper<IndexType(0)>>)
     return strided_slice{
       .offset = c_offset,
