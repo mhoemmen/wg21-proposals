@@ -836,7 +836,7 @@ In [version.syn], increase the value of the `__cpp_lib_submdspan` macro by repla
     * [3.3.2]{.pnum} if $S$`::stride_type` and $S$`::extent_type` are both specializations of  `constant_wrapper`,
       then $S$::`stride_type::value` is greater than zero.
 
-[4]{.pnum} An object `s` is a *collapsing slice* if it's type is neither `full_extent_t` or specialization of `strided_slice`.
+[4]{.pnum} An object `s` is a *collapsing slice* if its type is neither `full_extent_t` nor a specialization of `strided_slice`.
 
 [*Note 1*: Each collapsing slice reduces the rank of the result of `submdspan_mapping` by one. — *end note*]
 
