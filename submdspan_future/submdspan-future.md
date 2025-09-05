@@ -842,7 +842,7 @@ In [version.syn], increase the value of the `__cpp_lib_submdspan` macro by repla
 
 [5]{.pnum} A type `S` is a *unit-stride slice type* if
 
-* [5.1]{.pnum} `S` is a specialization of `strided_slice` where `S::stride_type` is a specialization of `constant_wrapper` and `S::stided_type::value` is equal to 1, or
+* [5.1]{.pnum} `S` is a specialization of `strided_slice` where `S::stride_type` is a specialization of `constant_wrapper` and `S::strided_type::value` is equal to 1, or
 
 * [5.1]{.pnum} `S` denotes `full_extent_t`.
 
