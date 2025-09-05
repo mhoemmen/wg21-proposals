@@ -1166,7 +1166,7 @@ as if by performing argument-dependent lookup only ([basic.lookup.argdep]).
 
 * [3.1]{.pnum} `M` meets the layout mapping requirements ([mdspan.layout.policy.reqmts]),
 
-* [3.2]{.pnum} the expression `submdspan_mapping(m, invalid_slices)` is ill-formed, and
+* [3.2]{.pnum} the expression `submdspan_mapping(m, invalid_slices...)` is ill-formed, and
 
 * [3.3]{.pnum} the following expressions are well-formed and have the specified semantics.
 
