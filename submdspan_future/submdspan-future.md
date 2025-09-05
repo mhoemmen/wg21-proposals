@@ -1180,7 +1180,7 @@ submdspan_mapping(m, valid_slices...)
 
 * [4.2]{.pnum} `SM::extents_type` is a specialization of `extents`,
 
-* [4.3]{.pnum} `SM::extents_type::rank()` equals the number of elements of `valid_slices` whose types are not collapsing slice types, and
+* [4.3]{.pnum} `SM::extents_type::rank()` equals $MAP\_RANK$`(valid_slices, M_rank)`, and
 
 * [4.4]{.pnum} `SM::extents_type::index_type` denotes `IT`.
 
