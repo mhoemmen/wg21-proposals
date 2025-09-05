@@ -1245,7 +1245,7 @@ template<typename LayoutMapping>
 :::
 
 ::: add
-[3]{.pnum} *Mandates*: For each rank index $k$ of `src`, `SliceSpecifiers...[`$k$`]` is a valid `submdspan` slice type for the $k^{th}$ extent of `Extents`, and
+[3]{.pnum} *Mandates*: For each rank index $k$ of `src`, `SliceSpecifiers...[`$k$`]` is a valid `submdspan` slice type for the $k^{th}$ extent of `Extents`.
 
 [4]{.pnum} *Preconditions*: For each rank index $k$ of `src`, `slices...[`$k$`]` is a valid slice for the $k^{th}$ extent of `src`.
 :::
