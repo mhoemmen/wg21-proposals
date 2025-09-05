@@ -765,7 +765,7 @@ In [version.syn], increase the value of the `__cpp_lib_submdspan` macro by repla
 
 [3]{.pnum} Let $E_r$ be the $r^{th}$ element of `Extents`.  $E_r$ is a *dynamic extent* if it is equal to `dynamic_extent`, otherwise $E_r$ is a *static extent*.  Let $D_r$ be the value of _`dynamic-extents`_`[`_`dynamic-index`_`(`$r$`)]` if $E_r$ is a dynamic extent, otherwise $E_r$.
 
-[4]{.pnum} The $r^{th}$ interval of the multidimensional index space represented by an `extents` object is $[0, D_r)$.  [The $r^{th}$ interval is *known statically* if $E_r$ is a static extent.]{.add}
+[4]{.pnum} The $r^{th}$ interval of the multidimensional index space represented by an `extents` object is $[0, D_r)$.
 
 ## Change [mdspan.sub.overview]
 
@@ -874,9 +874,9 @@ the *`submdspan` slice range of `s` for the $k^{th}$ extent of `e`* is:
 [11]{.pnum} Given a type `E` that is a specialization of `extents`,
 a type `S` is a *valid `submdspan` slice type for the $k^{th}$ extent of `E`*,
 if `S` is a canonical slice type for `E::index_type`,
-and for any object `s` of type `S` and object `e` of type `E`,
+and for any object `s` of type `S`,
 
-* [11.1]{.pnum} the $k^{th}$ interval of `e` is not known statically, or
+* [11.1]{.pnum} `E::static_extent(`$k$`) == dynamic_extent` is `true`, or
 
 * [11.2]{.pnum} for $x$ being either the lower bound or the upper bound of the `submdspan` slice range of `s` for the $k^{th}$ extent of `e`,
 
