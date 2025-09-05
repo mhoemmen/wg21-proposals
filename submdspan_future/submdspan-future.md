@@ -1092,9 +1092,9 @@ template<class IndexType, class... Extents, class... SliceSpecifiers>
 ::: add
 [3]{.pnum} *Mandates*: For each rank index $k$ of `src`:
 
-* [3.1]{.pnum} `SliceSpecifiers...[`$k$`]` is a `submdspan` slice type for the $k^{th}$ extent of `Extents`, and
+* [3.1]{.pnum} `SliceSpecifiers...[`$k$`]` is a `submdspan` slice type for the $k^{th}$ extent of `extents<IndexType, Extents...>`, and
 
-* [3.2]{.pnum} `decltype(slices...[`$k$`])` is a valid `submdspan` slice type for the $k^{th}$ extent of `Extents`.
+* [3.2]{.pnum} `decltype(slices...[`$k$`])` is a valid `submdspan` slice type for the $k^{th}$ extent of `extents<IndexType, Extents...>`.
 
 [4]{.pnum} *Preconditions*: For each rank index $k$ of `src`, `slices...[`$k$`]` is a valid slice for the $k^{th}$ extent of `src`.
 :::
