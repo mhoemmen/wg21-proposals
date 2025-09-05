@@ -855,7 +855,7 @@ the *`submdspan` slice range of `s` for the $k^{th}$ extent of `e`* is:
 [9]{.pnum} Given a type `E` that is a specialization of `extents`,
 a type `S` is a *valid `submdspan` slice type for the $k^{th}$ extent of `E`*,
 if `S` is a canonical slice type for `E::index_type`,
-and for any object `s` of type `S`, for $x$ equal to `E::static_extent(`$k$`)`,
+and for $x$ equal to `E::static_extent(`$k$`)`,
 either $x$ is equal to `dynamic_extent`; or
 
 * [9.1]{.pnum} if `S` is a specialization of `strided_slice`
