@@ -809,7 +809,9 @@ In [version.syn], increase the value of the `__cpp_lib_submdspan` macro by repla
 
 * [3.4]{.pnum} all of the following hold:
 
-    * [3.4.1]{.pnum} the declaration `auto [...ls] = std::move(s);` is well-formed for some object `s` of type `S` and `sizeof...(ls)` is equal to 2, and
+    * [3.4.1]{.pnum} the declaration `auto [...ls] = std::move(s);` is well-formed for some object `s` of type `S`,
+    
+    * [3.4.3]{.pnum} `sizeof...(ls)` is equal to 2, and
 
     * [3.4.2]{.pnum} `(is_convertible_v<decltype(std::move(ls))>, IndexType> && ...)` is `true`.
 
