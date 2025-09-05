@@ -1103,7 +1103,7 @@ template<class IndexType, class... Extents, class... SliceSpecifiers>
 
 * [5.1]{.pnum} `SubExtents::rank()` equals [the number of $k$ such that $S_k$ does not model `convertible_to<IndexType>`]{.rm}[$MAP\_RANK$`(slices, Extents::rank())`]{.add}; and
 
-* [5.2]{.pnum} for each rank index $k$ of `Extents` such that [_`map-rank`_`[`$k$`] != dynamic_extent` is `true`]{.rm}[the type of `slices...[`$k$`]` is not a collapsing slice type]{.add}, `SubExtents::static_extent(`[_`map-rank`_`[`$k$`]`]{.rm}[$MAP\_RANK$`(slices, `$k$`)`]{.add}`)` equals [the following, where $\Sigma_k$ denotes `decltype(slices...[`$k$`])`]{.add}:
+* [5.2]{.pnum} for each rank index $k$ of `Extents` such that [_`map-rank`_`[`$k$`] != dynamic_extent` is `true`]{.rm}[the type of `slices...[`$k$`]` is not a collapsing slice type]{.add}, `SubExtents::static_extent(`[_`map-rank`_`[`$k$`]`]{.rm}[$MAP\_RANK$`(slices, `$k$`)`]{.add}`)` equals [the following, where $\Sigma_k$ denotes the type of `slices...[`$k$`]`]{.add}:
 
     * [5.2.1]{.pnum} `Extents::static_extent(`$k$`)` if [`is_convertible_v<`$S_k$`, full_extent_t>` is `true`]{.rm}[$\Sigma_k$ denotes `full_extent_t`]{.add}; otherwise
 
