@@ -863,8 +863,7 @@ the *`submdspan` slice range of `s` for the $k^{th}$ extent of `e`* is:
 
 [10]{.pnum} The upper bound of the `submdspan` slice range of `s` for the $k^{th}$ extent of `e` is *known statically* if:
 
-* [10.1]{.pnum} `S` is `full_extent_t`,
-    and the $k^{th}$ interval of `e` is known statically; or
+* [10.1]{.pnum} `S` is `full_extent_t` and `E::static_extent(`$k$`) != dynamic_extent` is `true`; or 
 
 * [10.2]{.pnum} `S` is a specialization of `strided_slice`,
     and both `S::offset_type` and `S::extent_type` are specializations of `constant_wrapper`; or
