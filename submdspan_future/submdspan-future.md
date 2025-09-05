@@ -1146,10 +1146,10 @@ template<class IndexType, class... Extents, class... SliceSpecifiers>
 * [1.4]{.pnum} `M_rank` be equal to `M::extent_type::rank()`;
 
 * [1.5]{.pnum} `valid_slices` denote a pack of (possibly const) objects for which `sizeof...(valid_slices) == M_rank` is `true` and,
-    for each rank index $i$ of `m.extents()`, `valid_slices[`$i$`]` is a valid `submdspan` slice for the $i^{th}$ extent of `m.extents()`;
+    for each rank index $i$ of `m.extents()`, `valid_slices...[`$i$`]` is a valid `submdspan` slice for the $i^{th}$ extent of `m.extents()`;
 
 * [1.6]{.pnum} `invalid_slices` denote a pack of (possibly const) objects for which `sizeof...(invalid_slices) == M_rank` is `true` and
-    there exists an integer $k$ such that the type of `invalid_slices[`$k$`]` is none of the following:
+    there exists an integer $k$ such that the type of `invalid_slices...[`$k$`]` is none of the following:
 
     * [1.6.1]{.pnum} `IT`,
 
