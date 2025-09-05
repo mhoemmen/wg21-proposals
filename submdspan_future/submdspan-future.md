@@ -1284,7 +1284,7 @@ template<typename LayoutMapping>
   template<class Extents>
   template<class... SliceSpecifiers>
   constexpr auto layout_left::mapping<Extents>::@_submdspan-mapping-impl_@(
-    SliceSpecifiers... @slices) const -> @_see below_@;
+    SliceSpecifiers... slices) const -> @_see below_@;
 ```
 
 [1]{.pnum} *Returns:*
