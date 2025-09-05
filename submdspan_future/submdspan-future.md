@@ -1048,7 +1048,7 @@ constexpr auto submdspan_canonicalize_slices(
 
 [4]{.pnum} *Preconditions*: For each rank index $k$ of `src`, _`canonical-slice`_`<IndexType>(slices...[`$k$`])` is a valid `submdspan` slice for the $k^{th}$ extent of `src`.
 
-[5]{.pnum} *Returns*: `make_tuple(`_`canonical-slice`_`<IndexType>(slices)...)`
+[5]{.pnum} *Returns*: `make_tuple(`_`canonical-slice`_`<IndexType>(slices)...)`.
 :::
 
 ## Change section [mdspan.sub.extents]
