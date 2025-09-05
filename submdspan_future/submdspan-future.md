@@ -830,9 +830,9 @@ In [version.syn], increase the value of the `__cpp_lib_submdspan` macro by repla
     * [5.3.2]{.pnum} if $S$`::stride_type` and $S$`::extent_type` are both specializations of  `constant_wrapper`,
       then $S$::`stride_type::value` is greater than zero.
 
-[6]{.pnum} An object `s` is a *collapsing slice* if its type is neither `full_extent_t` nor a specialization of `strided_slice`.
+[6]{.pnum} A type `S` is a *collapsing slice type* if it is neither `full_extent_t` nor a specialization of `strided_slice`.
 
-[*Note 1*: Each collapsing slice reduces the rank of the result of `submdspan_mapping` by one. — *end note*]
+[*Note 1*: Each collapsing slice type in `submdspan_mapping`'s parameter pack of slice specifier types reduces the rank of the result of `submdspan_mapping` by one. — *end note*]
 
 [7]{.pnum} A type `S` is a *unit-stride slice type* if
 
@@ -958,7 +958,7 @@ template<class IndexType, size_t N, class... SliceSpecifiers>
 :::
 
 ::: add
-[1]{.pnum} For a pack `p` and an integer $i$, let $MAP\_RANK$(`p`, $i$) be the number of elements `p...[`$j$`]` for 0 &le; $j$ &lt; $i$ that are not collapsing slices.
+[1]{.pnum} For a pack `p` and an integer $i$, let $MAP\_RANK$(`p`, $i$) be the number of elements `p...[`$j$`]` for 0 &le; $j$ &lt; $i$ whose elements are not collapsing slice types.
 
 ```
 template<class T>
