@@ -878,9 +878,7 @@ and for any object `s` of type `S` and object `e` of type `E`,
 
 * [11.1]{.pnum} the $k^{th}$ interval of `e` is not known statically, or
 
-* [11.2]{.pnum} the `submdspan` slice range of `s` for the $k^{th}$ extent of `e` is not known statically, or
-
-* [11.3]{.pnum} the $k^{th}$ interval of `e` contains the `submdspan` slice range of `s` for the $k^{th}$ extent of `e`.
+* [11.2]{.pnum} for $x$ being either the lower bound or the upper bound of the `submdspan` slice range of `s` for the $k^{th}$ extent of `e`, $x$ is either contained in the $k^{th}$ interval of `e`, or $x$ is not known statically.
 
 [12]{.pnum} Given an object `e` of type `E` that is a specialization of `extents`
 and an object `s` of type `S`, `s` is a *valid `submdspan` slice for the $k^{th}$ extent of `e`* if
