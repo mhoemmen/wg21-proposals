@@ -988,7 +988,7 @@ template<class IndexType, class S>
 constexpr auto @_canonical-slice_@(S s);
 ```
 
-[6]{.pnum} *Mandates*: `S` is a `submdspan` slice type for `IndexType` ([mdspan.sub.overview]).
+[6]{.pnum} *Mandates*: `S` is a `submdspan` slice type for `IndexType`.
 
 [7]{.pnum} *Effects*: Equivalent to:
 
@@ -1031,6 +1031,7 @@ else {
 > Add a new section [mdspan.sub.canonical] right before [mdspan.sub.extents],
 > with contents as follows.
 
+::: add
 ```
 template<class IndexType, size_t... Extents, class... SlicesSpecifiers>
 constexpr auto submdspan_canonicalize_slices(
