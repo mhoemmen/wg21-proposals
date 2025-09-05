@@ -871,15 +871,15 @@ either $x$ is equal to `dynamic_extent`; or
 [10]{.pnum} Given an object `e` of type `E` that is a specialization of `extents`
 and an object `s` of type `S`, `s` is a *valid `submdspan` slice for the $k^{th}$ extent of `e`* if
 
-* [10.1]{.pnum} `S` is a valid `submdspan` slice type for the $k^{th}$ extent of `E`; and
+* [10.1]{.pnum} `S` is a valid `submdspan` slice type for the $k^{th}$ extent of `E`;
 
-* [10.2]{.pnum} if `S` is a specialization of `strided_slice`, then:
+* [10.2]{.pnum} the $k^{th}$ interval of `e` contains the `submdspan` slice range of `s` for the $k^{th}$ extent of `e`; and
 
-    * [10.2.1]{.pnum} `s.offset` and `s.extent` are both greater than or equal to zero, and
+* [10.3]{.pnum} if `S` is a specialization of `strided_slice`, then:
 
-    * [10.2.2]{.pnum} either `s.extent` equals zero or `s.stride` is greater than zero; and
+    * [10.3.1]{.pnum} `s.offset` and `s.extent` are both greater than or equal to zero, and
 
-* [10.3]{.pnum} the $k^{th}$ interval of `e` contains the `submdspan` slice range of `s` for the $k^{th}$ extent of `e`.
+    * [10.3.2]{.pnum} either `s.extent` equals zero or `s.stride` is greater than zero.
 :::
 
 ## Change [mdspan.sub.helpers]
