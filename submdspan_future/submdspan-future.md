@@ -873,18 +873,19 @@ and for any object `s` of type `S` and object `e` of type `E`:
 
 * [10.2]{.pnum} the $k^{th}$ interval of `e` contains the `submdspan` slice range of `s` for the $k^{th}$ extent of `e`.
 
-[9]{.pnum} Given an object `e` of type `E` that is a specialization of `extents`
+[11]{.pnum} Given an object `e` of type `E` that is a specialization of `extents`
 and an object `s` of type `S`, `s` is a *valid `submdspan` slice for the $k^{th}$ extent of `e`* if
 
-* [9.1]{.pnum} `S` is a valid `submdspan` slice type for the $k^{th}$ extent of `E`; and
+* [11.1]{.pnum} `S` is a valid `submdspan` slice type for the $k^{th}$ extent of `E`; and
 
-* [9.2]{.pnum} if `S` is a specialization of `strided_slice`, then:
+* [11.2]{.pnum} if `S` is a specialization of `strided_slice`, then:
 
-    * [9.2.1]{.pnum} `s.offset` and `s.extent` are both greater than or equal to zero, and
+    * [11.2.1]{.pnum} `s.offset` and `s.extent` are both greater than or equal to zero, and
 
-    * [9.2.2]{.pnum} either `s.extent` equals zero or `s.stride` is greater than zero; and
+    * [11.2.2]{.pnum} either `s.extent` equals zero or `s.stride` is greater than zero; and
 
-* [9.3]{.pnum} the $k^{th}$ interval of `e` contains the `submdspan` slice range of `s` for the $k^{th}$ extent of `e`.
+* [11.3]{.pnum} the $k^{th}$ interval of `e` contains the `submdspan` slice range of `s` for the $k^{th}$ extent of `e`.
+:::
 
 ## Change [mdspan.sub.helpers]
 
