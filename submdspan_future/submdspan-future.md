@@ -1511,7 +1511,7 @@ template<class ElementType, class Extents, class LayoutPolicy,
     * [5.3.4]{.pnum} $S_k$ is a specialization of `strided_slice`.
 :::
 
-[6]{.pnum} *Preconditions*: [For each rank index $k$ of `src`, `slices...[`$k$`]` is a valid `submdspan` slice for the $k^{th}$ extent of `src`.]{.add}
+[6]{.pnum} *Preconditions*: [For each rank index $k$ of `src.extents()`, `slices...[`$k$`]` is a valid `submdspan` slice for the $k^{th}$ extent of `src.extents()`.]{.add}
 
 ::: rm
 * [6.1]{.pnum} For each rank index $k$ of `src.extents()`, all of the following are `true`:
