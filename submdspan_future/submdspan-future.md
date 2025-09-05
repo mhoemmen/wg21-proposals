@@ -880,11 +880,10 @@ and for any object `s` of type `S`, for $x$ equal to `E::static_extent(`$k$`)`,
 * [11.2]{.pnum} if `S` is a specialization of `strided_slice`
     and `S::offset_type` is a specialization of `constant_wrapper`, then:
 
-    * [11.2.1]{.pnum} `S::offset_type::value` is less than or equal to $x$,
+    * [11.2.1]{.pnum} `S::offset_type::value` is less than or equal to $x$, and
 
-    * [11.2.2]{.pnum} `S::extent_type` is not a specialization of `constant_wrapper`, or
-
-    * [11.2.3]{.pnum} `S::offset_type::value + S::extent_type::value` is less than or equal to $x$.
+    * [11.2.2]{.pnum} either `S::extent_type` is not a specialization of `constant_wrapper`,
+        or `S::offset_type::value + S::extent_type::value` is less than or equal to $x$.
 
 [12]{.pnum} Given an object `e` of type `E` that is a specialization of `extents`
 and an object `s` of type `S`, `s` is a *valid `submdspan` slice for the $k^{th}$ extent of `e`* if
