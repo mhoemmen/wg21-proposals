@@ -979,9 +979,9 @@ representable as a value of type `IndexType`.
 
 [5]{.pnum} Effects: Equivalent to:
 
-* [5.1]{.pnum} `cw<IndexType(extents<IndexType>::`_`index-cast`_`(S::value))>` if `S` models _`integral-constant-like`_;
+* [5.1]{.pnum} `cw<IndexType(S::value)>` if `S` models _`integral-constant-like`_;
 
-* [5.2]{.pnum} `IndexType(extents<IndexType>::`_`index-cast`_`(std::move(s)))` otherwise.
+* [5.2]{.pnum} `IndexType(std::move(s))` otherwise.
 
 ```
 template<class IndexType, class S>
