@@ -1402,15 +1402,15 @@ template<typename LayoutMapping>
 
     * [1.3.1]{.pnum} `SubExtents::rank() == 1` is `true` and
 
-    * [1.3.2]{.pnum} [$S_0$]{.rm}[`SliceSpecifiers[0]`]{.add} is a unit-stride slice [type]{.add} [for `mapping`]{.rm};
+    * [1.3.2]{.pnum} [$S_0$]{.rm}[`SliceSpecifiers...[0]`]{.add} is a unit-stride slice [type]{.add} [for `mapping`]{.rm};
 
-* [1.4]{.pnum} otherwise, `submdspan_mapping_result{layout_left_padded<S_static>::mapping(sub_ext, stride(`$u$ ` + 1)), offset}`, if for a value $u$ for which $u$ `+ 1` is the smallest value $p$ larger than zero for which [$S_p$]{.rm}[`SliceSpecifiers[`$p$`]`]{.add} is a unit-stride slice [type]{.add} [for `mapping`]{.rm}, the following conditions are met:
+* [1.4]{.pnum} otherwise, `submdspan_mapping_result{layout_left_padded<S_static>::mapping(sub_ext, stride(`$u$ ` + 1)), offset}`, if for a value $u$ for which $u$ `+ 1` is the smallest value $p$ larger than zero for which [$S_p$]{.rm}[`SliceSpecifiers...[`$p$`]`]{.add} is a unit-stride slice [type]{.add} [for `mapping`]{.rm}, the following conditions are met:
       
-    * [1.4.1]{.pnum} [$S_0$]{.rm}[`SliceSpecifiers[0]`]{.add} is a unit-stride slice [type]{.add} [for `mapping`]{.rm}; and
+    * [1.4.1]{.pnum} [$S_0$]{.rm}[`SliceSpecifiers...[0]`]{.add} is a unit-stride slice [type]{.add} [for `mapping`]{.rm}; and
 
-    * [1.4.2]{.pnum} for each $k$ in the range $[u$ `+ 1`, $u$ `+ SubExtents::rank() - 1`$)$, [`is_convertible_v<`$S_k$`, full_extent_t>` is `true`]{.rm}[`SliceSpecifiers[`$k$`]` denotes `full_extent_t`]{.add}; and
+    * [1.4.2]{.pnum} for each $k$ in the range $[u$ `+ 1`, $u$ `+ SubExtents::rank() - 1`$)$, [`is_convertible_v<`$S_k$`, full_extent_t>` is `true`]{.rm}[`SliceSpecifiers...[`$k$`]` denotes `full_extent_t`]{.add}; and
 
-    * [1.4.3]{.pnum} for $k$ equal to $u$ `+ SubExtents::rank() - 1`, [$S_k$]{.rm}[`SliceSpecifiers[`$k$`]`]{.add} is a unit-stride slice [type]{.add} [for `mapping`]{.rm};
+    * [1.4.3]{.pnum} for $k$ equal to $u$ `+ SubExtents::rank() - 1`, [$S_k$]{.rm}[`SliceSpecifiers...[`$k$`]`]{.add} is a unit-stride slice [type]{.add} [for `mapping`]{.rm};
 
     where `S_static` is:
 
