@@ -1363,9 +1363,10 @@ template<typename LayoutMapping>
 
 * [1.5]{.pnum} otherwise, `submdspan_mapping_result{layout_stride::mapping(sub_ext, sub_strides), offset}`
 
-## Change [mdspan.sub.map.stride], `layout_stride` specialization of `submdspan_mapping`
+## Do not change [mdspan.sub.map.stride], `layout_stride` specialization of `submdspan_mapping`
 
-> Change [mdspan.sub.map.stride] ("`layout_stride` specialization of `submdspan_mapping`") as follows.
+> There are no changes to [mdspan.sub.map.stride] ("`layout_stride` specialization of `submdspan_mapping`").
+> We retain the full section here for context.
 
 ```c++
   template<class Extents>
