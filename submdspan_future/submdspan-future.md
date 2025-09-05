@@ -958,7 +958,7 @@ template<class IndexType, size_t N, class... SliceSpecifiers>
 :::
 
 ::: add
-[1]{.pnum} For a pack `p` and an integer $i$, let $MAP\_RANK$(`p`, $i$) be the number of elements `p...[`$j$`]` for 0 &le; $j$ &lt; $i$ whose elements are not collapsing slice types.
+[1]{.pnum} For a pack `p` and an integer $i$, let $MAP\_RANK$(`p`, $i$) be the number of elements `p...[`$j$`]` for 0 &le; $j$ &lt; $i$ whose types are not collapsing slice types.
 
 ```
 template<class T>
