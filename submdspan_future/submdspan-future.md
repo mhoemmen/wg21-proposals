@@ -715,10 +715,6 @@ The only conclusion we can make from the above results is that P3663 would not o
 
 Regardless of whether P3663 support is enabled, compilers vary in their ability to optimize `submdspan` calls.  We see this both for different compilers, and for different versions of the same compiler.  Optimization tends to be sensitive to code changes, even to not directly related changes like increasing or decreasing the number of lines of code in a file.  Understanding why would take a closer analysis of the generated code.
 
-# Acknowledgements
-
-Thanks to Tomasz Kamiński for pointing out this issue and for suggesting improvements to the proposed wording.
-
 # Proposed wording
 
 > Text in blockquotes is not proposed wording, but rather instructions for generating proposed wording.
