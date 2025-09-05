@@ -1198,12 +1198,12 @@ submdspan_mapping(m, valid_slices...)
     * [5.2.1]{.pnum} `sizeof...(j)` is equal to `M_rank`; and
 
     * [5.2.2]{.pnum} for each rank index $\rho$ of `m.extents()`,
-        `i...[`$\rho$`]` is equal to the sum of the lower bound of
+        `j...[`$\rho$`]` is equal to the sum of the lower bound of
         the `submdspan` slice range of `valid_slices...[`$\rho$`]` for extent $\rho$ of `m.extents()` and:
      
         * [5.2.2.1]{.pnum} zero if `valid_slices...[`$\rho$`]` is a collapsing slice,
 
-        * [5.2.2.2]{.pnum} `j...[`$MAP\_RANK$`(valid_slices, `$\rho$`)]`, otherwise.
+        * [5.2.2.2]{.pnum} `i...[`$MAP\_RANK$`(valid_slices, `$\rho$`)]`, otherwise.
 
 ```
 template<typename LayoutMapping>
