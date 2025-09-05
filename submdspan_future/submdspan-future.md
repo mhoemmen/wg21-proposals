@@ -870,7 +870,7 @@ either the `submdspan` slice range of `s` for the $k^{th}$ extent of `e` is not 
 
 * [10.1]{.pnum} the $k^{th}$ interval of `e` is not known statically, or
 
-* [10.2]{.pnum} the $k^{th}$ interval of `e` contains the `submdspan` slice range of `s` for the $k^{th}$ extent of `e`.
+* [10.2]{.pnum} contains the `submdspan` slice range of `s` for the $k^{th}$ extent of `e` is known statically and the $k^{th}$ interval of `e` contains it.
 
 [11]{.pnum} Given an object `e` of type `E` that is a specialization of `extents`
 and an object `s` of type `S`, `s` is a *valid `submdspan` slice for the $k^{th}$ extent of `e`* if
