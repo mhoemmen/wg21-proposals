@@ -882,7 +882,7 @@ and for any object `s` of type `S` and object `e` of type `E`,
 
     * [11.2.1]{.pnum} $x$ is less than `E::static_extent(`$k$`)`, or
 
-    * [11.2.2]{.pnum} or $x$ is not known statically.
+    * [11.2.2]{.pnum} $x$ is not known statically.
 
 [12]{.pnum} Given an object `e` of type `E` that is a specialization of `extents`
 and an object `s` of type `S`, `s` is a *valid `submdspan` slice for the $k^{th}$ extent of `e`* if
