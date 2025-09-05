@@ -880,7 +880,7 @@ and for any object `s` of type `S`,
 
 * [11.2]{.pnum} for $x$ being either the lower bound or the upper bound of the `submdspan` slice range of `s` for the $k^{th}$ extent of `e`,
 
-    * [11.2.1]{.pnum} $x$ is less than `E::static_extent(`$k$`)`, or
+    * [11.2.1]{.pnum} $x$ is less than or equal to `E::static_extent(`$k$`)`, or
 
     * [11.2.2]{.pnum} $x$ is not known statically.
 
