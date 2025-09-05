@@ -815,7 +815,7 @@ In [version.syn], increase the value of the `__cpp_lib_submdspan` macro by repla
 
     * [3.4.3]{.pnum} `(is_convertible_v<decltype(std::move(ls))>, IndexType> && ...)` is `true`.
 
-[4]{.pnum} Given a signed or unsigned integer `IndexType`, a type $S$ is a *canonical `submdspan` index type for `IndexType`* if $S$ is either `IndexType` or `constant_wrapper<v, IndexType>` for some `v` of type `IndexType`, such that `v` is greater than or equal to zero.
+[4]{.pnum} Given a signed or unsigned integer `IndexType`, a type $S$ is a *canonical `submdspan` index type for `IndexType`* if $S$ is either `IndexType` or `constant_wrapper<v>` for some value `v` of type `IndexType`, such that `v` is greater than or equal to zero.
 
 [5]{.pnum} Given a signed or unsigned integer `IndexType`, a type $S$ is a *canonical `submdspan` slice type for `IndexType`* if exactly one of the following is `true`:
 
