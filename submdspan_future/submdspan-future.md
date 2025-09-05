@@ -811,9 +811,9 @@ In [version.syn], increase the value of the `__cpp_lib_submdspan` macro by repla
 
     * [3.4.1]{.pnum} the declaration `auto [...ls] = std::move(s);` is well-formed for some object `s` of type `S`,
     
-    * [3.4.3]{.pnum} `sizeof...(ls)` is equal to 2, and
+    * [3.4.2]{.pnum} `sizeof...(ls)` is equal to 2, and
 
-    * [3.4.2]{.pnum} `(is_convertible_v<decltype(std::move(ls))>, IndexType> && ...)` is `true`.
+    * [3.4.3]{.pnum} `(is_convertible_v<decltype(std::move(ls))>, IndexType> && ...)` is `true`.
 
 [4]{.pnum} Given a signed or unsigned integer `IndexType`, a type $S$ is a *canonical `submdspan` index type for `IndexType`* if $S$ is either `IndexType` or `constant_wrapper<v, IndexType>` for some `v` of type `IndexType`, such that `v` is greater than or equal to zero.
 
