@@ -852,52 +852,34 @@ the *`submdspan` slice range of `s` for the $k^{th}$ extent of `e`* is:
 
 * [8.3]{.pnum} $[$`E::index_type(s)`, `E::index_type(s)` $+ 1)$.
 
-[9]{.pnum} The lower bound of the `submdspan` slice range of `s` for the $k^{th}$ extent of `e` is *known statically* if:
-
-* [9.1]{.pnum} `S` is `full_extent_t`; or
-
-* [9.2]{.pnum} `S` is a specialization of `strided_slice`,
-    and `S::offset_type` is a specialization of `constant_wrapper`; or
-
-* [9.3]{.pnum} `S` is a specialization of `constant_wrapper`.
-
-[10]{.pnum} The upper bound of the `submdspan` slice range of `s` for the $k^{th}$ extent of `e` is *known statically* if:
-
-* [10.1]{.pnum} `S` is `full_extent_t` and `E::static_extent(`$k$`) != dynamic_extent` is `true`; or 
-
-* [10.2]{.pnum} `S` is a specialization of `strided_slice`,
-    and both `S::offset_type` and `S::extent_type` are specializations of `constant_wrapper`; or
-
-* [10.3]{.pnum} `S` is a specialization of `constant_wrapper`.
-
-[11]{.pnum} Given a type `E` that is a specialization of `extents`,
+[9]{.pnum} Given a type `E` that is a specialization of `extents`,
 a type `S` is a *valid `submdspan` slice type for the $k^{th}$ extent of `E`*,
 if `S` is a canonical slice type for `E::index_type`,
 and for any object `s` of type `S`, for $x$ equal to `E::static_extent(`$k$`)`,
 either $x$ is equal to `dynamic_extent`; or
 
-* [11.1]{.pnum} if `S` is a specialization of `strided_slice`
+* [9.1]{.pnum} if `S` is a specialization of `strided_slice`
     and `S::offset_type` is a specialization of `constant_wrapper`, then
 
-    * [11.2.1]{.pnum} `S::offset_type::value` is less than or equal to $x$, and
+    * [9.2.1]{.pnum} `S::offset_type::value` is less than or equal to $x$, and
 
-    * [11.2.2]{.pnum} either `S::extent_type` is not a specialization of `constant_wrapper`
+    * [9.2.2]{.pnum} either `S::extent_type` is not a specialization of `constant_wrapper`
         or `S::offset_type::value + S::extent_type::value` is less than or equal to $x$;
 
-* [11.2]{.pnum} if `S` is a specialization of `constant_wrapper`, then `S::value` is less than $x$.
+* [9.2]{.pnum} if `S` is a specialization of `constant_wrapper`, then `S::value` is less than $x$.
 
-[12]{.pnum} Given an object `e` of type `E` that is a specialization of `extents`
+[10]{.pnum} Given an object `e` of type `E` that is a specialization of `extents`
 and an object `s` of type `S`, `s` is a *valid `submdspan` slice for the $k^{th}$ extent of `e`* if
 
-* [12.1]{.pnum} `S` is a valid `submdspan` slice type for the $k^{th}$ extent of `E`; and
+* [10.1]{.pnum} `S` is a valid `submdspan` slice type for the $k^{th}$ extent of `E`; and
 
-* [12.2]{.pnum} if `S` is a specialization of `strided_slice`, then:
+* [10.2]{.pnum} if `S` is a specialization of `strided_slice`, then:
 
-    * [12.2.1]{.pnum} `s.offset` and `s.extent` are both greater than or equal to zero, and
+    * [10.2.1]{.pnum} `s.offset` and `s.extent` are both greater than or equal to zero, and
 
-    * [12.2.2]{.pnum} either `s.extent` equals zero or `s.stride` is greater than zero; and
+    * [10.2.2]{.pnum} either `s.extent` equals zero or `s.stride` is greater than zero; and
 
-* [12.3]{.pnum} the $k^{th}$ interval of `e` contains the `submdspan` slice range of `s` for the $k^{th}$ extent of `e`.
+* [10.3]{.pnum} the $k^{th}$ interval of `e` contains the `submdspan` slice range of `s` for the $k^{th}$ extent of `e`.
 :::
 
 ## Change [mdspan.sub.helpers]
