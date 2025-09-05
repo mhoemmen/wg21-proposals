@@ -1168,7 +1168,7 @@ as if by performing argument-dependent lookup only ([basic.lookup.argdep]).
 
 * [3.2]{.pnum} the expression `submdspan_mapping(m, invalid_slices...)` is ill-formed, and
 
-* [3.3]{.pnum} the following expressions are well-formed and have the specified semantics.
+* [3.3]{.pnum} the following expression is well-formed and has the specified semantics.
 
 ```
 submdspan_mapping(m, valid_slices...)
