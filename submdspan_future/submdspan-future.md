@@ -1479,7 +1479,7 @@ template<class ElementType, class Extents, class LayoutPolicy,
 
 [3]{.pnum} Let `sub_map_offset` be the result of `submdspan_mapping(src.mapping(), slices...)`.
 
-[*Note 1*: This invocation of `submdspan_mapping` selects a function call via overload resolution on a candidate set that includes the lookup set found by argument-dependent lookup ([basic.lookup.argdep]). — *end note*]
+[*Note 1*: This invocation of `submdspan_mapping` selects a function call via overload resolution on a candidate set that includes the lookup set found by argument-dependent lookup ([contents]). — *end note*]
 
 [4]{.pnum} *Constraints*:
 
