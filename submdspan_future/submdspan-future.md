@@ -1103,7 +1103,7 @@ template<class IndexType, class... Extents, class... SliceSpecifiers>
 
 * [5.1]{.pnum} `SubExtents::rank()` equals [the number of $k$ such that $S_k$ does not model `convertible_to<IndexType>`]{.rm}[$MAP\_RANK$`(slices, Extents::rank())`]{.add}; and
 
-* [5.2]{.pnum} for each rank index $k$ of `Extents` such that [_`map-rank`_`[`$k$`] != dynamic_extent` is `true`]{.rm}[`slices...[`$k$`]` is not a collapsing slice]{.add}, `SubExtents::static_extent(`[_`map-rank`_`[`$k$`]`]{.rm}[$MAP\_RANK$`(slices, `$k$`)`]{.add}`)` equals [the following, where $\Sigma_k$ denotes `decltype(slices...[`$k$`])`]{.add}:
+* [5.2]{.pnum} for each rank index $k$ of `Extents` such that [_`map-rank`_`[`$k$`] != dynamic_extent` is `true`]{.rm}[the type of `slices...[`$k$`]` is not a collapsing slice type]{.add}, `SubExtents::static_extent(`[_`map-rank`_`[`$k$`]`]{.rm}[$MAP\_RANK$`(slices, `$k$`)`]{.add}`)` equals [the following, where $\Sigma_k$ denotes `decltype(slices...[`$k$`])`]{.add}:
 
     * [5.2.1]{.pnum} `Extents::static_extent(`$k$`)` if [`is_convertible_v<`$S_k$`, full_extent_t>` is `true`]{.rm}[$\Sigma_k$ denotes `full_extent_t`]{.add}; otherwise
 
@@ -1118,7 +1118,7 @@ template<class IndexType, class... Extents, class... SliceSpecifiers>
 
     * [5.2.5]{.pnum} otherwise, `dynamic_extent`.
 
-[6]{.pnum} *Returns:* A value `ext` of type `SubExtents` such that for each [rank index]{.add} $k$ [of `Extents`]{.add} [for which _`map-rank`_`[`$k$`] != dynamic_extent` is `true`]{.rm}[where `slices...[`$k$`]` is not a collapsing slice]{.add}, `ext.extent(`[_`map-rank`_`[`$k$`]`]{.rm}[$MAP\_RANK$`(slices, `$k$`)`]{.add}`)` equals [the following, where $\sigma_k$ denotes `slices...[`$k$`]`]{.add}:
+[6]{.pnum} *Returns:* A value `ext` of type `SubExtents` such that for each [rank index]{.add} $k$ [of `Extents`]{.add} [for which _`map-rank`_`[`$k$`] != dynamic_extent` is `true`]{.rm}[where the type of `slices...[`$k$`]` is not a collapsing slice type]{.add}, `ext.extent(`[_`map-rank`_`[`$k$`]`]{.rm}[$MAP\_RANK$`(slices, `$k$`)`]{.add}`)` equals [the following, where $\sigma_k$ denotes `slices...[`$k$`]`]{.add}:
 
 * [6.1]{.pnum} [$s_k$`.extent == 0 ? 0 : 1 + (`_`de-ice`_`(`$s_k$`.extent) - 1) / ` _`de-ice`_`(`$s_k$`.stride)`]{.rm}
                [$\sigma_k$`.extent == 0 ? 0  1 + (`$\sigma_k$`.extent - 1) / `$\sigma_k$`.stride`]{.add}
@@ -1180,7 +1180,7 @@ submdspan_mapping(m, valid_slices...)
 
 * [4.2]{.pnum} `SM::extents_type` is a specialiation of `extents`,
 
-* [4.3]{.pnum} `SM::extents_type::rank()` equals the number of elements of `valid_slices` that are not collapsing slices, and
+* [4.3]{.pnum} `SM::extents_type::rank()` equals the number of elements of `valid_slices` whose types are not collapsing slice types, and
 
 * [4.4]{.pnum} `SM::extents_type::index_type` denotes `IT`.
 
@@ -1197,7 +1197,7 @@ submdspan_mapping(m, valid_slices...)
         `j...[`$\rho$`]` is equal to the sum of the lower bound of
         the `submdspan` slice range of `valid_slices...[`$\rho$`]` for extent $\rho$ of `m.extents()` and:
      
-        * [5.2.2.1]{.pnum} zero if `valid_slices...[`$\rho$`]` is a collapsing slice,
+        * [5.2.2.1]{.pnum} zero if the type of `valid_slices...[`$\rho$`]` is a collapsing slice type,
 
         * [5.2.2.2]{.pnum} `i...[`$MAP\_RANK$`(valid_slices, `$\rho$`)]`, otherwise.
 
@@ -1252,7 +1252,7 @@ template<typename LayoutMapping>
 
 [5]{.pnum} Let `sub_ext` be the result of `submdspan_extents(extents(), slices...)` and let `SubExtents` be `decltype(sub_ext)`.
 
-[6]{.pnum} Let `sub_strides` be an `array<SubExtents::index_type, SubExtents::rank()>` such that for each rank index $k$ of `extents()` for which [_`map-rank`_`[`$k$`]` is not `dynamic_extent`]{.rm}[`slices...[`$k$`]` is not a collapsing slice]{.add}, `sub_strides[`[_`map-rank`_`[`$k$`]`]{.rm}[$MAP\_RANK$`(slices, `$k$`)`]{.add}`]` equals:
+[6]{.pnum} Let `sub_strides` be an `array<SubExtents::index_type, SubExtents::rank()>` such that for each rank index $k$ of `extents()` for which [_`map-rank`_`[`$k$`]` is not `dynamic_extent`]{.rm}[the type of `slices...[`$k$`]` is not a collapsing slice type]{.add}, `sub_strides[`[_`map-rank`_`[`$k$`]`]{.rm}[$MAP\_RANK$`(slices, `$k$`)`]{.add}`]` equals:
 
 
 * [6.1]{.pnum} `stride(`$k$`) * `[_`de-ice`_`(`$s_k$`.stride)`]{.rm}[`s.stride`]{.add} if [$S_k$]{.rm}[`s`]{.add} is a specialization of `strided_slice` and [$s_k$`.stride M `$s_k$`.extent`]{.rm}[`s.stride < s.extent`]{.add} is `true` [where `s` is `slices...[`$k$`]`]{.add};
