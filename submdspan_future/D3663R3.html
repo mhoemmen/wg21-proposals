@@ -1908,12 +1908,6 @@ of the generated code.</p>
 <p>Text in blockquotes is not proposed wording, but rather instructions
 for generating proposed wording.</p>
 </blockquote>
-<blockquote>
-<p>Assume that <a href="https://wg21.link/p2781">P2781R8</a> has been
-applied to the Working Draft. [<em>Editorial note</em>: This makes
-<code>constant_wrapper</code> and <code>cw</code> available to the rest
-of the Standard Library. – <em>end note</em>]</p>
-</blockquote>
 <h2 data-number="8.1" id="increment-__cpp_lib_submdspan-feature-test-macro"><span class="header-section-number">8.1</span> Increment
 <code>__cpp_lib_submdspan</code> feature test macro<a href="#increment-__cpp_lib_submdspan-feature-test-macro" class="self-link"></a></h2>
 <p>In [version.syn], increase the value of the
@@ -2028,9 +2022,10 @@ otherwise, the number of types <span class="math inline"><em>S</em><sub><em>j</e
 </div>
 <div class="add" style="color: #00AA00">
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
-Given a signed or unsigned integer <code>IndexType</code>, a type <span class="math inline"><em>S</em></span> is a <em><code>submdspan</code>
-slice type for <code>IndexType</code></em> if one of the following
-holds:</p>
+Given a signed or unsigned integer type <code>IndexType</code>, a type
+<span class="math inline"><em>S</em></span> is a
+<em><code>submdspan</code> slice type for <code>IndexType</code></em> if
+at least one of the following holds:</p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(3.1)</a></span>
 <code>is_convertible_v&lt;</code><span class="math inline"><em>S</em></span><code>, full_extent_t&gt;</code> is
@@ -2041,7 +2036,8 @@ holds:</p>
 <li><p><span class="marginalizedparent"><a class="marginalized">(3.3)</a></span>
 <span class="math inline"><em>S</em></span> is a specialization of
 <code>strided_slice</code> and <code>is_convertible_v&lt;</code><span class="math inline"><em>X</em></span><code>, IndexType&gt;</code> is
-true for <span class="math inline"><em>X</em></span> denoting <span class="math inline"><em>S</em></span><code>::offset_type</code>, <span class="math inline"><em>S</em></span><code>::extent_type</code> and
+<code>true</code> for <span class="math inline"><em>X</em></span>
+denoting <span class="math inline"><em>S</em></span><code>::offset_type</code>, <span class="math inline"><em>S</em></span><code>::extent_type</code> and
 <span class="math inline"><em>S</em></span><code>::stride_type</code>;
 or</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(3.4)</a></span> all
@@ -2058,14 +2054,16 @@ is <code>true</code>.</p></li>
 </ul></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
-Given a signed or unsigned integer <code>IndexType</code>, a type <span class="math inline"><em>S</em></span> is a <em>canonical
+Given a signed or unsigned integer type <code>IndexType</code>, a type
+<span class="math inline"><em>S</em></span> is a <em>canonical
 <code>submdspan</code> index type for <code>IndexType</code></em> if
 <span class="math inline"><em>S</em></span> is either
 <code>IndexType</code> or <code>constant_wrapper&lt;v&gt;</code> for
 some value <code>v</code> of type <code>IndexType</code>, such that
 <code>v</code> is greater than or equal to zero.</p>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
-Given a signed or unsigned integer <code>IndexType</code>, a type <span class="math inline"><em>S</em></span> is a <em>canonical
+Given a signed or unsigned integer type <code>IndexType</code>, a type
+<span class="math inline"><em>S</em></span> is a <em>canonical
 <code>submdspan</code> slice type for <code>IndexType</code></em> if
 exactly one of the following is <code>true</code>:</p>
 <ul>
@@ -2141,15 +2139,19 @@ type for <code>E::index_type</code>, and for <span class="math inline"><em>x</em
 <code>dynamic_extent</code>; or</p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(9.1)</a></span> if
-<code>S</code> is a specialization of <code>strided_slice</code> and
-<code>S::offset_type</code> is a specialization of
-<code>constant_wrapper</code>, then</p>
+<code>S</code> is a specialization of <code>strided_slice</code>:</p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(9.2.1)</a></span>
-<code>S::offset_type::value</code> is less than or equal to <span class="math inline"><em>x</em></span>, and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(9.2.2)</a></span>
-either <code>S::extent_type</code> is not a specialization of
-<code>constant_wrapper</code> or
+<li><p><span class="marginalizedparent"><a class="marginalized">(9.1.1)</a></span> if
+<code>S::offset_type</code> is a specialization of
+<code>constant_wrapper</code>, then <code>S::offset_type::value</code>
+is less than or equal to <span class="math inline"><em>x</em></span>;</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(9.1.2)</a></span> if
+<code>S::extent_type</code> is a specialization of
+<code>constant_wrapper</code>, then <code>S::extent_type::value</code>
+is less than or equal to <span class="math inline"><em>x</em></span>;</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(9.1.3)</a></span> if
+both <code>S::offset_type</code> and <code>S::extent_type</code> are
+specializations of <code>constant_wrapper</code>, then
 <code>S::offset_type::value + S::extent_type::value</code> is less than
 or equal to <span class="math inline"><em>x</em></span>;</p></li>
 </ul></li>
@@ -2292,11 +2294,11 @@ For a pack <code>p</code> and an integer <span class="math inline"><em>i</em></s
 <code>p...[</code><span class="math inline"><em>j</em></span><code>]</code> for 0 ≤ <span class="math inline"><em>j</em></span> &lt; <span class="math inline"><em>i</em></span> whose types are not collapsing
 slice types.</p>
 <div class="sourceCode" id="cb20"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>template&lt;class T&gt;</span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>concept <em>is-strided-slice</em> = <em>see-below</em>;</span></code></pre></div>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>concept <em>is-strided-slice</em> = <em>see below</em>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 The concept <em><code>is-strided-slice</code></em><code>&lt;T&gt;</code>
-is satisfied and modeled if <code>T</code> is a specialization of
-<code>strided_slice</code>.</p>
+is satisfied and modeled if and only if <code>T</code> is a
+specialization of <code>strided_slice</code>.</p>
 <div class="sourceCode" id="cb21"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>template&lt;class IndexType, class S&gt;</span>
 <span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>constexpr auto <em>canonical-index</em>(S s);</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
@@ -2309,13 +2311,13 @@ is representable as a value of type <code>IndexType</code>.</p>
 <code>extents&lt;IndexType&gt;::</code><em><code>index-cast</code></em><code>(std::move(s))</code>
 is representable as a value of type <code>IndexType</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
-Effects: Equivalent to:</p>
+<em>Effects</em>: Equivalent to:</p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(5.1)</a></span>
-<code>cw&lt;IndexType(S::value)&gt;</code> if <code>S</code> models
-<em><code>integral-constant-like</code></em>;</p></li>
+<code>return cw&lt;IndexType(S::value)&gt;;</code> if <code>S</code>
+models <em><code>integral-constant-like</code></em>;</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(5.2)</a></span>
-<code>IndexType(std::move(s))</code> otherwise.</p></li>
+<code>return IndexType(std::move(s));</code> otherwise.</p></li>
 </ul>
 <div class="sourceCode" id="cb22"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>template&lt;class IndexType, class S&gt;</span>
 <span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>constexpr auto <em>canonical-slice</em>(S s);</span></code></pre></div>
@@ -2364,31 +2366,30 @@ for <code>IndexType</code>.</p>
 </blockquote>
 <div class="add" style="color: #00AA00">
 
-<div class="sourceCode" id="cb24"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>template&lt;class IndexType, size_t... Extents, class... SlicesSpecifiers&gt;</span>
+<div class="sourceCode" id="cb24"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>template&lt;class IndexType, size_t... Extents, class... SliceSpecifiers&gt;</span>
 <span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>constexpr auto submdspan_canonicalize_slices(</span>
-<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  const extents&lt;IndexType, Extents...&gt;&amp; src, Slices... slices);</span></code></pre></div>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  const extents&lt;IndexType, Extents...&gt;&amp; src, SliceSpecifiers... slices);</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
-<em>Constraints</em>: <code>sizeof...(Slices)</code> equals
+<em>Constraints</em>: <code>sizeof...(SliceSpecifiers)</code> equals
 <code>sizeof...(Extents)</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 <em>Mandates</em>: For each rank index <span class="math inline"><em>k</em></span> of <code>src</code>:</p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(3.1)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(2.1)</a></span>
 <code>SliceSpecifiers...[</code><span class="math inline"><em>k</em></span><code>]</code> is a
-<code>submdspan</code> slice type for the <span class="math inline"><em>k</em><sup><em>t</em><em>h</em></sup></span>
-extent of <code>extents&lt;IndexType, Extents...&gt;</code>,
+<code>submdspan</code> slice type for <code>IndexType</code>,
 and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(3.2)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span>
 <code>decltype(</code><em><code>canonical-slice</code></em><code>&lt;IndexType&gt;(slices...[</code><span class="math inline"><em>k</em></span><code>]))</code> is a valid
 <code>submdspan</code> slice type for the <span class="math inline"><em>k</em><sup><em>t</em><em>h</em></sup></span>
 extent of <code>extents&lt;IndexType, Extents...&gt;</code>.</p></li>
 </ul>
-<p><span class="marginalizedparent"><a class="marginalized">4</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">3</a></span>
 <em>Preconditions</em>: For each rank index <span class="math inline"><em>k</em></span> of <code>src</code>,
 <em><code>canonical-slice</code></em><code>&lt;IndexType&gt;(slices...[</code><span class="math inline"><em>k</em></span><code>])</code> is a valid
 <code>submdspan</code> slice for the <span class="math inline"><em>k</em><sup><em>t</em><em>h</em></sup></span>
 extent of <code>src</code>.</p>
-<p><span class="marginalizedparent"><a class="marginalized">5</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 <em>Returns</em>:
 <code>make_tuple(</code><em><code>canonical-slice</code></em><code>&lt;IndexType&gt;(slices)...)</code>.</p>
 </div>
@@ -2406,8 +2407,8 @@ Let <code>slices</code> be the pack
 <em><code>canonical-slice</code></em><code>&lt;IndexType&gt;(raw_slices)</code>.</p>
 </div>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
-<em>Constraints</em>: <code>sizeof...(Slices)</code> equals
-<code>Extents::rank()</code>.</p>
+<em>Constraints</em>: <span class="rm" style="color: #bf0303"><del><span><code>sizeof...(slices)</code></span></del></span><span class="add" style="color: #00AA00"><ins><span><code>sizeof...(SliceSpecifiers)</code></span></ins></span>
+equals <code>Extents::rank()</code>.</p>
 <div class="rm" style="color: #bf0303">
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 <em>Mandates</em>: For each rank index <span class="math inline"><em>k</em></span> of <code>src.extents()</code>,
@@ -2454,8 +2455,7 @@ specialization of <code>strided_slice</code></p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(3.1)</a></span>
 <code>SliceSpecifiers...[</code><span class="math inline"><em>k</em></span><code>]</code> is a
-<code>submdspan</code> slice type for the <span class="math inline"><em>k</em><sup><em>t</em><em>h</em></sup></span>
-extent of <code>extents&lt;IndexType, Extents...&gt;</code>,
+<code>submdspan</code> slice type for <code>IndexType</code>,
 and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(3.2)</a></span>
 <code>decltype(slices...[</code><span class="math inline"><em>k</em></span><code>])</code> is a valid
@@ -2464,8 +2464,8 @@ extent of <code>extents&lt;IndexType, Extents...&gt;</code>.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 <em>Preconditions</em>: For each rank index <span class="math inline"><em>k</em></span> of <code>src</code>,
-<code>slices...[</code><span class="math inline"><em>k</em></span><code>]</code> is a valid slice for
-the <span class="math inline"><em>k</em><sup><em>t</em><em>h</em></sup></span>
+<code>slices...[</code><span class="math inline"><em>k</em></span><code>]</code> is a valid
+<code>submdspan</code> slice for the <span class="math inline"><em>k</em><sup><em>t</em><em>h</em></sup></span>
 extent of <code>src</code>.</p>
 </div>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
@@ -2528,7 +2528,7 @@ otherwise, <code>dynamic_extent</code>.</p></li>
 <p><span class="marginalizedparent"><a class="marginalized">6</a></span>
 <em>Returns:</em> A value <code>ext</code> of type
 <code>SubExtents</code> such that for each <span class="add" style="color: #00AA00"><ins>rank index</ins></span> <span class="math inline"><em>k</em></span> <span class="add" style="color: #00AA00"><ins>of
-<span><code>extents&lt;IndexType, Extents...&gt;</code></span></ins></span>
+<span><code>extents&lt;IndexType, Extents...&gt;</code></span>,</ins></span>
 <span class="rm" style="color: #bf0303"><del>for which
 <em><span><code>map-rank</code></span></em><span><code>[</code></span><span class="math inline"><em>k</em></span><span><code>] != dynamic_extent</code></span>
 is <span><code>true</code></span></del></span><span class="add" style="color: #00AA00"><ins>where the type of
@@ -2549,7 +2549,7 @@ is a specialization of <code>strided_slice</code>,</p></li>
 otherwise, <span class="rm" style="color: #bf0303"><del><em><span><code>last_</code></span></em><span><code>&lt;</code></span><span class="math inline"><em>k</em></span><span><code>&gt;(src, slices...) -</code></span>
 <em><span><code>first_</code></span></em><span><code>&lt;IndexType,</code></span><span class="math inline"><em>k</em></span><span><code>&gt;(slices...)</code></span></del></span>
 <span class="add" style="color: #00AA00"><ins><span class="math inline"><em>U</em> − <em>L</em></span>, where <span class="math inline">[<em>L</em>, <em>U</em>)</span> is the
-<span><code>submdspan</code></span> splice range of <span class="math inline"><em>σ</em><sub><em>k</em></sub></span> for the <span class="math inline"><em>k</em><sup><em>t</em><em>h</em></sup></span>
+<span><code>submdspan</code></span> slice range of <span class="math inline"><em>σ</em><sub><em>k</em></sub></span> for the <span class="math inline"><em>k</em><sup><em>t</em><em>h</em></sup></span>
 extent of <span><code>src</code></span></ins></span>.</p></li>
 </ul>
 <h2 data-number="8.8" id="requirements-of-all-submdspan_mapping-customizations"><span class="header-section-number">8.8</span> Requirements of all
