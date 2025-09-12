@@ -751,9 +751,10 @@ In [version.syn], increase the value of the `__cpp_lib_submdspan` macro by repla
     constexpr auto submdspan_extents(const extents<IndexType, Extents...>&, SliceSpecifiers...);
 ```
 
-## Change [mdspan.extents.overview]
+## Context from [mdspan.extents.overview] (NO CHANGES)
 
-> Change [mdspan.extents.overview] as follows.
+> This proposal does NOT change [mdspan.extents.overview].
+> We include part of it just for context.
 
 [1]{.pnum} *Mandates*:
 
