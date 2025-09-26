@@ -727,7 +727,7 @@ In [version.syn], increase the value of the `__cpp_lib_submdspan` macro by repla
 #define __cpp_lib_submdspan YYYYMML // also in <mdspan>
 ```
 
-[*Editorial note*: If this proposal is adopted for C++26, increasing the version macro is not strictly necessary, because `submdspan` (P2630) itself is a C++26 feature.  We retain the version macro increase in case the proposal is adopted after C++26, possibly as a DR for C++26. -- *end note*]
+[If this proposal is adopted for C++26, increasing the version macro is not strictly necessary, because `submdspan` (P2630) itself is a C++26 feature.  We retain the version macro increase in case the proposal is adopted after C++26, possibly as a DR for C++26.]{.ednote}
 
 ## Change [mdspan.syn]
 
@@ -1270,7 +1270,7 @@ template<class LayoutMapping>
 * [9.3]{.pnum} `is_convertible_v<S, full_extent_t>` is `true`.
 :::
 
-<i>[Editorial Note: </i> The definition of unit-stride slice has been moved up to [mdspan.sub.overview]. <i>- end note]</i>
+[The definition of unit-stride slice has been moved up to [mdspan.sub.overview]]{.ednote}
 
 ## Change [mdspan.sub.map.left], `layout_left` specialization of `submdspan_mapping`
 
@@ -1334,13 +1334,13 @@ template<class LayoutMapping>
 
 * [1.3]{.pnum} otherwise, `submdspan_mapping_result{layout_`[`left`]{.rm}[`right`]{.add}`::mapping(sub_ext), offset}`, if
 
-    <i>[Editorial Note: </i> Please note drive-by fix in 1.3. <i>- end note]</i>
+    [Please note drive-by fix in 1.3.]{.ednote}
 
     * [1.3.1]{.pnum} for each $k$ in the range $[$_`rank_`_` - SubExtents::rank() + 1`, _`rank_`_$)$, [`is_convertible_v<`$S_k$`, full_extent_t>` is `true`]{.rm}[`SliceSpecifiers...[`$k$`]` denotes `full_extent_t`]{.add}; and
 
     * [1.3.2]{.pnum} for $k$ equal to [_`_rank`_]{.rm}[_`rank_`_]{.add} ` - SubExtents::rank()`, [$S_k$]{.rm}[`SliceSpecifiers...[`$k$`]`]{.add} is a unit-stride slice [type]{.add} [for `mapping`]{.rm};
 
-    <i>[Editorial Note: </i> Please note drive-by fix in 1.3.2. <i>- end note]</i>
+    [Please note drive-by fix in 1.3.2.]{.ednote}
 
     <i>[Note: </i> If the above conditions are true, all [$S_k$]{.rm}[`SliceSpecifiers...[`$k$`]`]{.add} with $k$ $\lt$  [_`_rank`_]{.rm}[_`rank_`_]{.add}_ `- SubExtents::rank()` are convertible to `index_type`. <i>- end note]</i>
 
@@ -1444,7 +1444,7 @@ template<class LayoutMapping>
 
     * [1.4.1]{.pnum} for $k$ equal to _`rank_`_` - 1`, [$S_k$]{.rm}[`SliceSpecifiers...[`$k$`]`]{.add} is a unit-stride slice [type]{.add} [for `mapping`]{.rm}; and
 
-    * [1.4.2]{.pnum} for each $k$ in the range $[$_`rank_`_ `- SubExtents::rank() -` $u$ `+ 1`, _`rank_`_ `-` $u$ `- 1`$)$[)]{.rm}, [`is_convertible_v<`$S_k$`, full_extent_t>` is `true`]{.rm}[`SliceSpecifiers...[`$k$`]` denotes `full_extent_t`]{.add}; and <i>[Editorial Note: </i> Please note drive-by fix (removal of close parenthesis) <i>- end note]</i>
+    * [1.4.2]{.pnum} for each $k$ in the range $[$_`rank_`_ `- SubExtents::rank() -` $u$ `+ 1`, _`rank_`_ `-` $u$ `- 1`$)$[)]{.rm}, [`is_convertible_v<`$S_k$`, full_extent_t>` is `true`]{.rm}[`SliceSpecifiers...[`$k$`]` denotes `full_extent_t`]{.add}; and [Please note drive-by fix (removal of close parenthesis)]{.ednote}
   
     * [1.4.3]{.pnum} for $k$ equal to _`rank_`_` - SubExtents::rank() -` $u$, [$S_k$]{.rm}[`SliceSpecifiers...[`$k$`]`]{.add} is a unit-stride slice [type]{.add} [for `mapping`]{.rm};
 
@@ -1549,6 +1549,6 @@ return mdspan(
   @[typename]{.add}@ AccessorPolicy::offset_policy(src.accessor()));
 ```
 
-[*Editorial note*: Please note drive-by fix for `src.data_handle()` (original was `src.data()`). -- *end note*]
+[Please note drive-by fix for `src.data_handle()` (original was `src.data()`).]{.ednote}
 
-[*Editorial note*: Please note drive-by fix adding missing `typename` before `AccessorPolicy::offset_policy`. -- *end note*]
+[Please note drive-by fix adding missing `typename` before `AccessorPolicy::offset_policy`.]{.ednote}
