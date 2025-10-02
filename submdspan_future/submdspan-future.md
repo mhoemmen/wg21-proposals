@@ -1471,7 +1471,7 @@ template<class ElementType, class Extents, class LayoutPolicy,
 [1]{.pnum} Let `index_type` be `typename Extents::index_type`.
 
 ::: add
-[2]{.pnum} Let `slices` be the pack introduced by declaration:
+[2]{.pnum} Let `slices` be the pack introduced by the following declaration:
 ```
 auto [...slices] = submdspan_canonicalize_slices(src, raw_slices...);
 ```
@@ -1490,7 +1490,7 @@ auto [...slices] = submdspan_canonicalize_slices(src, raw_slices...);
 [5]{.pnum} *Mandates*: [For each rank index $k$ of `src`:]{.add}
 
 ::: add
-* [5.1]{.pnum} `SliceSpecifiers...[`$k$`]` is a `submdspan` slice type for the $k^{th}$ extent of `Extents`, and
+* [5.1]{.pnum} `SliceSpecifiers...[`$k$`]` is a `submdspan` slice type for `index_type`, and
 
 * [5.2]{.pnum} `decltype(slices...[`$k$`])` is a valid `submdspan` slice type for the $k^{th}$ extent of `Extents`.
 :::
