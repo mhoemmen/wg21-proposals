@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2025-09-04" />
+  <meta name="dcterms.date" content="2025-10-02" />
   <title>Future-proof submdspan_mapping</title>
   <style>
 code{white-space: pre-wrap;}
@@ -426,12 +426,12 @@ div#refs p { padding-left: 32px; text-indent: -32px; }
   </tr>
   <tr>
     <td>Date: </td>
-    <td>2025-09-04</td>
+    <td>2025-10-02</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project: </td>
     <td>Programming Language C++<br>
-      LEWG<br>
+      LWG<br>
     </td>
   </tr>
   <tr>
@@ -2403,7 +2403,8 @@ extent of <code>src</code>.</p>
 <span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>                                   SliceSpecifiers... <span class="add" style="color: #00AA00"><ins>raw_</ins></span>slices);</span></code></pre></div>
 <div class="add" style="color: #00AA00">
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
-Let <code>slices</code> be the pack introduced by declaration:</p>
+Let <code>slices</code> be the pack introduced by the following
+declaration:</p>
 <div class="sourceCode" id="cb26"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>auto [...slices] = submdspan_canonicalize_slices(src, raw_slices...);</span></code></pre></div>
 
 </div>
@@ -2776,7 +2777,7 @@ otherwise, <code>stride(</code><span class="math inline"><em>k</em></span><code>
 <span><code>P</code></span> be a parameter pack such that
 <span><code>is_same_v&lt;make_index_sequence&lt;rank()&gt;, index_sequence&lt;P...&gt;&gt;</code></span>
 is <span><code>true</code></span>.</del></span><span class="add" style="color: #00AA00"><ins>Let <span><code>ls</code></span> be a pack
-of values of <span><code>index_type</code></span>, where <span class="math inline"><em>ρ</em><sup><em>t</em><em>h</em></sup></span>
+of values of <span><code>index_type</code></span>, where the <span class="math inline"><em>ρ</em><sup><em>t</em><em>h</em></sup></span>
 element equals the lower bound of the
 <span><code>submdspan</code></span> slice range of
 <span><code>slices...[</code></span><span class="math inline"><em>ρ</em></span><span><code>]</code></span> for

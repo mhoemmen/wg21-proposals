@@ -1,8 +1,8 @@
 ---
 title: "Future-proof `submdspan_mapping`"
 document: D3663R3
-date: 2025-09-04
-audience: LEWG
+date: 2025-10-02
+audience: LWG
 author:
   - name: Mark Hoemmen
     email: <mhoemmen@nvidia.com>
@@ -1055,7 +1055,7 @@ template<class IndexType, class... Extents, class... SliceSpecifiers>
                                    SliceSpecifiers... @[raw_]{.add}@slices);
 ```
 ::: add
-[1]{.pnum} Let `slices` be the pack introduced by declaration:
+[1]{.pnum} Let `slices` be the pack introduced by the following declaration:
 ```
 auto [...slices] = submdspan_canonicalize_slices(src, raw_slices...);
 ```
@@ -1256,7 +1256,7 @@ template<class LayoutMapping>
 
 * [6.2]{.pnum} otherwise, `stride(`$k$`)`.
 
-[7]{.pnum} [Let `P` be a parameter pack such that `is_same_v<make_index_sequence<rank()>, index_sequence<P...>>` is `true`.]{.rm}[Let `ls` be a pack of values of `index_type`, where $\rho^{th}$ element equals the lower bound of the `submdspan` slice range of `slices...[`$\rho$`]` for extent $\rho$ of `extents()`.]{.add}
+[7]{.pnum} [Let `P` be a parameter pack such that `is_same_v<make_index_sequence<rank()>, index_sequence<P...>>` is `true`.]{.rm}[Let `ls` be a pack of values of `index_type`, where the $\rho^{th}$ element equals the lower bound of the `submdspan` slice range of `slices...[`$\rho$`]` for extent $\rho$ of `extents()`.]{.add}
 
 [8]{.pnum} If [_`first_`_`<index_type, `$k$`>(slices...)`]{.rm}[`ls...[`$k$`]`]{.add} equals `extents().extent(`$k$`)` for any rank index $k$ of `extents()`, then let `offset` be a value of type `size_t` equal to [`(*this).`]{.rm}`required_span_size()`.  Otherwise, let `offset` be a value of type `size_t` equal to [`(*this)`]{.rm}[`operator()`]{.add}`(` [_`first_`_`<index_type, P>(slices...)...`]{.rm}[`ls...`]{.add} `)`.
 
