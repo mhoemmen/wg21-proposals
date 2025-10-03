@@ -1,7 +1,7 @@
 ---
 title: "Future-proof `submdspan_mapping`"
-document: D3663R3
-date: 2025-10-02
+document: P3663R3
+date: 2025-10-03
 audience: LWG
 author:
   - name: Mark Hoemmen
@@ -85,11 +85,11 @@ toc: true
 
     * Expand discussion of implementation, and add preliminary benchmark results.
 
-* Revision 3 to be submitted 2025-XX-XX
+* Revision 3 to be submitted 2025-10-03
 
     * Add Tomasz Kamiński to the author list
 
-    * Major wording changes based on preliminary LWG review.
+    * Major wording changes based on LWG review.
     
         * Wording is now more mathematical and less a description of an implementation (as R2 wording was).
         
@@ -1242,9 +1242,9 @@ template<class LayoutMapping>
 :::
 
 ::: add
-[3]{.pnum} *Mandates*: For each rank index $k$ of `this->extents()`, `SliceSpecifiers...[`$k$`]` is a valid `submdspan` slice type for the $k^{th}$ extent of `Extents`.
+[3]{.pnum} *Mandates*: For each rank index $k$ of `extents()`, `SliceSpecifiers...[`$k$`]` is a valid `submdspan` slice type for the $k^{th}$ extent of `Extents`.
 
-[4]{.pnum} *Preconditions*: For each rank index $k$ of `this->extents()`, `slices...[`$k$`]` is a valid slice for the $k^{th}$ extent of `this->extents()`.
+[4]{.pnum} *Preconditions*: For each rank index $k$ of `extents()`, `slices...[`$k$`]` is a valid slice for the $k^{th}$ extent of `extents()`.
 :::
 
 [5]{.pnum} Let `sub_ext` be the result of `submdspan_extents(extents(), slices...)` and let `SubExtents` be `decltype(sub_ext)`.

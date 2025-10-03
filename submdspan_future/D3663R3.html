@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2025-10-02" />
+  <meta name="dcterms.date" content="2025-10-03" />
   <title>Future-proof submdspan_mapping</title>
   <style>
 code{white-space: pre-wrap;}
@@ -422,11 +422,11 @@ div#refs p { padding-left: 32px; text-indent: -32px; }
 <table style="border:none;float:right">
   <tr>
     <td>Document #: </td>
-    <td>D3663R3</td>
+    <td>P3663R3</td>
   </tr>
   <tr>
     <td>Date: </td>
-    <td>2025-10-02</td>
+    <td>2025-10-03</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project: </td>
@@ -669,10 +669,10 @@ for the value <code>Value</code>.</p></li>
 <li><p>Expand discussion of implementation, and add preliminary
 benchmark results.</p></li>
 </ul></li>
-<li><p>Revision 3 to be submitted 2025-XX-XX</p>
+<li><p>Revision 3 to be submitted 2025-10-03</p>
 <ul>
 <li><p>Add Tomasz Kamiński to the author list</p></li>
-<li><p>Major wording changes based on preliminary LWG review.</p>
+<li><p>Major wording changes based on LWG review.</p>
 <ul>
 <li><p>Wording is now more mathematical and less a description of an
 implementation (as R2 wording was).</p></li>
@@ -2739,15 +2739,15 @@ is greater than zero; and</p></li>
 </div>
 <div class="add" style="color: #00AA00">
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
-<em>Mandates</em>: For each rank index <span class="math inline"><em>k</em></span> of
-<code>this-&gt;extents()</code>, <code>SliceSpecifiers...[</code><span class="math inline"><em>k</em></span><code>]</code> is a valid
+<em>Mandates</em>: For each rank index <span class="math inline"><em>k</em></span> of <code>extents()</code>,
+<code>SliceSpecifiers...[</code><span class="math inline"><em>k</em></span><code>]</code> is a valid
 <code>submdspan</code> slice type for the <span class="math inline"><em>k</em><sup><em>t</em><em>h</em></sup></span>
 extent of <code>Extents</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
-<em>Preconditions</em>: For each rank index <span class="math inline"><em>k</em></span> of
-<code>this-&gt;extents()</code>, <code>slices...[</code><span class="math inline"><em>k</em></span><code>]</code> is a valid slice for
+<em>Preconditions</em>: For each rank index <span class="math inline"><em>k</em></span> of <code>extents()</code>,
+<code>slices...[</code><span class="math inline"><em>k</em></span><code>]</code> is a valid slice for
 the <span class="math inline"><em>k</em><sup><em>t</em><em>h</em></sup></span>
-extent of <code>this-&gt;extents()</code>.</p>
+extent of <code>extents()</code>.</p>
 </div>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
 Let <code>sub_ext</code> be the result of
