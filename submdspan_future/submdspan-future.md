@@ -15,6 +15,8 @@ toc: true
 
 * Mark Hoemmen (mhoemmen@nvidia.com) (NVIDIA)
 
+* Tomasz Kamiński (tomaszkam@gmail.com)
+
 # Revision history
 
 * Revision 0 to be submitted 2025-03-17
