@@ -1,10 +1,11 @@
 ---
 title: "Let `layout_stride::mapping` with zero extent(s) accept zero strides"
 document: PXXXXR0
-date: 2025-10-22
+date: 2025-10-23
 audience: LEWG
 author:
   - name: Jacob Faibussowitsch
+    email: <jfaibussowit@nvidia.com>
   - name: Mark Hoemmen
     email: <mhoemmen@nvidia.com>
   - name: Christian Trott
@@ -14,7 +15,7 @@ toc: true
 
 # Author
 
-* Jacob Faibussowitsch (NVIDIA)
+* Jacob Faibussowitsch (jfaibussowit@nvidia.com) (NVIDIA)
 
 * Mark Hoemmen (mhoemmen@nvidia.com) (NVIDIA)
 
