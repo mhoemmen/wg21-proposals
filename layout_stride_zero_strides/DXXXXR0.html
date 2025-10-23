@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang xml:lang>
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="mpark/wg21" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="dcterms.date" content="2025-10-22" />
+  <title>Let layout_stride::mapping with zero extent(s) accept zero strides</title>
+  <style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+</style>
+  <style>
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ background-color: #f6f8fa; }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span { } 
+code span.al { color: #ff0000; } 
+code span.an { } 
+code span.at { } 
+code span.bn { color: #9f6807; } 
+code span.bu { color: #9f6807; } 
+code span.cf { color: #00607c; } 
+code span.ch { color: #9f6807; } 
+code span.cn { } 
+code span.co { color: #008000; font-style: italic; } 
+code span.cv { color: #008000; font-style: italic; } 
+code span.do { color: #008000; } 
+code span.dt { color: #00607c; } 
+code span.dv { color: #9f6807; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #9f6807; } 
+code span.fu { } 
+code span.im { } 
+code span.in { color: #008000; } 
+code span.kw { color: #00607c; } 
+code span.op { color: #af1915; } 
+code span.ot { } 
+code span.pp { color: #6f4e37; } 
+code span.re { } 
+code span.sc { color: #9f6807; } 
+code span.ss { color: #9f6807; } 
+code span.st { color: #9f6807; } 
+code span.va { } 
+code span.vs { color: #9f6807; } 
+code span.wa { color: #008000; font-weight: bold; } 
+code.diff {color: #898887}
+code.diff span.va {color: #00AA00}
+code.diff span.st {color: #bf0303}
+</style>
+  <style type="text/css">
+body {
+margin: 5em;
+font-family: serif;
+
+hyphens: auto;
+line-height: 1.35;
+}
+div.wrapper {
+max-width: 60em;
+margin: auto;
+}
+ul {
+list-style-type: none;
+padding-left: 2em;
+margin-top: -0.2em;
+margin-bottom: -0.2em;
+}
+a {
+text-decoration: none;
+color: #4183C4;
+}
+a.hidden_link {
+text-decoration: none;
+color: inherit;
+}
+li {
+margin-top: 0.6em;
+margin-bottom: 0.6em;
+}
+h1, h2, h3, h4 {
+position: relative;
+line-height: 1;
+}
+a.self-link {
+position: absolute;
+top: 0;
+left: calc(-1 * (3.5rem - 26px));
+width: calc(3.5rem - 26px);
+height: 2em;
+text-align: center;
+border: none;
+transition: opacity .2s;
+opacity: .5;
+font-family: sans-serif;
+font-weight: normal;
+font-size: 83%;
+}
+a.self-link:hover { opacity: 1; }
+a.self-link::before { content: "§"; }
+ul > li:before {
+content: "\2014";
+position: absolute;
+margin-left: -1.5em;
+}
+:target { background-color: #C9FBC9; }
+:target .codeblock { background-color: #C9FBC9; }
+:target ul { background-color: #C9FBC9; }
+.abbr_ref { float: right; }
+.folded_abbr_ref { float: right; }
+:target .folded_abbr_ref { display: none; }
+:target .unfolded_abbr_ref { float: right; display: inherit; }
+.unfolded_abbr_ref { display: none; }
+.secnum { display: inline-block; min-width: 35pt; }
+.header-section-number { display: inline-block; min-width: 35pt; }
+.annexnum { display: block; }
+div.sourceLinkParent {
+float: right;
+}
+a.sourceLink {
+position: absolute;
+opacity: 0;
+margin-left: 10pt;
+}
+a.sourceLink:hover {
+opacity: 1;
+}
+a.itemDeclLink {
+position: absolute;
+font-size: 75%;
+text-align: right;
+width: 5em;
+opacity: 0;
+}
+a.itemDeclLink:hover { opacity: 1; }
+span.marginalizedparent {
+position: relative;
+left: -5em;
+}
+li span.marginalizedparent { left: -7em; }
+li ul > li span.marginalizedparent { left: -9em; }
+li ul > li ul > li span.marginalizedparent { left: -11em; }
+li ul > li ul > li ul > li span.marginalizedparent { left: -13em; }
+div.footnoteNumberParent {
+position: relative;
+left: -4.7em;
+}
+a.marginalized {
+position: absolute;
+font-size: 75%;
+text-align: right;
+width: 5em;
+}
+a.enumerated_item_num {
+position: relative;
+left: -3.5em;
+display: inline-block;
+margin-right: -3em;
+text-align: right;
+width: 3em;
+}
+div.para { margin-bottom: 0.6em; margin-top: 0.6em; text-align: justify; }
+div.section { text-align: justify; }
+div.sentence { display: inline; }
+span.indexparent {
+display: inline;
+position: relative;
+float: right;
+right: -1em;
+}
+a.index {
+position: absolute;
+display: none;
+}
+a.index:before { content: "⟵"; }
+
+a.index:target {
+display: inline;
+}
+.indexitems {
+margin-left: 2em;
+text-indent: -2em;
+}
+div.itemdescr {
+margin-left: 3em;
+}
+.bnf {
+font-family: serif;
+margin-left: 40pt;
+margin-top: 0.5em;
+margin-bottom: 0.5em;
+}
+.ncbnf {
+font-family: serif;
+margin-top: 0.5em;
+margin-bottom: 0.5em;
+margin-left: 40pt;
+}
+.ncsimplebnf {
+font-family: serif;
+font-style: italic;
+margin-top: 0.5em;
+margin-bottom: 0.5em;
+margin-left: 40pt;
+background: inherit; 
+}
+span.textnormal {
+font-style: normal;
+font-family: serif;
+white-space: normal;
+display: inline-block;
+}
+span.rlap {
+display: inline-block;
+width: 0px;
+}
+span.descr { font-style: normal; font-family: serif; }
+span.grammarterm { font-style: italic; }
+span.term { font-style: italic; }
+span.terminal { font-family: monospace; font-style: normal; }
+span.nonterminal { font-style: italic; }
+span.tcode { font-family: monospace; font-style: normal; }
+span.textbf { font-weight: bold; }
+span.textsc { font-variant: small-caps; }
+a.nontermdef { font-style: italic; font-family: serif; }
+span.emph { font-style: italic; }
+span.techterm { font-style: italic; }
+span.mathit { font-style: italic; }
+span.mathsf { font-family: sans-serif; }
+span.mathrm { font-family: serif; font-style: normal; }
+span.textrm { font-family: serif; }
+span.textsl { font-style: italic; }
+span.mathtt { font-family: monospace; font-style: normal; }
+span.mbox { font-family: serif; font-style: normal; }
+span.ungap { display: inline-block; width: 2pt; }
+span.textit { font-style: italic; }
+span.texttt { font-family: monospace; }
+span.tcode_in_codeblock { font-family: monospace; font-style: normal; }
+span.phantom { color: white; }
+
+span.math { font-style: normal; }
+span.mathblock {
+display: block;
+margin-left: auto;
+margin-right: auto;
+margin-top: 1.2em;
+margin-bottom: 1.2em;
+text-align: center;
+}
+span.mathalpha {
+font-style: italic;
+}
+span.synopsis {
+font-weight: bold;
+margin-top: 0.5em;
+display: block;
+}
+span.definition {
+font-weight: bold;
+display: block;
+}
+.codeblock {
+margin-left: 1.2em;
+line-height: 127%;
+}
+.outputblock {
+margin-left: 1.2em;
+line-height: 127%;
+}
+div.itemdecl {
+margin-top: 2ex;
+}
+code.itemdeclcode {
+white-space: pre;
+display: block;
+}
+span.textsuperscript {
+vertical-align: super;
+font-size: smaller;
+line-height: 0;
+}
+.footnotenum { vertical-align: super; font-size: smaller; line-height: 0; }
+.footnote {
+font-size: small;
+margin-left: 2em;
+margin-right: 2em;
+margin-top: 0.6em;
+margin-bottom: 0.6em;
+}
+div.minipage {
+display: inline-block;
+margin-right: 3em;
+}
+div.numberedTable {
+text-align: center;
+margin: 2em;
+}
+div.figure {
+text-align: center;
+margin: 2em;
+}
+table {
+border: 1px solid black;
+border-collapse: collapse;
+margin-left: auto;
+margin-right: auto;
+margin-top: 0.8em;
+text-align: left;
+hyphens: none; 
+}
+td, th {
+padding-left: 1em;
+padding-right: 1em;
+vertical-align: top;
+}
+td.empty {
+padding: 0px;
+padding-left: 1px;
+}
+td.left {
+text-align: left;
+}
+td.right {
+text-align: right;
+}
+td.center {
+text-align: center;
+}
+td.justify {
+text-align: justify;
+}
+td.border {
+border-left: 1px solid black;
+}
+tr.rowsep, td.cline {
+border-top: 1px solid black;
+}
+tr.even, tr.odd {
+border-bottom: 1px solid black;
+}
+tr.capsep {
+border-top: 3px solid black;
+border-top-style: double;
+}
+tr.header {
+border-bottom: 3px solid black;
+border-bottom-style: double;
+}
+th {
+border-bottom: 1px solid black;
+}
+span.centry {
+font-weight: bold;
+}
+div.table {
+display: block;
+margin-left: auto;
+margin-right: auto;
+text-align: center;
+width: 90%;
+}
+span.indented {
+display: block;
+margin-left: 2em;
+margin-bottom: 1em;
+margin-top: 1em;
+}
+ol.enumeratea { list-style-type: none; background: inherit; }
+ol.enumerate { list-style-type: none; background: inherit; }
+
+code.sourceCode > span { display: inline; }
+
+div#refs p { padding-left: 32px; text-indent: -32px; }
+</style>
+  <link href="data:image/vnd.microsoft.icon;base64,AAABAAIAEBAAAAEAIABoBAAAJgAAACAgAAABACAAqBAAAI4EAAAoAAAAEAAAACAAAAABACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA////AIJEAACCRAAAgkQAAIJEAACCRAAAgkQAVoJEAN6CRADegkQAWIJEAACCRAAAgkQAAIJEAACCRAAA////AP///wCCRAAAgkQAAIJEAACCRAAsgkQAvoJEAP+CRAD/gkQA/4JEAP+CRADAgkQALoJEAACCRAAAgkQAAP///wD///8AgkQAAIJEABSCRACSgkQA/IJEAP99PQD/dzMA/3czAP99PQD/gkQA/4JEAPyCRACUgkQAFIJEAAD///8A////AHw+AFiBQwDqgkQA/4BBAP9/PxP/uZd6/9rJtf/bybX/upd7/39AFP+AQQD/gkQA/4FDAOqAQgBc////AP///wDKklv4jlEa/3o7AP+PWC//8+3o///////////////////////z7un/kFox/35AAP+GRwD/mVYA+v///wD///8A0Zpk+NmibP+0d0T/8evj///////+/fv/1sKz/9bCs//9/fr//////+/m2/+NRwL/nloA/5xYAPj///8A////ANKaZPjRmGH/5cKh////////////k149/3UwAP91MQD/lmQ//86rhv+USg3/m1YA/5hSAP+bVgD4////AP///wDSmmT4zpJY/+/bx///////8+TV/8mLT/+TVx//gkIA/5lVAP+VTAD/x6B//7aEVv/JpH7/s39J+P///wD///8A0ppk+M6SWP/u2sf///////Pj1f/Nj1T/2KFs/8mOUv+eWhD/lEsA/8aee/+0glT/x6F7/7J8Rvj///8A////ANKaZPjRmGH/48Cf///////+/v7/2qt//82PVP/OkFX/37KJ/86siv+USg7/mVQA/5hRAP+bVgD4////AP///wDSmmT40ppk/9CVXP/69O////////7+/v/x4M//8d/P//7+/f//////9u7n/6tnJf+XUgD/nFgA+P///wD///8A0ppk+NKaZP/RmWL/1qNy//r07///////////////////////+vXw/9akdP/Wnmn/y5FY/6JfFvj///8A////ANKaZFTSmmTo0ppk/9GYYv/Ql1//5cWm//Hg0P/x4ND/5cWm/9GXYP/RmGH/0ppk/9KaZOjVnmpY////AP///wDSmmQA0ppkEtKaZI7SmmT60ppk/9CWX//OkVb/zpFW/9CWX//SmmT/0ppk/NKaZJDSmmQS0ppkAP///wD///8A0ppkANKaZADSmmQA0ppkKtKaZLrSmmT/0ppk/9KaZP/SmmT/0ppkvNKaZCrSmmQA0ppkANKaZAD///8A////ANKaZADSmmQA0ppkANKaZADSmmQA0ppkUtKaZNzSmmTc0ppkVNKaZADSmmQA0ppkANKaZADSmmQA////AP5/AAD4HwAA4AcAAMADAACAAQAAgAEAAIABAACAAQAAgAEAAIABAACAAQAAgAEAAMADAADgBwAA+B8AAP5/AAAoAAAAIAAAAEAAAAABACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA////AP///wCCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAAyCRACMgkQA6oJEAOqCRACQgkQAEIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAA////AP///wD///8A////AIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRABigkQA5oJEAP+CRAD/gkQA/4JEAP+CRADqgkQAZoJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAAD///8A////AP///wD///8AgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAA4gkQAwoJEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQAxIJEADyCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAP///wD///8A////AP///wCCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAWgkQAmIJEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAJyCRAAYgkQAAIJEAACCRAAAgkQAAIJEAACCRAAA////AP///wD///8A////AIJEAACCRAAAgkQAAIJEAACCRAAAgkQAdIJEAPCCRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAPSCRAB4gkQAAIJEAACCRAAAgkQAAIJEAAD///8A////AP///wD///8AgkQAAIJEAACCRAAAgkQASoJEANKCRAD/gkQA/4JEAP+CRAD/g0YA/39AAP9zLgD/bSQA/2shAP9rIQD/bSQA/3MuAP9/PwD/g0YA/4JEAP+CRAD/gkQA/4JEAP+CRADUgkQAToJEAACCRAAAgkQAAP///wD///8A////AP///wB+PwAAgkUAIoJEAKiCRAD/gkQA/4JEAP+CRAD/hEcA/4BBAP9sIwD/dTAA/5RfKv+viF7/vp56/76ee/+wiF7/lWAr/3YxAP9sIwD/f0AA/4RHAP+CRAD/gkQA/4JEAP+CRAD/gkQArIJEACaBQwAA////AP///wD///8A////AIBCAEBzNAD6f0EA/4NFAP+CRAD/gkQA/4VIAP92MwD/bSUA/6N1Tv/ezsL/////////////////////////////////38/D/6V3Uv9uJgD/dTEA/4VJAP+CRAD/gkQA/4JEAP+BQwD/fUAA/4FDAEj///8A////AP///wD///8AzJRd5qBlKf91NgD/dDUA/4JEAP+FSQD/cy4A/3YyAP/PuKP//////////////////////////////////////////////////////9K7qP94NQD/ciwA/4VJAP+CRAD/fkEA/35BAP+LSwD/mlYA6v///wD///8A////AP///wDdpnL/4qx3/8KJUv+PUhf/cTMA/3AsAP90LgD/4dK+/////////////////////////////////////////////////////////////////+TYxf91MAD/dTIA/31CAP+GRwD/llQA/6FcAP+gWwD8////AP///wD///8A////ANGZY/LSm2X/4ap3/92mcP+wdT3/byQA/8mwj////////////////////////////////////////////////////////////////////////////+LYxv9zLgP/jUoA/59bAP+hXAD/nFgA/5xYAPL///8A////AP///wD///8A0ppk8tKaZP/RmWL/1p9q/9ubXv/XqXj////////////////////////////7+fD/vZyG/6BxS/+gcUr/vJuE//r37f//////////////////////3MOr/5dQBf+dVQD/nVkA/5xYAP+cWAD/nFgA8v///wD///8A////AP///wDSmmTy0ppk/9KaZP/SmWP/yohJ//jo2P//////////////////////4NTG/4JDFf9lGAD/bSQA/20kAP9kGAD/fz8S/+Xb0f//////5NG9/6txN/+LOgD/m1QA/51aAP+cWAD/m1cA/5xYAP+cWADy////AP///wD///8A////ANKaZPLSmmT/0ppk/8+TWf/Unmv//v37//////////////////////+TWRr/VwsA/35AAP+ERgD/g0UA/4JGAP9lHgD/kFga/8KXX/+TRwD/jT4A/49CAP+VTQD/n10A/5xYAP+OQQD/lk4A/55cAPL///8A////AP///wD///8A0ppk8tKaZP/SmmT/y4tO/92yiP//////////////////////8NnE/8eCQP+rcTT/ez0A/3IyAP98PgD/gEMA/5FSAP+USwD/jj8A/5lUAP+JNwD/yqV2/694Mf+HNQD/jkAA/82rf/+laBj/jT4A8v///wD///8A////AP///wDSmmTy0ppk/9KaZP/LiUr/4byY///////////////////////gupX/0I5P/+Wuev/Lklz/l1sj/308AP+QSwD/ol0A/59aAP+aVQD/k0oA/8yoh///////+fXv/6pwO//Lp3v///////Pr4f+oay7y////AP///wD///8A////ANKaZPLSmmT/0ppk/8uJSv/hvJj//////////////////////+G7l//Jhkb/0ppk/96nc//fqXX/x4xO/6dkFP+QSQD/llEA/5xXAP+USgD/yaOA///////38uv/qG05/8ijdv//////8efb/6ZpLPL///8A////AP///wD///8A0ppk8tKaZP/SmmT/zIxO/9yxh///////////////////////7dbA/8iEQf/Sm2X/0Zlj/9ScZv/eqHf/2KJv/7yAQf+XTgD/iToA/5lSAP+JNgD/yKFv/611LP+HNQD/jT8A/8qmeP+kZRT/jT4A8v///wD///8A////AP///wDSmmTy0ppk/9KaZP/Pk1n/1J5q//78+//////////////////+/fv/1aFv/8iEQv/Tm2b/0ppl/9GZY//Wn2z/1pZc/9eldf/Bl2b/kUcA/4w9AP+OQAD/lUwA/59eAP+cWQD/jT8A/5ZOAP+eXADy////AP///wD///8A////ANKaZPLSmmT/0ppk/9KZY//KiEn/8d/P///////////////////////47+f/05tm/8iCP//KiEj/yohJ/8eCP//RmGH//vfy///////n1sP/rXQ7/4k4AP+TTAD/nVoA/5xYAP+cVwD/nFgA/5xYAPL///8A////AP///wD///8A0ppk8tKaZP/SmmT/0ptl/8uLTf/aq37////////////////////////////+/fz/6c2y/961jv/etY7/6Myx//78+v//////////////////////3MWv/5xXD/+ORAD/mFQA/51ZAP+cWAD/nFgA8v///wD///8A////AP///wDSmmTy0ppk/9KaZP/SmmT/0ppk/8mFRP/s1b//////////////////////////////////////////////////////////////////////////////+PD/0JFU/7NzMv+WUQD/kUsA/5tXAP+dWQDy////AP///wD///8A////ANKaZP/SmmT/0ppk/9KaZP/Sm2X/z5NZ/8yMT//z5NX/////////////////////////////////////////////////////////////////9Ofa/8yNUP/UmGH/36p5/8yTWv+qaSD/kksA/5ROAPz///8A////AP///wD///8A0ppk5NKaZP/SmmT/0ppk/9KaZP/TnGf/zY9T/82OUv/t1sD//////////////////////////////////////////////////////+7Yw//OkFX/zI5R/9OcZ//SmmP/26V0/9ymdf/BhUf/ol8R6P///wD///8A////AP///wDSmmQ80ppk9tKaZP/SmmT/0ppk/9KaZP/TnGj/zpFW/8qJSv/dson/8uHS//////////////////////////////////Lj0//etIv/y4lL/86QVf/TnGj/0ppk/9KaZP/RmWP/05xn/9ymdfjUnWdC////AP///wD///8A////ANKaZADSmmQc0ppkotKaZP/SmmT/0ppk/9KaZP/Tm2b/0Zli/8qJSf/NjlH/16Z3/+G8mP/myKr/5siq/+G8mP/Xp3f/zY5S/8qISf/RmGH/05tm/9KaZP/SmmT/0ppk/9KaZP/SmmSm0pljINWdaQD///8A////AP///wD///8A0ppkANKaZADSmmQA0ppkQtKaZMrSmmT/0ppk/9KaZP/SmmT/0ptl/9GYYf/Nj1P/y4lL/8qISP/KiEj/y4lK/82PU//RmGH/0ptl/9KaZP/SmmT/0ppk/9KaZP/SmmTO0ppkRtKaZADSmmQA0ppkAP///wD///8A////AP///wDSmmQA0ppkANKaZADSmmQA0ppkANKaZGzSmmTu0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmTw0ppkcNKaZADSmmQA0ppkANKaZADSmmQA////AP///wD///8A////ANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZBLSmmSQ0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppklNKaZBTSmmQA0ppkANKaZADSmmQA0ppkANKaZAD///8A////AP///wD///8A0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQy0ppkutKaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppkvtKaZDbSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkAP///wD///8A////AP///wDSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkXNKaZODSmmT/0ppk/9KaZP/SmmT/0ppk5NKaZGDSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA////AP///wD///8A////ANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkBtKaZIbSmmTo0ppk6tKaZIrSmmQK0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZAD///8A////AP/8P///+B///+AH//+AAf//AAD//AAAP/AAAA/gAAAHwAAAA8AAAAPAAAADwAAAA8AAAAPAAAADwAAAA8AAAAPAAAADwAAAA8AAAAPAAAADwAAAA8AAAAPAAAADwAAAA+AAAAfwAAAP/AAAP/8AAP//gAH//+AH///4H////D//" rel="icon" />
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+  
+</head>
+<body>
+<div class="wrapper">
+<header id="title-block-header">
+<h1 class="title" style="text-align:center">Let
+<code>layout_stride::mapping</code> with zero extent(s) accept zero
+strides</h1>
+
+<table style="border:none;float:right">
+  <tr>
+    <td>Document #: </td>
+    <td>PXXXXR0</td>
+  </tr>
+  <tr>
+    <td>Date: </td>
+    <td>2025-10-22</td>
+  </tr>
+  <tr>
+    <td style="vertical-align:top">Project: </td>
+    <td>Programming Language C++<br>
+      LEWG<br>
+    </td>
+  </tr>
+  <tr>
+    <td style="vertical-align:top">Reply-to: </td>
+    <td>
+      Jacob Faibussowitsch<br>&lt;&gt;<br>
+      Mark Hoemmen<br>&lt;<a href="mailto:mhoemmen@nvidia.com" class="email">mhoemmen@nvidia.com</a>&gt;<br>
+      Christian Trott<br>&lt;<a href="mailto:crtrott@sandia.gov" class="email">crtrott@sandia.gov</a>&gt;<br>
+    </td>
+  </tr>
+</table>
+
+</header>
+<div style="clear:both">
+<div id="TOC" role="doc-toc">
+<h1 id="toctitle">Contents</h1>
+<ul>
+<li><a href="#author" id="toc-author"><span class="toc-section-number">1</span> Author</a></li>
+<li><a href="#revision-history" id="toc-revision-history"><span class="toc-section-number">2</span> Revision history</a></li>
+<li><a href="#introduction" id="toc-introduction"><span class="toc-section-number">3</span> Introduction</a></li>
+<li><a href="#motivation" id="toc-motivation"><span class="toc-section-number">4</span> Motivation</a>
+<ul>
+<li><a href="#interoperability-between-numpy-arrays-and-mdspan" id="toc-interoperability-between-numpy-arrays-and-mdspan"><span class="toc-section-number">4.1</span> Interoperability between NumPy
+arrays and <code>mdspan</code></a></li>
+<li><a href="#permit-conversion-of-empty-layout_leftrightmapping-to-layout_stridemapping" id="toc-permit-conversion-of-empty-layout_leftrightmapping-to-layout_stridemapping"><span class="toc-section-number">4.2</span> Permit conversion of empty
+<code>layout_{left,right}::mapping</code> to
+<code>layout_stride::mapping</code></a></li>
+<li><a href="#work-around-create-a-new-layout" id="toc-work-around-create-a-new-layout"><span class="toc-section-number">4.3</span> Work-around: Create a new
+layout</a></li>
+</ul></li>
+<li><a href="#relaxing-the-precondition-does-not-violate-current-requirements" id="toc-relaxing-the-precondition-does-not-violate-current-requirements"><span class="toc-section-number">5</span> Relaxing the precondition does not
+violate current requirements</a></li>
+<li><a href="#implementation" id="toc-implementation"><span class="toc-section-number">6</span> Implementation</a></li>
+<li><a href="#proposed-wording" id="toc-proposed-wording"><span class="toc-section-number">7</span> Proposed wording</a>
+<ul>
+<li><a href="#increment-__cpp_lib_mdspan-feature-test-macro" id="toc-increment-__cpp_lib_mdspan-feature-test-macro"><span class="toc-section-number">7.1</span> Increment
+<code>__cpp_lib_mdspan</code> feature test macro</a></li>
+<li><a href="#change-mdspan.layout.stride.cons-4.1" id="toc-change-mdspan.layout.stride.cons-4.1"><span class="toc-section-number">7.2</span> Change [mdspan.layout.stride.cons]
+4.1</a></li>
+<li><a href="#change-mdspan.layout.stride.cons-7.2" id="toc-change-mdspan.layout.stride.cons-7.2"><span class="toc-section-number">7.3</span> Change [mdspan.layout.stride.cons]
+7.2</a></li>
+</ul></li>
+</ul>
+</div>
+<h1 data-number="1" id="author"><span class="header-section-number">1</span> Author<a href="#author" class="self-link"></a></h1>
+<ul>
+<li><p>Jacob Faibussowitsch (NVIDIA)</p></li>
+<li><p>Mark Hoemmen (mhoemmen@nvidia.com) (NVIDIA)</p></li>
+<li><p>Christian Trott (crtrott@sandia.gov) (Sandia National
+Laboratories)</p></li>
+</ul>
+<h1 data-number="2" id="revision-history"><span class="header-section-number">2</span> Revision history<a href="#revision-history" class="self-link"></a></h1>
+<ul>
+<li>Revision 0 to be submitted 2025-??-??</li>
+</ul>
+<h1 data-number="3" id="introduction"><span class="header-section-number">3</span> Introduction<a href="#introduction" class="self-link"></a></h1>
+<p>We propose to change <code>layout_stride::mapping</code>’s
+constructors to permit strides to be zero if one or more extents are
+zero. For example, for extents (3, 5, 0, 11), this change would permit
+strides (1, 3, 0, 105). Currently, users would need to set the stride(s)
+corresponding to zero extents to an arbitrary positive value, such as 1.
+That would make the strides (1, 3, 1, 105) in this example.</p>
+<p>This change has two benefits. First, it conforms with NumPy’s
+<code>ndarray</code> convention for specifying strides. This would let
+users construct a <code>layout_stride::mapping</code> directly from a
+NumPy array, or from any library that follows this convention. Second,
+it would let users convert <code>layout_left::mapping</code> or
+<code>layout_right::mapping</code> with size-zero extents to
+<code>layout_stride::mapping</code>.</p>
+<p>This change would relax preconditions of two existing
+<code>layout_stride::mapping</code> constructors. It would not change
+what C++ code is currently well-formed or ill-formed. The only way in
+which it could affect backwards compatibility is by introducing
+<code>layout_stride::mapping</code> instances that have zero strides.
+This may affect use of some libraries like the BLAS and LAPACK that
+forbid a zero stride, even if the corresponding matrix dimension is
+zero. On the other hand, <code>layout_left</code> and
+<code>layout_right</code> mappings can already have zero strides, so
+generic code that operates on the elements of an <code>mdspan</code> by
+calling the BLAS or LAPACK must already account for this.</p>
+<h1 data-number="4" id="motivation"><span class="header-section-number">4</span> Motivation<a href="#motivation" class="self-link"></a></h1>
+<h2 data-number="4.1" id="interoperability-between-numpy-arrays-and-mdspan"><span class="header-section-number">4.1</span> Interoperability between NumPy
+arrays and <code>mdspan</code><a href="#interoperability-between-numpy-arrays-and-mdspan" class="self-link"></a></h2>
+<p><a href="https://numpy.org/">NumPy</a> is a Python package for
+scientific computing. Its <a href="https://numpy.org/doc/2.3/reference/arrays.ndarray.html"><code>ndarray</code>
+protocol</a> defines an application binary interface for sharing
+multidimensional array views across libraries, programming languages,
+and hardware interfaces.</p>
+<p>Since <code>ndarray</code> objects represent multidimensional strided
+array views, it would be natural to translate them to C++ by using
+<code>mdspan</code> with <code>layout_stride</code>. Translation from
+C++ <code>mdspan</code> with <code>layout_stride</code> to Python
+<code>ndarray</code> works just fine, because Python permits arbitrary
+strides if the multidimensional index space has size zero. We show how
+to do this conversion from C++ to Python below by using the
+<code>pybind11</code> library.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">namespace</span> py <span class="op">=</span> pybind11;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="kw">class</span> Extents, <span class="kw">class</span> Accessor<span class="op">&gt;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>py<span class="op">::</span>dict make_array_interface_dict<span class="op">(</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>mdspan<span class="op">&lt;</span>ElementType, Extents, std<span class="op">::</span>layout_stride, Accessor<span class="op">&gt;</span> md<span class="op">)</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  py<span class="op">::</span>dict array_interface;</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  array_interface<span class="op">[</span><span class="st">&quot;strides&quot;</span><span class="op">]</span> <span class="op">=</span> md<span class="op">.</span>mapping<span class="op">().</span>strides<span class="op">()</span>;</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  array_interface<span class="op">[</span><span class="st">&quot;shape&quot;</span><span class="op">]</span> <span class="op">=</span> md<span class="op">.</span>extents<span class="op">()</span>;</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ... fill in other ndarray fields ...</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> array_interface;</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>However, when converting from Python to C++, the strides need an
+extra conversion step. This is because
+<code>layout_stride::mapping</code>’s constructor has a precondition
+that all strides are positive, even for zero extents.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span>std<span class="op">::</span><span class="dt">size_t</span> Rank<span class="op">&gt;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>layout_stride<span class="op">::</span>mapping<span class="op">&lt;</span>std<span class="op">::</span>dims<span class="op">&lt;</span>Rank<span class="op">&gt;&gt;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>python_to_cpp_mapping<span class="op">(</span><span class="kw">const</span> py<span class="op">::</span>dict<span class="op">&amp;</span> array_interface<span class="op">)</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> cpp_strides <span class="op">=</span> std<span class="op">::</span>array<span class="op">&lt;</span>std<span class="op">::</span><span class="dt">size_t</span>, Rank<span class="op">&gt;{}</span>;</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> py_strides  <span class="op">=</span> array_interface<span class="op">[</span><span class="st">&quot;strides&quot;</span><span class="op">]</span>;</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> <span class="op">(</span>std<span class="op">::</span><span class="dt">size_t</span> i <span class="op">=</span> <span class="dv">0</span>; i <span class="op">&lt;</span> Rank; <span class="op">++</span>i<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>py_strides<span class="op">[</span>i<span class="op">]</span> <span class="op">==</span> <span class="dv">0</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>      <span class="ot">assert</span><span class="op">(</span>array_interface<span class="op">[</span><span class="st">&quot;shape&quot;</span><span class="op">][</span>i<span class="op">]</span> <span class="op">==</span> <span class="dv">0</span><span class="op">)</span>;</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>      cpp_strides<span class="op">[</span>i<span class="op">]</span> <span class="op">=</span> <span class="dv">1</span>; <span class="co">// to satisfy layout_stride</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span> <span class="cf">else</span> <span class="op">{</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>      cpp_strides<span class="op">[</span>i<span class="op">]</span> <span class="op">=</span> py_strides<span class="op">[</span>i<span class="op">]</span>;</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> py_extents <span class="op">=</span> array_interface<span class="op">[</span><span class="st">&quot;shape&quot;</span><span class="op">]</span>;</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> cpp_extents <span class="op">=</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>    <span class="op">[&amp;]</span> <span class="op">&lt;</span>std<span class="op">::</span><span class="dt">size_t</span><span class="op">...</span> Inds<span class="op">&gt;</span> <span class="op">(</span>std<span class="op">::</span>index_sequence<span class="op">&lt;</span>Inds<span class="op">...&gt;)</span> <span class="op">{</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> std<span class="op">::</span>dims<span class="op">&lt;</span>Rank<span class="op">&gt;{</span>py_extents<span class="op">[</span>Inds<span class="op">]...}</span>;</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span> <span class="op">(</span>std<span class="op">::</span>make_index_sequence<span class="op">&lt;</span>Rank<span class="op">&gt;())</span>;</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> std<span class="op">::</span>layout_stride<span class="op">::</span>mapping<span class="op">&lt;</span>std<span class="op">::</span>dims<span class="op">&lt;</span>Rank<span class="op">&gt;&gt;{</span></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>    cpp_extents, cpp_strides<span class="op">}</span>;</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h2 data-number="4.2" id="permit-conversion-of-empty-layout_leftrightmapping-to-layout_stridemapping"><span class="header-section-number">4.2</span> Permit conversion of empty
+<code>layout_{left,right}::mapping</code> to
+<code>layout_stride::mapping</code><a href="#permit-conversion-of-empty-layout_leftrightmapping-to-layout_stridemapping" class="self-link"></a></h2>
+<p>The <code>layout_stride::mapping</code> class can represent the
+layout mapping of any <code>submdspan</code> of an <code>mdspan</code>
+with <code>layout_left</code> or <code>layout_right</code>. In other
+words, <code>layout_stride</code> is the “fixed point” of applying
+<code>submdspan</code> to any valid <code>layout_left</code> or
+<code>layout_right</code> mdspan. The
+<code>layout_stride::mapping(const StridedLayoutMapping&amp;)</code>
+constructor accepts any strided mapping, including but not limited to
+the four defined in C++26 (the above two, plus
+<code>layout_left_padded</code> and <code>layout_right_padded</code>).
+This makes it tempting to treat <code>layout_stride::mapping</code> as a
+“maximally type-erased” mapping, for example when defining stable
+application binary interfaces. This was part of the design intent for
+<code>layout_stride</code>.</p>
+<p>That works fine, except when the conversion’s input mapping has a
+zero extent. Creating a <code>layout_right</code> or
+<code>layout_left</code> <code>mdspan</code> with one or more extents of
+zero can result in an <code>mdspan</code> with one or more strides of
+zero. For example, a <code>layout_right</code> <code>mdspan</code> with
+extents (1, 0) will have strides (0, 1), and a <code>layout_left</code>
+<code>mdspan</code> with extents (0, 1) will have strides (1, 0). This
+is expected behavior, and it matches implementations. For example, <a href="https://godbolt.org/z/G37WGKa4G">this Compiler Explorer link</a>
+builds and runs the following example with Clang 21.1.0 and libc++,
+using build options <code>-std=c++26 -stdlib=libc++ -Wall</code>. <a href="https://godbolt.org/z/aec58hsTd">This Compiler Explorer link</a>
+builds and runs the same example (with just a namespace change) with the
+<a href="https://github.com/kokkos/mdspan">reference <code>mdspan</code>
+implementation</a>.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;cassert&gt;</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mdspan&gt;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;print&gt;</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Layout<span class="op">&gt;</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> mdspan_2d <span class="op">=</span> std<span class="op">::</span>mdspan<span class="op">&lt;</span><span class="dt">float</span>, std<span class="op">::</span>dims<span class="op">&lt;</span><span class="dv">2</span><span class="op">&gt;</span>, Layout<span class="op">&gt;</span>;</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  mdspan_2d<span class="op">&lt;</span>std<span class="op">::</span>layout_right<span class="op">&gt;</span> mr<span class="op">(</span><span class="kw">nullptr</span>, <span class="dv">1</span>, <span class="dv">0</span><span class="op">)</span>;</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>print<span class="op">(</span><span class="st">&quot;{} {}</span><span class="sc">\n</span><span class="st">&quot;</span>, mr<span class="op">.</span>stride<span class="op">(</span><span class="dv">0</span><span class="op">)</span>, mr<span class="op">.</span>stride<span class="op">(</span><span class="dv">1</span><span class="op">))</span>;</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>  <span class="ot">assert</span><span class="op">(</span>mr<span class="op">.</span>stride<span class="op">(</span><span class="dv">0</span><span class="op">)</span> <span class="op">==</span> <span class="dv">0</span><span class="op">)</span>;</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>  <span class="ot">assert</span><span class="op">(</span>mr<span class="op">.</span>stride<span class="op">(</span><span class="dv">1</span><span class="op">)</span> <span class="op">==</span> <span class="dv">1</span><span class="op">)</span>;</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>  mdspan_2d<span class="op">&lt;</span>std<span class="op">::</span>layout_left<span class="op">&gt;</span> ml<span class="op">(</span><span class="kw">nullptr</span>, <span class="dv">0</span>, <span class="dv">1</span><span class="op">)</span>;</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>print<span class="op">(</span><span class="st">&quot;{} {}</span><span class="sc">\n</span><span class="st">&quot;</span>, ml<span class="op">.</span>stride<span class="op">(</span><span class="dv">0</span><span class="op">)</span>, ml<span class="op">.</span>stride<span class="op">(</span><span class="dv">1</span><span class="op">))</span>;</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>  <span class="ot">assert</span><span class="op">(</span>ml<span class="op">.</span>stride<span class="op">(</span><span class="dv">0</span><span class="op">)</span> <span class="op">==</span> <span class="dv">1</span><span class="op">)</span>;</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>  <span class="ot">assert</span><span class="op">(</span>ml<span class="op">.</span>stride<span class="op">(</span><span class="dv">1</span><span class="op">)</span> <span class="op">==</span> <span class="dv">0</span><span class="op">)</span>;</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="dv">0</span>;</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Conversion from these <code>layout_right</code> or
+<code>layout_left</code> <code>mdspan</code> to
+<code>layout_stride</code> <code>mdspan</code> violates the
+preconditions of <code>layout_stride::mapping</code>’s converting
+constructor, specifically [mdspan.layout.stride.cons] 7.2, that requires
+all strides to be positive.</p>
+<p>We propose to relax this precondition. The conversion is otherwise
+well-formed. Neither the reference implementation nor libc++ enforces
+the precondition, and the conversion works as expected. <a href="https://godbolt.org/z/3Thfrb1W9">This Compiler Explorer link</a>
+demonstrates that with both implementations.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define USE_REFERENCE_MDSPAN </span><span class="dv">1</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#if defined(USE_REFERENCE_MDSPAN)</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="pp">#  include </span><span class="im">&lt;https://raw.githubusercontent.com/kokkos/mdspan/single-header/mdspan.hpp&gt;</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="pp">#else</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="pp">#  define _LIBCPP_DEBUG </span><span class="dv">1</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="pp">#  include </span><span class="im">&lt;mdspan&gt;</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="pp">#endif</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;cassert&gt;</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;print&gt;</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="pp">#if defined(USE_REFERENCE_MDSPAN)</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a><span class="kw">namespace</span> md <span class="op">=</span> std<span class="op">::</span>experimental;</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a><span class="pp">#else</span></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a><span class="kw">namespace</span> md <span class="op">=</span> std;</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a><span class="pp">#endif</span></span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Layout<span class="op">&gt;</span></span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> mdspan_2d <span class="op">=</span> md<span class="op">::</span>mdspan<span class="op">&lt;</span><span class="dt">float</span>, md<span class="op">::</span>dims<span class="op">&lt;</span><span class="dv">2</span><span class="op">&gt;</span>, Layout<span class="op">&gt;</span>;</span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">(</span><span class="dt">int</span>, <span class="dt">char</span><span class="op">*</span> argv<span class="op">[])</span> <span class="op">{</span></span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>  mdspan_2d<span class="op">&lt;</span>md<span class="op">::</span>layout_right<span class="op">&gt;</span> mr<span class="op">(</span><span class="kw">nullptr</span>, <span class="dv">1</span>, <span class="dv">0</span><span class="op">)</span>;</span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>  mdspan_2d<span class="op">&lt;</span>md<span class="op">::</span>layout_stride<span class="op">&gt;</span> mrs<span class="op">(</span>mr<span class="op">)</span>;</span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>  <span class="ot">assert</span><span class="op">(</span>mrs<span class="op">.</span>stride<span class="op">(</span><span class="dv">0</span><span class="op">)</span> <span class="op">==</span> <span class="dv">0</span><span class="bu">u</span><span class="op">)</span>;</span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>  <span class="ot">assert</span><span class="op">(</span>mrs<span class="op">.</span>stride<span class="op">(</span><span class="dv">1</span><span class="op">)</span> <span class="op">==</span> <span class="dv">1</span><span class="bu">u</span><span class="op">)</span>;</span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>  mdspan_2d<span class="op">&lt;</span>md<span class="op">::</span>layout_left<span class="op">&gt;</span> ml<span class="op">(</span><span class="kw">nullptr</span>, <span class="dv">0</span>, <span class="dv">1</span><span class="op">)</span>;</span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>  mdspan_2d<span class="op">&lt;</span>md<span class="op">::</span>layout_stride<span class="op">&gt;</span> mls<span class="op">(</span>ml<span class="op">)</span>;</span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>  <span class="ot">assert</span><span class="op">(</span>mls<span class="op">.</span>stride<span class="op">(</span><span class="dv">0</span><span class="op">)</span> <span class="op">==</span> <span class="dv">1</span><span class="bu">u</span><span class="op">)</span>;</span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>  <span class="ot">assert</span><span class="op">(</span>mls<span class="op">.</span>stride<span class="op">(</span><span class="dv">1</span><span class="op">)</span> <span class="op">==</span> <span class="dv">0</span><span class="bu">u</span><span class="op">)</span>;</span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="dv">0</span>;</span>
+<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h2 data-number="4.3" id="work-around-create-a-new-layout"><span class="header-section-number">4.3</span> Work-around: Create a new
+layout<a href="#work-around-create-a-new-layout" class="self-link"></a></h2>
+<p>One could imagine working around these issues by creating a new
+layout whose mapping’s constructor accepts zero strides. One could
+provisionally call it “<code>layout_any_stride</code>.”</p>
+<p>We reject this approach because the design intent of
+<code>layout_stride</code> is to represent any <code>submdspan</code> of
+a <code>layout_left</code> or <code>layout_right</code> mapping, even if
+the mapping has one or more extents that are zero. The precondition
+hinders complete expression of the design intent.</p>
+<p>Adding a new layout that explicitly permits zero strides would
+encourage its use as a “broadcast” layout – a nonunique, nonempty
+mapping where a single index may be “broadcasted” to an entire extent of
+indices. While <code>mdspan</code> generally permits custom nonunique
+layouts, the <code>mdspan</code> authors did not want a commonly used
+layout such as <code>layout_stride</code> to have this behavior. This is
+because it can be difficult to understand how to write generic
+algorithms for nonunique layouts, especially for algorithms that need to
+write to the <code>mdspan</code>’s elements.</p>
+<h1 data-number="5" id="relaxing-the-precondition-does-not-violate-current-requirements"><span class="header-section-number">5</span> Relaxing the precondition does
+not violate current requirements<a href="#relaxing-the-precondition-does-not-violate-current-requirements" class="self-link"></a></h1>
+<p>In this section, we prove that relaxing the precondition to allow a
+stride of 0 for empty extents does not violate
+<code>layout_stride::mapping</code>’s requirements, and therefore does
+not necessitate a new mapping type.</p>
+<p>A <code>layout_stride::mapping</code> must must satisfy two
+properties.</p>
+<ol type="1">
+<li><p>It is always unique (<code>is_always_unique()</code> is
+<code>true</code>)</p></li>
+<li><p>It is always exhaustive (<code>is_always_exhaustive()</code> is
+<code>true</code>)</p></li>
+</ol>
+<p>Uniqueness means that every multidimensional index in the mapping’s
+extents must map to a distinct offset in <span class="math inline">[0</span>, <code>required_span_size()</code><span class="math inline">)</span>. That is, the mapping must be
+<em>injective</em>.</p>
+<p>Exhaustiveness means that for each offset in <span class="math inline">[0</span>, <code>required_span_size()</code><span class="math inline">)</span>, there must exist a multidimensional index
+in the mapping’s extents that maps to that offset. That is, the mapping
+must be <em>surjective</em>.</p>
+<p>Relaxing the constraints on strides to allow a value of zero if and
+only if there is at least one extent of zero preserves both uniqueness
+and exhaustiveness. In the case where an extent is zero, the
+multidimensional index set is empty, and the mapping becomes a function
+from the empty set to the empty set. That makes the mapping both
+injective and surjective vacuously.</p>
+<h1 data-number="6" id="implementation"><span class="header-section-number">6</span> Implementation<a href="#implementation" class="self-link"></a></h1>
+<p>As shown above, both the reference <code>mdspan</code> implementation
+and libc++’s implementation actually implement this proposal by not
+checking the preconditions and by producing a valid
+<code>layout_stride::mapping</code>. In a hypothetical implementation
+that does check the preconditions, the only required changes would be
+removing these checks from three <code>layout_stride::mapping</code>
+constructors.</p>
+<h1 data-number="7" id="proposed-wording"><span class="header-section-number">7</span> Proposed wording<a href="#proposed-wording" class="self-link"></a></h1>
+<blockquote>
+<p>Text in blockquotes is not proposed wording, but rather instructions
+for generating proposed wording.</p>
+</blockquote>
+<h2 data-number="7.1" id="increment-__cpp_lib_mdspan-feature-test-macro"><span class="header-section-number">7.1</span> Increment
+<code>__cpp_lib_mdspan</code> feature test macro<a href="#increment-__cpp_lib_mdspan-feature-test-macro" class="self-link"></a></h2>
+<p>In [version.syn], increase the value of the
+<code>__cpp_lib_mdspan</code> macro by replacing YYYMML below with the
+integer literal encoding the appropriate year (YYYY) and month (MM).</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define __cpp_lib_mdspan </span>YYYYMML<span class="pp"> </span><span class="co">// also in &lt;mdspan&gt;</span></span></code></pre></div>
+<h2 data-number="7.2" id="change-mdspan.layout.stride.cons-4.1"><span class="header-section-number">7.2</span> Change
+[mdspan.layout.stride.cons] 4.1<a href="#change-mdspan.layout.stride.cons-4.1" class="self-link"></a></h2>
+<blockquote>
+<p>Change [mdspan.layout.stride.cons] as follows.</p>
+</blockquote>
+<div class="sourceCode" id="cb6"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>template&lt;class OtherIndexType&gt;</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  constexpr mapping(const extents_type&amp; e, span&lt;OtherIndexType, _rank__&gt; s) noexcept;</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>template&lt;class OtherIndexType&gt;</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  constexpr mapping(const extents_type&amp; e, const array&lt;OtherIndexType, _rank__&gt;&amp; s) noexcept;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">3</a></span>
+<em>Constraints</em>:</p>
+<ul>
+<li><p><span class="marginalizedparent"><a class="marginalized">(3.1)</a></span>
+<code>is_convertible_v&lt;const OtherIndexType&amp;, index_type&gt;</code>
+is <code>true</code>, and</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(3.2)</a></span>
+<code>is_nothrow_constructible_v&lt;index_type, const OtherIndexType&amp;&gt;</code>
+is <code>true</code>.</p></li>
+</ul>
+<p><span class="marginalizedparent"><a class="marginalized">4</a></span>
+<em>Preconditions</em>:</p>
+<ul>
+<li><p><span class="marginalizedparent"><a class="marginalized">(4.1)</a></span>
+<span class="rm" style="color: #bf0303"><del>The result of converting
+<span><code>s[</code></span><span class="math inline"><em>i</em></span><span><code>]</code></span> to
+<span><code>index_type</code></span> is greater than
+<span><code>0</code></span> for all <span class="math inline"><em>i</em></span> in the range <span class="math inline">[0</span>,
+<em><span><code>rank_</code></span></em><span class="math inline">)</span>.</del></span> <span class="add" style="color: #00AA00"><ins>Let <span class="math inline"><em>σ</em><sub><em>i</em></sub></span> be the result
+of converting <span><code>s[</code></span><span class="math inline"><em>i</em></span><span><code>]</code></span> to
+<span><code>index_type</code></span>. Then, for all <span class="math inline"><em>i</em></span> in the range <span class="math inline">[0</span>,
+<em><span><code>rank_</code></span></em><span class="math inline">)</span>, if the multidimensional index space
+<span><code>e</code></span> is empty, <span class="math inline"><em>σ</em><sub><em>i</em></sub></span> is greater
+than or equal to zero, otherwise <span class="math inline"><em>σ</em><sub><em>i</em></sub></span> is greater
+than zero.</ins></span></p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(4.2)</a></span>
+<em><code>REQUIRED-SPAN-SIZE</code></em><code>(e, s)</code> is
+representable as a value of type <code>index_type</code>
+([basic.fundamental]).</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(4.3)</a></span> If
+<em><code>rank_</code></em> is greater than 0, then there exists a
+permutation <span class="math inline"><em>P</em></span> of the integers
+in the range <span class="math inline">[0</span>,
+<em><code>rank_</code></em><span class="math inline">)</span>, such that
+<code>s[</code><span class="math inline"><em>p</em><sub><em>i</em></sub></span><code>] &gt;= s[</code><span class="math inline"><em>p</em><sub><em>i</em> − 1</sub></span><code>] * e.extent(</code><span class="math inline"><em>p</em><sub><em>i</em> − 1</sub></span><code>)</code>
+is <code>true</code> for all <span class="math inline"><em>i</em></span>
+in the range <span class="math inline">[1</span>,
+<em><code>rank_</code></em><span class="math inline">)</span>, where
+<span class="math inline"><em>p</em><sub><em>i</em></sub></span> is the
+<span class="math inline"><em>i</em><sup><em>t</em><em>h</em></sup></span>
+element of <span class="math inline"><em>P</em></span>.</p></li>
+</ul>
+<p><span class="ednote" style="color: #0000ff">[ Editor&#39;s note: This
+definition also permits zero strides, because the permutation can be
+selected to move them to the front of the list of strides. For example,
+suppose that the extents are (2, 3, 0, 7, 0, 13) and the strides are (1,
+2, 0, 30, 0, 2310). If the permutation is (2, 3, 0, 4, 1, 5), then the
+permuted extents are (0, 0, 2, 3, 7, 13) and the permuted strides are
+(0, 0, 1, 2, 30, 2310). This even works if the extents corresponding to
+the zero strides are nonzero. ]</span></p>
+<p>[<em>Note 1</em>: For <code>layout_stride</code>, this condition is
+necessary and sufficient for <code>is_unique()</code> to be true. —
+<em>end note</em>]</p>
+<h2 data-number="7.3" id="change-mdspan.layout.stride.cons-7.2"><span class="header-section-number">7.3</span> Change
+[mdspan.layout.stride.cons] 7.2<a href="#change-mdspan.layout.stride.cons-7.2" class="self-link"></a></h2>
+<blockquote>
+<p>Change [mdspan.layout.stride.cons] as follows, to permit conversion
+from <code>layout_{left,right}::mapping</code> with some zero extents
+(or any strided layout) to <code>layout_stride::mapping</code>.</p>
+</blockquote>
+<div class="sourceCode" id="cb7"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>template&lt;class StridedLayoutMapping&gt;</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  constexpr explicit(<em>see below</em>)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    mapping(const StridedLayoutMapping&amp; other) noexcept;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">6</a></span>
+<em>Constraints</em>:</p>
+<ul>
+<li><p><span class="marginalizedparent"><a class="marginalized">(6.1)</a></span>
+<em><code>layout-mapping-alike</code></em><code>&lt;StridedLayoutMapping&gt;</code>
+is satisfied.</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(6.2)</a></span>
+<code>is_constructible_v&lt;extents_type, typename StridedLayoutMapping​::​extents_type&gt;</code>
+is <code>true</code>.</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(6.3)</a></span>
+<code>StridedLayoutMapping​::​is_always_unique()</code> is
+<code>true</code>.</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(6.4)</a></span>
+<code>StridedLayoutMapping​::​is_always_strided()</code> is
+<code>true</code>.</p></li>
+</ul>
+<p><span class="marginalizedparent"><a class="marginalized">7</a></span>
+<em>Constraints</em>:</p>
+<ul>
+<li><p><span class="marginalizedparent"><a class="marginalized">(7.1)</a></span>
+<code>StridedLayoutMapping</code> meets the layout mapping requirements
+([mdspan.layout.reqmts])<span class="rm" style="color: #bf0303"><del>,</del></span><span class="add" style="color: #00AA00"><ins>;</ins></span></p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(7.2)</a></span>
+<span class="rm" style="color: #bf0303"><del><span><code>other.stride(</code></span><span class="math inline"><em>r</em></span><span><code>) &gt; 0</code></span>
+is <span><code>true</code></span> for every rank index <span class="math inline"><em>r</em></span> of
+<span><code>extents()</code></span>,</del></span><span class="add" style="color: #00AA00"><ins>for every rank index <span class="math inline"><em>r</em></span> of
+<span><code>extents()</code></span>, if the multidimensional index space
+<span><code>other.extents()</code></span> is empty,
+<span><code>other.stride(</code></span><span class="math inline"><em>r</em></span><span><code>)</code></span> is
+greater than or equal to zero, otherwise
+<span><code>other.stride(</code></span><span class="math inline"><em>r</em></span><span><code>)</code></span> is
+greater than zero;</ins></span></p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(7.3)</a></span>
+<code>other.required_span_size()</code> is representable as a value of
+type <code>index_type</code> ([basic.fundamental])<span class="rm" style="color: #bf0303"><del>,</del></span><span class="add" style="color: #00AA00"><ins>;</ins></span> and</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(7.4)</a></span>
+<em><code>OFFSET</code></em><code>(other) == 0</code> is
+<code>true</code>.</p></li>
+</ul>
+</div>
+</div>
+</body>
+</html>

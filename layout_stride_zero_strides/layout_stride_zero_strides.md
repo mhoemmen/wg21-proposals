@@ -1,7 +1,7 @@
 ---
-title: "Let zero-size `layout_stride::mapping` accept zero strides"
+title: "Let `layout_stride::mapping` with zero extent(s) accept zero strides"
 document: PXXXXR0
-date: 2025-10-20
+date: 2025-10-22
 audience: LEWG
 author:
   - name: Jacob Faibussowitsch
@@ -148,7 +148,7 @@ builds and runs the following example with Clang 21.1.0 and libc++,
 using build options `-std=c++26 -stdlib=libc++ -Wall`.
 [This Compiler Explorer link](https://godbolt.org/z/aec58hsTd)
 builds and runs the same example (with just a namespace change)
-with the [reference `mdspan` implementation](https::github.com/kokkos/mdspan).
+with the [reference `mdspan` implementation](https://github.com/kokkos/mdspan).
 
 ```c++
 #include <cassert>
@@ -295,7 +295,7 @@ by replacing YYYMML below with the integer literal
 encoding the appropriate year (YYYY) and month (MM).
 
 ```c++
-#define __cpp_lib_submdspan YYYYMML // also in <mdspan>
+#define __cpp_lib_mdspan YYYYMML // also in <mdspan>
 ```
 
 ## Change [mdspan.layout.stride.cons] 4.1
@@ -317,18 +317,13 @@ template<class OtherIndexType>
 
 [4]{.pnum} *Preconditions*:
 
-::: rm
-* [4.1]{.pnum} The result of converting `s[`$i$`]` to `index_type`
-    is greater than `0` for all $i$ in the range $[0$, _`rank_`_$)$.
-:::
-
-::: add
-* [4.1]{.pnum} Let $\sigma_i$ be the result of converting `s[`$i$`]` to `index_type`.
+* [4.1]{.pnum} [The result of converting `s[`$i$`]` to `index_type`
+    is greater than `0` for all $i$ in the range $[0$, _`rank_`_$)$.]{.rm}
+    [Let $\sigma_i$ be the result of converting `s[`$i$`]` to `index_type`.
     Then, for all $i$ in the range $[0$, _`rank_`_$)$,
     if the multidimensional index space `e` is empty,
     $\sigma_i$ is greater than or equal to zero,
-    otherwise $\sigma_i$ is greater than zero.
-:::
+    otherwise $\sigma_i$ is greater than zero.]{.add}
 
 * [4.2]{.pnum} _`REQUIRED-SPAN-SIZE`_`(e, s)` is representable
     as a value of type `index_type` ([basic.fundamental]).
@@ -340,8 +335,7 @@ template<class OtherIndexType>
     for all $i$ in the range $[1$, _`rank_`_$)$,
     where $p_i$ is the $i^{th}$ element of $P$.
 
-::: add
-[*Editorial Note*: This definition also permits zero strides,
+[This definition also permits zero strides,
 because the permutation can be selected to move them
 to the front of the list of strides.
 For example, suppose that the extents are (2, 3, 0, 7, 0, 13)
@@ -349,9 +343,8 @@ and the strides are (1, 2, 0, 30, 0, 2310).
 If the permutation is (2, 3, 0, 4, 1, 5),
 then the permuted extents are (0, 0, 2, 3, 7, 13)
 and the permuted strides are (0, 0, 1, 2, 30, 2310).
-This even works if the extents corresponding to the zero strides are nonzero.
-— *end note*]
-:::
+This even works if the extents corresponding to the zero strides
+are nonzero.]{.ednote}
 
 [*Note 1*:
 For `layout_stride`, this condition is necessary and sufficient
@@ -385,16 +378,12 @@ template<class StridedLayoutMapping>
 * [7.1]{.pnum} `StridedLayoutMapping` meets the
     layout mapping requirements ([mdspan.layout.reqmts])[,]{.rm}[;]{.add}
 
-::: rm
-* [7.2]{.pnum} `other.stride(`$r$`) > 0` is `true` for every rank index $r$ of `extents()`,
-:::
-
-::: add
-* [7.2]{.pnum} for every rank index $r$ of `extents()`,
+* [7.2]{.pnum} [`other.stride(`$r$`) > 0` is `true`
+    for every rank index $r$ of `extents()`,]{.rm}[
+    for every rank index $r$ of `extents()`,
     if the multidimensional index space `other.extents()` is empty,
     `other.stride(`$r$`)` is greater than or equal to zero,
-    otherwise `other.stride(`$r$`)` is greater than zero;
-:::
+    otherwise `other.stride(`$r$`)` is greater than zero;]{.add}
 
 * [7.3]{.pnum} `other.required_span_size()` is representable as a value
     of type `index_type` ([basic.fundamental])[,]{.rm}[;]{.add} and
