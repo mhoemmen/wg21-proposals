@@ -549,6 +549,10 @@ In fact, it would work for types other than lambdas,
 such as a struct with a `const T` member,
 where `T` is trivially copyable.
 
+# Acknowledgments
+
+Thanks to my NVIDIA colleague Ilya Burylov for reviewing this paper and suggesting wording changes!
+
 # Proposed wording
 
 > Text in blockquotes is not proposed wording, but rather instructions for generating proposed wording.
@@ -575,29 +579,29 @@ In [version.syn], add the `__cpp_lib_trivally_copy_constructible` macro by repla
 
 [This assumes removal of trivial relocatability (P2786R13).]{.ednote}
 
-::: rm
-[1]{.pnum} A *trivially copyable class* is a class:
-
-* [1.1]{.pnum} that has at least one eligible copy constructor, move constructor, copy assignment operator, or move assignment operator ([special], [class.copy.ctor], [class.copy.assign]),
-
-* [1.2]{.pnum} where each eligible copy constructor, move constructor, copy assignment operator, and move assignment operator is trivial, and
-
-* [1.3]{.pnum} that has a trivial, non-deleted destructor ([class.dtor]).
-:::
-
 ::: add
 [1]{.pnum} A *trivially copy-constructible class* is a class:
 
-* [1.1]{.pnum} that has at least one eligible copy constructor, move constructor, copy assignment operator, or move assignment operator ([special], [class.copy.ctor], [class.copy.assign]),
+* [1.1]{.pnum} that has at least one eligible copy constructor ([special], [class.copy.ctor]),
 
-* [1.2]{.pnum} where each eligible copy constructor and move constructor is trivial, and
+* [1.2]{.pnum} where each eligible copy constructor is trivial,
 
-* [1.3]{.pnum} that has a trivial, non-deleted destructor ([class.dtor]).
+* [1.3]{.pnum} where each eligible move constructor, if present, is trivial, and
 
-[2]{.pnum} A *trivially copyable class* is a trivially copy-constructible class where each eligible copy assignment operator and move assignment operator is trivial.
+* [1.4]{.pnum} that has a trivial, non-deleted destructor ([class.dtor]).
 :::
 
-[3]{.pnum} A class S is a standard-layout class if it:
+[We say "at least one eligible copy constructor" because a class `X` could have multiple copy constructors `X(const X&)` and `X(X&, int=1)`, for example, per [class.copy.ctor] 1.  These are not "of the same kind" per [special] 5, and thus both of them could be eligible, if invoked with a nonconst `X` object.]{.ednote}
+
+[2]{.pnum} A *trivially copyable class* is a class:
+
+* [2.1]{.pnum} that has at least one eligible copy constructor, move constructor, copy assignment operator, or move assignment operator ([special], [class.copy.ctor], [class.copy.assign]),
+
+* [2.2]{.pnum} where each eligible copy constructor, move constructor, copy assignment operator, and move assignment operator is trivial, and
+
+* [2.3]{.pnum} that has a trivial, non-deleted destructor ([class.dtor]).
+
+[3]{.pnum} A class S is a *standard-layout class* if it:
 
 ## Add example to end of [class.prop]
 
