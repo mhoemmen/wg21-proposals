@@ -1,5 +1,5 @@
 ---
-title: "Define trivial copy-constructibility to improve parallelizability of ranges algorithms"
+title: "Define copy-constructibility-from-bytes to improve parallelizability of ranges algorithms"
 document: DXXXXR0
 date: today
 audience:
@@ -32,12 +32,17 @@ then start the lifetime of a new `T` object using those bytes
 as the object's representation.
 We propose making that well-defined behavior
 by introducing a narrowing of trivial copyability
-called *trivial copy-constructibility*,
-that requires only that the type have a trivial copy constructor.
-Our definition makes all trivial copy-constructible types
+called *copy-constructibility-from-bytes*
+that does not require a trivial copy assignment operator.
+(We do not call this "trivial copy-constructibility"
+because that would conflict with the existing
+`is_trivially_copy_constructible` type trait,
+that has too narrow of a meaning for our purpose.)
+
+Our definition makes all copy-constructible-from-bytes types
 also implicit-lifetime types, so we can use `start_lifetime_as`
-to start the lifetime of a trivially copy-constructible object
-using an existing object representation.
+to start the lifetime of such an object
+using a copy of an existing object's value representation.
 
 # Motivation
 
@@ -448,9 +453,9 @@ while hindering compilers from helping users do the right thing.
 Also, we don't *need* to copy bytes between existing objects.
 Thus, we do not favor this approach.
 
-## Remaining option: "Trivial copy-constructibility"
+## Remaining option: "copy-constructible-from-bytes"
 
-### Define trivial copy-constructibility
+### Define copy-constructible-from-bytes property of a type
 
 The problem with the previous options is that
 they fight the solution naturally suggested by the implementation.
@@ -459,8 +464,11 @@ A _`movable-box`_ of the lambda in question
 is still copy constructible and its copy constructor is trivial.
 Thus, what we actually need here is not trivial copyability,
 but "trivial copy-constructibility."
+Unfortunately, that name is taken already
+(see discussion in a section below),
+so we use the term "copy-constructible-from-bytes."
 
-We define a *trivially copy-constructible class*
+We define a *copy-constructible-from-bytes class*
 (analogously to [class.prop] 1) to be either an aggregate
 whose destructor is not user-provided, or to be any class
 
@@ -474,25 +482,27 @@ whose destructor is not user-provided, or to be any class
 
 * that has a trivial, non-deleted destructor.
 
-We define a *trivially copy-constructible type*
-to be a scalar type, trivially copy-copyable class type,
-arrays of such types, or cv-qualified versions of these types.
+We define *copy-constructible-from-bytes types*
+to be scalar types, copy-constructible-from-bytes class types,
+array of such types, or cv-qualified versions of these types.
 Trivially constructible types are also trivially copy-constructible,
 but not necessarily the other way around.
 Our lambda example that captures a single `int` by value
 would be trivially copy-constructible,
 even though it is not trivally copyable.
 
-### Trivially copy-constructible types are implicit-lifetime types
+### Copy-constructible-from-bytes types are implicit-lifetime types
 
-It turns out that trivially copy-constructible types
+It turns out that copy-constructible-from-bytes types
 are also implicit-lifetime types.
 This means that we can use them with `start_lifetime_as`.
 
-### Define trivial copy construction
+### Copy-construction from bytes
 
-We then say that trivially copy-constructible types can be
-*trivially copy-constructed* or "copy-constructed from bytes."
+We say that copy-constructible-from-bytes types can be
+*copy-constructed from bytes*.
+This means starting their lifetime from a value representation
+copied from an existing object, as in the following example.
 
 ```c++
 void* dst_mem = std::aligned_alloc(alignof(T), sizeof(T));
@@ -500,8 +510,8 @@ std::memcpy(dst_mem, &src, sizeof(T));
 T* dst_ptr = std::start_lifetime_as(dst_mem);
 ```
 
-Analogously to [basic.types.general] 3, we say that,
-given an object `src` of trivially copy-constructible type `T`,
+Analogously to [basic.types.general] 3,
+given an object `src` of copy-constructible-from-bytes type `T`,
 and given correctly aligned storage
 for an object of type `T` at address `dst_mem`,
 copying the bytes of `src` into `dst_mem` and then somehow
@@ -520,6 +530,27 @@ We don't want to use the default constructor
 or even require that types be default constructible.
 None of the `uninitialized_*` or `ranges::uninitialized_*`
 algorithms in `<memory>` would accomplish this.
+
+### Avoid collision with `is_trivially_copy_constructible`
+
+We would have preferred to call this property
+"trivial copy-constructibility,"
+as it is a restriction of trivial copyability for types
+that are copy constructible but not copy assignable.
+Unfortunately, this would collide with the existing trait
+`is_trivially_copy_constructible`,
+which has a much narrower meaning than we need.
+If `is_trivially_copy_constructible_v<T>` is `true`,
+then this only means that the copy constructor is trivial
+([meta.unary.prop]).
+However, if `is_trivially_copyable_v<T>` is `true`,
+then `T` is trivially copyable, which imposes requirements
+on other special member functions, including the destructor.
+
+Our new property needs to impose analogous requirements
+on things unrelated to copy constructors or copy assignment.
+Just having `is_trivially_copy_constructible_v<T>` be `true`
+is not enough.  Thus, we need a different name.
 
 ### _`movable-box`_ already has a trivial destructor
 
@@ -557,16 +588,16 @@ Thanks to my NVIDIA colleague Ilya Burylov for reviewing this paper and suggesti
 
 > Text in blockquotes is not proposed wording, but rather instructions for generating proposed wording.
 
-## Increment `__cpp_lib_trivially_copy_constructible` feature test macro
+## Increment `__cpp_lib_copy_constructible_from_bytes` feature test macro
 
-In [version.syn], add the `__cpp_lib_trivally_copy_constructible` macro by replacing YYYMML below with the integer literal encoding the appropriate year (YYYY) and month (MM).
+In [version.syn], add the `__cpp_lib_copy_constructible_from_bytes` macro by replacing YYYMML below with the integer literal encoding the appropriate year (YYYY) and month (MM).
 
 ```
 #define __cpp_lib_transparent_operators 201510L // @_freestanding, also in_@ <memory>, <functional>
 ```
 ::: add
 ```
-#define __cpp_lib_trivially_copy_constructible YYYYMML // @_freestanding, also in_@ <memory>, <type_traits>
+#define __cpp_lib_copy_constructible_from_bytes YYYYMML // @_freestanding, also in_@ <memory>, <type_traits>
 ```
 :::
 ```
@@ -580,7 +611,7 @@ In [version.syn], add the `__cpp_lib_trivally_copy_constructible` macro by repla
 [This assumes removal of trivial relocatability (P2786R13).]{.ednote}
 
 ::: add
-[1]{.pnum} A *trivially copy-constructible class* is a class:
+[1]{.pnum} A *copy-constructible-from-bytes class* is a class:
 
 * [1.1]{.pnum} that has at least one eligible copy constructor ([special], [class.copy.ctor]),
 
@@ -591,7 +622,12 @@ In [version.syn], add the `__cpp_lib_trivally_copy_constructible` macro by repla
 * [1.4]{.pnum} that has a trivial, non-deleted destructor ([class.dtor]).
 :::
 
-[We say "at least one eligible copy constructor" because a class `X` could have multiple copy constructors `X(const X&)` and `X(X&, int=1)`, for example, per [class.copy.ctor] 1.  These are not "of the same kind" per [special] 5, and thus both of them could be eligible, if invoked with a nonconst `X` object.]{.ednote}
+[We say "at least one eligible copy constructor" because a class `X`
+could have multiple copy constructors `X(const X&)` and `X(X&, int=1)`,
+for example, per [class.copy.ctor] 1.
+These are not "of the same kind" per [special] 5,
+and thus both of them could be eligible,
+if invoked with a nonconst `X` object.]{.ednote}
 
 [2]{.pnum} A *trivially copyable class* is a class:
 
@@ -615,11 +651,11 @@ In [version.syn], add the `__cpp_lib_trivally_copy_constructible` macro by repla
 
 ::: add
 [*Note 7*:
-A trivially copy-constructible class `S` is also an implicit-lifetime class.
+A copy-constructible-from-bytes class `S` is also an implicit-lifetime class.
 — *end note*]
 
 [*Example 3*:
-If `S` is a trivially copy-constructible class and `src` is an object of type `S`,
+If `S` is a copy-constructible-from-bytes class and `src` is an object of type `S`,
 then the following starts the lifetime of an `S` object at `dst_ptr`
 with the same object representation as that of `src`.
 
@@ -640,7 +676,7 @@ S* dst_ptr = std::start_lifetime_as(dst_mem);
 ::: add
 [2]{.pnum} For any object `src`
 (other than a potentially-overlapping subobject)
-of trivially copy-constructible type `T`,
+of copy-constructible-from-bytes type `T` ([class.prop]),
 the underlying bytes ([intro.memory]) making up `src`
 can be copied into an array of
 `char`, `unsigned char`, or `std::byte` ([cstddef.syn]).
@@ -684,7 +720,7 @@ std::memcpy(&obj, buf, N);      // at this point, each subobject of obj of scala
 | `template<class T> struct is_const;` | `T` is const-qualified ([basic.type.qualifier]) | |
 | `template<class T> struct is_volatile;` | `T` is volatile-qualified ([basic.type.qualifier]) | |
 ::: add
-| `template<class T> struct is_trivially_copy_constructible;` | `T` is a trivially copy-copyable type ([basic.types.general]) | `remove_all_extents_t<T>` shall be a complete type or *cv* `void`. |
+| `template<class T> struct is_copy_constructible_from_bytes;` | `T` is a copy-constructible-from-bytes type ([basic.types.general]) | `remove_all_extents_t<T>` shall be a complete type or *cv* `void`. |
 :::
 | `template<class T> struct is_trivially_copyable;` | `T` is a trivially copyable type ([basic.types.general]) | `remove_all_extents_t<T>` shall be a complete type or *cv* `void`. |
 | `template<class T> struct is_standard_layout;` | `T` is a standard-layout type ([basic.types.general]) | `remove_all_extents_t<T>` shall be a complete type or *cv* `void`. |
@@ -700,7 +736,7 @@ consteval bool is_volatile_type(info type);
 ```
 ::: add
 ```
-consteval bool is_trivially_copy_constructible_type(info type);
+consteval bool is_copy_constructible_from_bytes_type(info type);
 ```
 :::
 ```
@@ -719,7 +755,7 @@ consteval bool is_standard_layout_type(info type);
 ```
 ::: add
 ```
-  template<class T> struct is_trivially_copy_constructible;
+  template<class T> struct is_copy_constructible_from_bytes;
 ```
 :::
 ```
@@ -738,7 +774,7 @@ consteval bool is_standard_layout_type(info type);
 ```
 ::: add
   template<class T>
-    constexpr bool is_trivially_copy_constructible_v = is_trivially_copy_constructible<T>::value;
+    constexpr bool is_copy_constructible_from_bytes_v = is_copy_constructible_from_bytes<T>::value;
 :::
 ```
   template<class T>
