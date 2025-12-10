@@ -359,7 +359,7 @@ These are useful properties that we want to retain.
 
 # Approaches to a fix
 
-## Make lambdas trivially copy assignable if their members are?
+## Make lambdas trivially copyable if their members are?
 
 We could just make lambdas trivially copyable if their members are.
 This would work by giving lambdas a defaulted copy assignment operator
@@ -430,25 +430,21 @@ Also, we don't *need* to copy bytes between existing objects;
 we only need to create new objects from copied value representations.
 Thus, we do not favor this approach.
 
-## What about trivial move, or trivial relocation?
+## What about "trivial move" (relocation)?
 
-Suppose that we could "trivially move" the view
+Suppose that we could "trivially move" a `transform_view`
 from host to accelerator memory, instead of trivially copying it.
 By "trivially move," we mean
 
-1. ending the lifetime of the view object in host memory
+1. ending the lifetime of the `transform_view` object in host memory
     while retaining its storage;
 
 2. copying the storage bytes from host to accelerator memory,
     after which point the host storage is no longer needed
     and can be freed; and
 
-3. starting the lifetime of a new view object in accelerator memory
-    using the bytes copied in (2).
-
-If the view is an implicit-lifetime type,
-then we could use `start_lifetime_as` to accomplish (3).
-(Please see the section above.)
+3. implicitly creating a new `transform_view` object
+    in accelerator memory using the bytes copied in (2).
 
 Another way to say "trivial move" is "trivial relocation."
 The Standard doesn't currently have a way to express this.
@@ -457,19 +453,29 @@ C++26's trivial relocation proposal
 did not survive National Body comment challenges
 and was removed at the Kona meeting in November 2025.
 
-A reasonable definition of "trivial movability"
-might work like trivial copyability, in that
-it would require a trivial or deleted move constructor
-and move assignment operator.
-This would admit a lambda
-with value captures of trivially copyable types.
-Such a lambda would have a trivial move constructor,
+We do not favor this approach for two reasons.
+
+1. It would not solve our _`movable-box`_ problem
+    without further changes.
+
+2. We want to copy objects, not move them.
+    We don't need or necessarily even want
+    to end the lifetime of the source objects.
+
+Regarding (1), a reasonable definition of "trivial movability"
+might work like trivial copyability,
+in that it would require a trivial or deleted
+move constructor and move assignment operator.
+A lambda with value captures of trivially copyable types
+would meet these criteria,
+as it would have a trivial move constructor,
 nondeclared (and therefore not user-provided)
 move assignment operator, and trivial destructor.
 However, the lambda's nondeclared move assignment operator
 would make _`movable-box`_
 define a nontrivial move assignment operator
 per [range.move.wrap] 1.4.
+
 One way to work around this would be to add syntax
 for asserting that a class is trivially movable
 despite having a nontrivial move assignment operator.
@@ -477,13 +483,7 @@ This would work like the special identifier
 `trivially_relocatable_if_eligible`
 in C++26's trivial relocation proposal
 [P2786](https://wg21.link/p2786).
-
-We do not favor this approach because
-we want to copy objects, not move them.
-We don't need or necessarily even want
-to end the lifetime of the source objects.
-However, if the language gives us trivial relocation
-as the only tool to use, we would use it.
+We do not propose this.
 
 ## Remaining option: "copy-constructible-from-bytes"
 
