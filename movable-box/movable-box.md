@@ -365,145 +365,20 @@ For example, it avoids special cases for situations like
 It also makes creation and use of views more forgiving for users.
 These are useful properties that we want to retain.
 
-# Approaches to a fix
+# Our solution: "Copy-constructibility-from-bytes"
 
-## Make lambdas trivially copyable if their members are?
+## Define copy-constructible-from-bytes type property
 
-We could just make lambdas trivially copyable if their members are.
-This would work by giving lambdas a defaulted copy assignment operator
-as long as all their members are copy assignable.
-This would make lambdas more consistent with other objects of class type.
-
-Lambdas' move assignment operator could be either defaulted as well,
-or deleted.  Either approach would still make them trivially copyable.
-
-We like this approach,
-but think that it should be pursued as a separate proposal.
-There are other applications for relaxing trivial copyability
-that do not involve lambdas.
-A change to lambdas' set of special member functions
-would require compiler changes,
-while a minor relaxation of trivial copyability might not.
-
-## Make certain things trivially copyable by decree?
-
-### Decree that lambdas are trivially copyable?
-
-We could simply decree that lambdas are trivially copyable
-if they only capture values
-and if all those values are of trivially copyable types.
-This would solve the immediate problem at hand.
-However, it would make lambdas behave differently
-than other objects of class type.
-It would be weird for `is_trivially_copyable_v<F>` to be `true`,
-but for `is_trivially_copy_assignable_v<F>`
-to depend on whether `F` is a lambda type.
-Thus, we do not favor this approach.
-
-### Decree that _`movable-box`_ is trivially copyable if its component is?
-
-Launching a parallel algorithm with a `transform_view`
-on an accelerator does not actually require
-invoking `transform_view`'s copy assignment operator.
-It's a purely syntactic requirement for trivial copyability.
-We could simply *decree* that _`movable-box`_`<F>`
-is trivially copyable if `F` is.
-However, this would require adding a special case
-to the core language for a type with no Standard name.
-Lack of a Standard name might hinder use of different
-Standard Library implementations with the same compiler.
-Thus, we do not favor this approach.
-
-### Let types declare their trivial copyability?
-
-What if a class could assert that it is trivially copyable,
-even if it has a nontrivial copy assignment operator?
-This might work like the special identifier
-`trivially_relocatable_if_eligible`
-that was part of C++26's trivial relocation proposal
-[P2786](https://wg21.link/p2786).
-We could use an analogous `trivially_copyable_if_eligible` keyword
-to make _`movable-box`_ trivially copyable
-as long as its function object is.
-
-The problem with this approach is that trivial copyability
-also includes copying bytes between existing objects.
-That bypasses the destination object's copy assignment operator.
-A nontrivial copy assignment operator might have arbitrary effects
-that do not correspond to copying bytes.
-Giving users a way to demand trivial copyability
-could open up a field of potential bugs,
-while hindering compilers from helping users do the right thing.
-Also, we don't *need* to copy bytes between existing objects;
-we only need to create new objects from copied value representations.
-Thus, we do not favor this approach.
-
-## What about "trivial move" (relocation)?
-
-Suppose that we could "trivially move" a `transform_view`
-from host to accelerator memory, instead of trivially copying it.
-By "trivially move," we mean
-
-1. ending the lifetime of the `transform_view` object in host memory
-    while retaining its storage;
-
-2. copying the storage bytes from host to accelerator memory,
-    after which point the host storage is no longer needed
-    and can be freed; and
-
-3. implicitly creating a new `transform_view` object
-    in accelerator memory using the bytes copied in (2).
-
-Another way to say "trivial move" is "trivial relocation."
-The Standard doesn't currently have a way to express this.
-C++26's trivial relocation proposal
-[P2786](https://wg21.link/p2786)
-did not survive National Body comment challenges
-and was removed at the Kona meeting in November 2025.
-
-We do not favor this approach for two reasons.
-
-1. It would not solve our _`movable-box`_ problem
-    without further changes.
-
-2. We want to copy objects, not move them.
-    We don't need or necessarily even want
-    to end the lifetime of the source objects.
-
-Regarding (1), a reasonable definition of "trivial movability"
-might work like trivial copyability,
-in that it would require a trivial or deleted
-move constructor and move assignment operator.
-A lambda with value captures of trivially copyable types
-would meet these criteria,
-as it would have a trivial move constructor,
-nondeclared (and therefore not user-provided)
-move assignment operator, and trivial destructor.
-However, the lambda's nondeclared move assignment operator
-would make _`movable-box`_
-define a nontrivial move assignment operator
-per [range.move.wrap] 1.4.
-
-One way to work around this would be to add syntax
-for asserting that a class is trivially movable
-despite having a nontrivial move assignment operator.
-This would work like the special identifier
-`trivially_relocatable_if_eligible`
-in C++26's trivial relocation proposal
-[P2786](https://wg21.link/p2786).
-We do not propose this.
-
-## Remaining option: "copy-constructible-from-bytes"
-
-### Define copy-constructible-from-bytes property of a type
-
-The problem with the previous options is that
-they fight the solution naturally suggested by the implementation.
-The implementation wants to "copy-construct" the arguments
+All the things we want to do --
+run parallel algorithms on an accelerator,
+communicate objects across a network,
+or serialize objects to disk --
+naturally want to "copy-construct" a new object
 from bytes copied from an existing object's value representation.
-A _`movable-box`_ of the lambda in question
-is still copy constructible and its copy constructor is trivial.
-Thus, what we actually need here is not trivial copyability,
+We don't need copy assignment,
+yet we find ourselves blocked by trivial copyability's
+requirement that copy assignment (if it exists) be trivial.
+What we actually need here is not trivial copyability,
 but "trivial copy-constructibility."
 Unfortunately, that name is taken already
 (see discussion in a section below),
@@ -527,13 +402,13 @@ Trivially constructible types are also copy-constructible-from-bytes,
 but not necessarily the other way around,
 as our _`movable-box`_ example shows.
 
-### Copy-constructible-from-bytes types are implicit-lifetime types
+## Copy-constructible-from-bytes types are implicit-lifetime types
 
 It turns out that copy-constructible-from-bytes types
 are also implicit-lifetime types.
 This means that we can use them with `start_lifetime_as`.
 
-### Copy-construction from bytes
+## Copy-construction from bytes
 
 We say that copy-constructible-from-bytes types can be
 *copy-constructed from bytes*.
@@ -566,7 +441,7 @@ or even require that types be default constructible.
 None of the `uninitialized_*` or `ranges::uninitialized_*`
 algorithms in `<memory>` would accomplish this.
 
-### Adjust `start_lifetime_as` and `bit_cast` accordingly
+## Adjust `start_lifetime_as` and `bit_cast` accordingly
 
 The `start_lifetime_as` function implicitly creates an object
 of any complete, implicit-lifetime type.
@@ -584,7 +459,7 @@ The current specification of `start_lifetime_as` looks like this.
 
 It refers to `bit_cast`.  The *Returns* clause of [bit.cast]
 has a detailed description of the desired behavior.
-We would like to preserve this, as it seems to apply
+We would like to preserve this, as it would seem to apply
 even for copy-constructible-by-bytes types.
 All we need to do is relax `bit_cast`'s *Constraints*,
 which currently require that both the input type `To` and
@@ -619,7 +494,7 @@ We propose two changes.
 The Standard specifies `start_lifetime_as_array` using `start_lifetime_as`,
 so we do not need to change the wording of `start_lifetime_as_array`.
 
-### Avoid collision with `is_trivially_copy_constructible`
+## Avoid conflict with `is_trivially_copy_constructible`
 
 We would have preferred to call this property
 "trivial copy-constructibility,"
@@ -638,7 +513,7 @@ Our new property needs to impose analogous requirements
 beyond those implied by
 `is_trivially_copy_constructible_v<T>` being `true`.
 
-### _`movable-box`_ is already an implicit-lifetime type
+## _`movable-box`_ is already an implicit-lifetime type
 
 We depend on both the ability to copy algorithm arguments bytewise,
 and on the ability to create those arguments implicitly
@@ -659,9 +534,9 @@ as long as all their members are trivially destructible.
 This means that we don't need to change the specification
 of _`movable-box`_ itself in order for our example to work.
 
-### Examples of types that should vs. should not be affected
+## Examples of types that should vs. should not be affected
 
-In order to understand the effects of this core language change,
+In order to understand the effects of our proposed change,
 we present three categories of types
 with nontrivial copy assignment operators,
 and discuss whether we would want to permit
@@ -700,7 +575,7 @@ We don't presume that these categories cover all possible types.
 However, this analysis increases our confidence that
 copy-constructibility-from-bytes would not make C++ less safe.
 
-#### "Morally trivially copyable" types
+### "Morally trivially copyable" types
 
 ```c++
 int x = 42;
@@ -760,7 +635,7 @@ might have been added at that point, but the developer who did that
 might have forgotten to add `=default` to the copy assignment operator.
 Like _`movable-box`_, copy assignment is "accidentally nontrivial."
 
-#### "Thankfully not trivially copyable" types
+### "Thankfully not trivially copyable" types
 
 It might help to contrast the above examples with some types
 that really should not be copy constructible from bytes.
@@ -778,7 +653,7 @@ We can think of at least three subcategories.
     the constructor have a desired side effect.
     These types tend to forbid copying altogether.
 
-#### Proxy reference types
+### Proxy reference types
 
 Proxy reference types may have a trivial copy constructor,
 but their copy assignment operator has a desired side effect.
@@ -894,7 +769,7 @@ Thus, introducing copy-constructibility-from-bytes
 would not introduce any more possibility for dangling
 than these types already have.
 
-#### Types with external state affecting how they copy
+### Types with external state affecting how they copy
 
 Suppose that a class `fp256` represents
 a 256-bit floating-point number with 1 sign bit,
@@ -948,6 +823,107 @@ This proposal would do nothing to affect classes like this.
 They already behave strangely.
 C++ currently has no way to tell users
 not to take the liberties that trivial copyability offers them.
+
+# What we do NOT propose
+
+This section covers alternate solutions that we do NOT propose here.
+
+## Make lambdas trivially copyable if their members are?
+
+Lambdas with capture clauses currently have a defaulted copy constructor,
+but a deleted copy assignment operator.
+We could make their copy assignment operator defaulted as well.
+This would, in turn, make lambdas trivially copyable if their members are.
+Lambdas' move assignment operator could be either defaulted as well,
+or deleted.  Either approach would still make them trivially copyable.
+
+We like this approach, because it would make lambdas more consistent
+with other objects of class type.
+However, we think it should be pursued as a separate proposal.
+There are other applications for relaxing trivial copyability
+that do not involve lambdas.
+A change to lambdas' set of special member functions
+would require compiler changes,
+while a minor relaxation of trivial copyability might not.
+
+## Decree that _`movable-box`_ is trivially copyable if its component is?
+
+Launching a parallel algorithm with a `transform_view`
+on an accelerator does not actually require
+invoking `transform_view`'s copy assignment operator.
+It's a purely syntactic requirement for trivial copyability.
+We could simply *decree* that _`movable-box`_`<F>`
+is trivially copyable if `F` is.
+However, this would require adding a special case
+to the core language for a type with no Standard name.
+Lack of a Standard name might hinder use of different
+Standard Library implementations with the same compiler.
+Thus, we do not favor this approach.
+
+## Let types opt into trivial copyability?
+
+What if a class could "opt into" trivial copyability,
+even if it has a nontrivial copy assignment operator?
+The class `C` would use some syntax to promise the compiler that
+any nontrivial special members behave as if they are trivial.
+In return, `is_trivially_copyable_v<C>` would be `true`,
+and both the compiler and users would have permission
+to make any code transformations that they is allowed to make
+for trivially copyable types, including the permissions
+expressed in [basic.types.general] 2-3.
+
+The syntax might look like the special identifier
+`trivially_relocatable_if_eligible`
+that was part of C++26's trivial relocation proposal
+[P2786R13](https://wg21.link/p2786r13).
+One could imagine an analogous `trivially_copyable_if_eligible` keyword
+that would let a class opt into the privileges of trivial copyability.
+Other prior art includes
+[Clang's `trivial_abi` attribute](https://clang.llvm.org/docs/AttributeReference.html#trivial-abi).
+
+We do not favor this approach, because trivial copyability
+is more coarse-grained than what our applications actually need.
+We do not need to copy bytes between existing objects,
+so we do not need to bypass a nontrivial copy assignment operator.
+While we could imagine narrowing his approach
+to specific member functions ("I promise that this
+copy assignment operator behaves as if it is trivial"),
+we could not come up with use cases to justify the risk
+of letting users make these kinds of promises.
+
+## "Trivial move" (that is, trivial relocation)?
+
+Suppose that we could "trivially move" a `transform_view`
+from host to accelerator memory, instead of trivially copying it.
+By "trivially move," we mean
+
+1. ending the lifetime of the `transform_view` object in host memory
+    while retaining its storage;
+
+2. copying the storage bytes from host to accelerator memory,
+    after which point the host storage is no longer needed
+    and can be freed; and
+
+3. implicitly creating a new `transform_view` object
+    in accelerator memory using the bytes copied in (2).
+
+Another way to say "trivial move" is "trivial relocation."
+The Standard doesn't currently have a way to express this.
+C++26's trivial relocation proposal
+[P2786](https://wg21.link/p2786)
+did not survive National Body comment challenges
+and was removed at the Kona meeting in November 2025.
+
+We do not favor this approach for two reasons.
+
+1. It would not solve our _`movable-box`_ problem
+    without further changes, because _`movable-box`_
+    of a lambda with captures also has a nontrivial
+    move assignment operator.
+
+2. We want to copy objects, not move them.
+    We don't need or necessarily even want
+    to end the lifetime of the source objects.
 
 # Implementation
 
