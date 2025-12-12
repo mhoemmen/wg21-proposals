@@ -673,13 +673,14 @@ their copy construction from bytes.
     where the latter behaves just like a
     trivial copy assignment operator would behave.
     These types motivate this proposal;
-    we want them to be copy constructible from bytes.
+    we define copy-constructible-from-bytes
+    to include these types.
 
 2. "Thankfully not trivially copyable":
     Types that either forbid copying altogether,
     or where both copy construction and copy assignment
-    have desired side effects.  We never want these types
-    to be copy constructible from bytes.
+    are nontrivial and have desired side effects.
+    Such types would not be copy constructible from bytes.
 
 3. Proxy references: Types that are either already
     trivially copyable, or that have a trivial copy constructor
@@ -689,6 +690,7 @@ their copy construction from bytes.
     but would introduce no more possibility of dangling
     than a struct holding a reference or pointer
     (which is already trivially copyable).
+    Thus, our proposal would not make their behavior worse.
 
 4. Types with external state affecting how they copy:
     These types might already be trivially copyable.
