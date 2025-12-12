@@ -7,9 +7,17 @@ audience:
 author:
   - name: Mark Hoemmen
     email: <mhoemmen@nvidia.com>
+  - name: Ruslan Arutyunyan
+    email: <ruslan.arutyunyan@intel.com>
 toc: true
 toc-depth: 2
 ---
+
+# Authors
+
+* Mark Hoemmen (NVIDIA)
+
+* Ruslan Arutyunyan (Intel)
 
 # Abstract
 
@@ -32,7 +40,7 @@ and so it's an object that holds the same value as `src`.
 
 C++ developers want this behavior for many applications
 that need to communicate objects by bytewise copy.
-Our motivation is that `ranges::transform_view` and
+Our original motivation is that `ranges::transform_view` and
 `ranges::zip_transform_view` are not trivially copyable
 if their function object is a lambda that captures an `int` by value.
 This hinders parallelization of ranges algorithms
@@ -558,6 +566,59 @@ or even require that types be default constructible.
 None of the `uninitialized_*` or `ranges::uninitialized_*`
 algorithms in `<memory>` would accomplish this.
 
+### Adjust `start_lifetime_as` and `bit_cast` accordingly
+
+The `start_lifetime_as` function implicitly creates an object
+of any complete, implicit-lifetime type.
+However, the *value* of the created object is only determined
+for trivially copyable types.
+Otherwise, its value is unspecified and can be indeterminate.
+The current specification of `start_lifetime_as` looks like this.
+
+> The value of each created object $o$ of trivially copyable type
+> ([basic.types.general]) `U` is determined in the same manner
+> as for a call to `bit_cast<U>(E)` ([bit.cast]),
+> where `E` is an lvalue of type `U` denoting $o$,
+> except that the storage is not accessed.
+> The value of any other created object is unspecified.
+
+It refers to `bit_cast`.  The *Returns* clause of [bit.cast]
+has a detailed description of the desired behavior.
+We would like to preserve this, as it seems to apply
+even for copy-constructible-by-bytes types.
+All we need to do is relax `bit_cast`'s *Constraints*,
+which currently require that both the input type `To` and
+the return type `From` are trivially copyable.
+
+This introduces a new question: What if `To` and `From` differ?
+We haven't talked about that case above.
+The *Returns* clause of [bit.cast] makes this question not matter,
+as long as the result `To` gets a valid value representation.
+The `bit_cast` function already permits those type conversions
+and doesn't protect callers from the consequences of
+`To` getting an invalid value representation.
+
+> For the result and each object created within it,
+> if there is no value of the object's type corresponding to
+> the value representation produced, the behavior is undefined.
+
+Thus, we think it is acceptable to relax the Constraints
+on both `From` and `To`.
+
+We propose two changes.
+
+1. In the *Effects* clause of `start_lifetime_as`,
+    relax "trivially copyable type" to "copy-constructible-by-bytes type"
+
+2. In the *Constraints* clause of `bit_cast`,
+    relax `is_trivially_copyable_v<To>` to
+    `is_copy_constructible_from_bytes_v<To>`,
+    and relax `is_trivially_copyable_v<From>` to
+    `is_copy_constructible_from_bytes_v<From>`.
+
+The Standard specifies `start_lifetime_as_array` using `start_lifetime_as`,
+so we do not need to change the wording of `start_lifetime_as_array`.
+
 ### Avoid collision with `is_trivially_copy_constructible`
 
 We would have preferred to call this property
@@ -596,14 +657,259 @@ as long as `F` is.
 Lambdas that capture values have a trivial destructor
 as long as all their members are trivially destructible.
 This means that we don't need to change the specification
-of _`movable-box`_ itself in order for our example to work.  
+of _`movable-box`_ itself in order for our example to work.
 
-### This approach treats lambdas like any other class type
+### Examples of types that should vs. should not be affected
 
-This approach would treat lambdas like any other class type.
-In fact, it would work for types other than lambdas,
-such as a struct with a `const T` member,
-where `T` is trivially copyable.
+In order to understand the effects of this core language change,
+we present three categories of types
+with nontrivial copy assignment operators,
+and discuss whether we would want to permit
+their copy construction from bytes.
+
+1. "Morally trivially copyable":
+    Types with a trivial copy constructor and
+    a nontrivial copy assignment operator,
+    where the latter behaves just like a
+    trivial copy assignment operator would behave.
+    These types motivate this proposal;
+    we want them to be copy constructible from bytes.
+
+2. "Thankfully not trivially copyable":
+    Types that either forbid copying altogether,
+    or where both copy construction and copy assignment
+    have desired side effects.  We never want these types
+    to be copy constructible from bytes.
+
+3. Proxy references: Types that are either already
+    trivially copyable, or that have a trivial copy constructor
+    and a nontrivial copy assignment operator.
+    Copy construction from bytes might cause
+    dangling references or pointers,
+    but would introduce no more possibility of dangling
+    than a struct holding a reference or pointer
+    (which is already trivially copyable).
+
+We don't presume that these categories cover all possible types.
+However, this analysis increases our confidence that
+copy-constructibility-from-bytes would not make C++ less safe.
+
+#### "Morally trivially copyable" types
+
+```c++
+int x = 42;
+@_movable-box_@ m{[x] (int y) { return x + y; }};
+```
+
+A _`movable-box`_ of a lambda with an `int` value capture
+is not trivially copy or move assignable,
+but this is purely for syntactic reasons.
+Its nontrivial copy resp. move assignment operators just invoke
+the stored object's trivial copy resp. move constructor.
+In this case, though, one could argue that
+the lambda "should" be copy and move assignable, and that
+the intended meaning of copy and move assignment is unambiguous.
+
+```c++
+struct S {
+  const int x;
+};
+
+int x = 42;
+@_movable-box_@ m{S{x}};
+```
+
+We might then consider a struct with a `const int` member.
+This is also not copy assignable,
+so _`movable-box`_ of that struct is also not trivially copyable.
+In this case, the `const int` declares the intent that `S`
+(and therefore _`movable-box`_`<S>`) is not copy assignable.
+The "nonessential reason" here is again syntactic.
+The intended value of `bit_cast<S>(x)` is unambiguous,
+even though the current specification makes it unspecified.
+
+```c++
+class UnfortunateUserChoice {
+  UnfortunateUserChoice(const UnfortunateUserChoice& rhs)
+    = default;
+
+  UnfortunateUserChoice&
+  operator=(const UnfortunateUserChoice& rhs) {
+    if (this != &rhs) {
+      this->x = rhs.x;
+    }
+    return *this;
+  }
+
+private:
+  int x;
+};
+```
+
+We might then consider a class with a defaulted copy constructor
+but a user-provided copy assignment operator.
+This class might have come about from a C++98 code base
+that was later upgraded.  The copy constructor's `=default`
+might have been added at that point, but the developer who did that
+might have forgotten to add `=default` to the copy assignment operator.
+Like _`movable-box`_, copy assignment is "accidentally nontrivial."
+
+#### "Thankfully not trivially copyable" types
+
+It might help to contrast the above examples with some types
+that really should not be copy constructible from bytes.
+These types have "essentially nontrivial" copy assignment,
+move assignment, and/or destructors.
+We can think of at least three subcategories.
+
+1. Containers that use dynamic allocation, like `std::vector`
+
+2. Smart pointers that either forbid copying,
+    like `std::unique_ptr`, or that express shared ownership
+    with reference counting, like `std::shared_ptr`
+
+3. Scope guards, where the destructor and possibly also
+    the constructor have a desired side effect.
+    These types tend to forbid copying altogether.
+
+#### Proxy reference types
+
+Proxy reference types may have a trivial copy constructor,
+but their copy assignment operator has a desired side effect.
+For example, `std::vector<bool>::reference` has a defaulted
+copy constructor that could reasonably be made trivial,
+for example if `reference` stores an address of a byte or word
+in the `std::vector`'s storage.
+However, its copy assignment operator cannot and
+should not be trivial, because it copies a bit, not the address.
+
+Copy-construction-from-bytes might be technically correct
+as long as the `reference`'s `std::vector` object still exists.
+However, the common applications of copy-construction-from-bytes
+may copy the source's object representation "far" from
+the source object's owning scope.
+The source object might never have existed in that program,
+for example when copying over a network or loading from disk.
+
+Expression templates are a special case of proxy reference types.
+These normally hold references to other objects,
+which may themselves be expressions.
+The whole tree of expressions gets evaluated
+in a container's copy assignment operator,
+or on conversion to an actual value.
+Here is a short example (available at this
+[Compiler Explorer link](https://godbolt.org/z/Pz3ao5von)).
+
+```c++
+#include <cassert>
+#include <type_traits>
+
+template<class Left, class Right>
+struct Plus {
+  constexpr operator float() const {
+    return float(left) * float(right);
+  }
+
+  const Left& left;
+  const Right& right;
+};
+
+template<class Left, class Right>
+constexpr auto plus(const Left& left, const Right& right) {
+  return Plus<Left, Right>(left, right);
+}
+
+template<class Left, class Right>
+struct Times {
+  constexpr operator float() const {
+    return float(left) * float(right);
+  }
+
+  const Left& left;
+  const Right& right;
+};
+
+template<class Left, class Right>
+constexpr auto times(const Left& left, const Right& right) {
+  return Times<Left, Right>(left, right);
+}
+
+// A "container" type, into which we assign
+// the result of the expression.
+struct S {
+  float value;
+
+  constexpr operator float() const {
+    return value;
+  }
+
+  template<class T>
+  constexpr S(const T& t) : value(float(t)) {}
+
+  template<class T>
+  constexpr float& operator=(const T& t) {
+    value = float(t);
+    return value;
+  }
+};
+
+int main() {
+  static_assert(std::is_trivially_copyable_v<S>);
+  static_assert(std::is_copy_constructible_v<S>);
+  static_assert(std::is_copy_assignable_v<S>);
+
+  static_assert(std::is_trivially_copyable_v<Plus<S, S>>);
+  static_assert(std::is_copy_constructible_v<Plus<S, S>>);
+  static_assert(! std::is_copy_assignable_v<Plus<S, S>>);
+
+  S s1{1.0f};
+  S s2{2.0f};
+  S s3{4.0f};
+
+  S s4 = times(plus(s1, s2), s3);
+  assert(s4.value == 12.0f);
+
+  return 0;
+}
+```
+
+Note that `Plus` and `Times` are trivially copyable,
+but not copy assignable.
+Deleting the copy constructor and copy assignment operator
+of `Plus` and `Times` makes them not copy constructible,
+but they remain trivially copyable.
+Thus, C++ already has the issue that these types
+are trivially copyable, even though perhaps they shouldn't be.
+
+All these types have in common that they behave like a struct
+holding a reference or a pointer.
+Such a struct is trivially copyable.
+Thus, introducing copy-constructibility-from-bytes
+would not introduce any more possibility for dangling
+than these types already have.
+
+# Implementation
+
+## Compiler changes due to Core language relaxation?
+
+It's not clear what in the compiler would *need* to change
+in order to make this work.
+
+## Type trait
+
+Here is a possible implementation of the new type trait.
+
+```c++
+template <typename T>
+constexpr bool 
+is_copy_constructible_from_bytes_v =
+  is_copy_constructible_v<T> && // at least one eligible copy constructor
+  // if there is an eligible copy contructor, it is trivial
+  (std::is_copy_constructible_v<T> == std::is_trivially_copy_constructible_v<T>) && 
+  // if there is an eligible move contructor, it is trivial
+  (std::is_move_constructible_v<T> == std::is_trivially_move_constructible_v<T>) &&
+  std::is_trivially_destructible_v<T>; // is trivially destructible
+```
 
 # Acknowledgments
 
@@ -734,6 +1040,51 @@ std::memcpy(buf, &obj, N);      // between these two calls to std​::​memcpy,
 std::memcpy(&obj, buf, N);      // at this point, each subobject of obj of scalar type holds its original value
 ```
 — *end example*]
+
+## Change [obj.lifetime]
+
+> Change [obj.lifetime] ("Explicit lifetime management") as follows.
+
+```
+template<class T>
+  T* start_lifetime_as(void* p) noexcept;
+template<class T>
+  const T* start_lifetime_as(const void* p) noexcept;
+template<class T>
+  volatile T* start_lifetime_as(volatile void* p) noexcept;
+template<class T>
+  const volatile T* start_lifetime_as(const volatile void* p) noexcept;
+```
+
+[1]{.pnum} *Mandates*: T is an implicit-lifetime type ([basic.types.general]) and not an incomplete type ([basic.types.general]).
+
+[2]{.pnum} *Preconditions*: $[$`p`, `(char*)p + sizeof(T)`$)$ denotes a region of allocated storage that is a subset of the region of storage reachable through ([basic.compound]) `p` and suitably aligned for the type `T`.
+
+[3]{.pnum} *Effects*: Implicitly creates objects ([intro.object]) within the denoted region consisting of an object $a$ of type `T` whose address is `p`, and objects nested within $a$, as follows: The object representation of $a$ is the contents of the storage prior to the call to `start_lifetime_as`.  The value of each created object $o$ of [trivially copyable]{.rm}[copy-constructible-by-bytes]{.add} type ([basic.types.general]) `U` is determined in the same manner as for a call to `bit_cast<U>(E)` ([bit.cast]), where `E` is an lvalue of type `U` denoting $o$, except that the storage is not accessed.  The value of any other created object is unspecified.
+
+[*Note 1*: The unspecified value can be indeterminate.
+— *end note*]
+
+[4]{.pnum} *Returns*: A pointer to the $a$ defined in the *Effects* paragraph.
+
+[We do not need to change `start_lifetime_as_array`, since the Standard specifies it in terms of `start_lifetime_as`.]{.ednote}
+
+## Change [bit.cast]
+
+> Change [bit.cast] ("Function template `bit_cast`") as follows.
+
+```
+template<class To, class From>
+  constexpr To bit_cast(const From& from) noexcept;
+```
+
+[1]{.pnum} *Constraints*:
+
+* [1.1]{.pnum} `sizeof(To) == sizeof(From)` is `true`;
+
+* [1.2]{.pnum} [`is_trivially_copyable_v]{.rm}[`is_copy_constructible_from_bytes_v`]{.add}`<To>` is `true`.
+
+* [1.3]{.pnum} [`is_trivially_copyable_v]{.rm}[`is_copy_constructible_from_bytes_v`]{.add}`<From>` is `true`.
 
 ## Change [meta.unary.prop]
 
