@@ -690,6 +690,10 @@ their copy construction from bytes.
     than a struct holding a reference or pointer
     (which is already trivially copyable).
 
+4. Types with external state affecting how they copy:
+    These types might already be trivially copyable.
+    Our proposal would not make their behavior worse.
+
 We don't presume that these categories cover all possible types.
 However, this analysis increases our confidence that
 copy-constructibility-from-bytes would not make C++ less safe.
@@ -888,6 +892,61 @@ Thus, introducing copy-constructibility-from-bytes
 would not introduce any more possibility for dangling
 than these types already have.
 
+#### Types with external state affecting how they copy
+
+Suppose that a class `fp256` represents
+a 256-bit floating-point number with 1 sign bit,
+$p - 1$ significand bits, and $w = 254 - p$ exponent bits.
+The class stores the bits in a `std::array<uint64_t, 4>`
+and has no other non-static member data,
+so it can perfectly be made trivially copyable.
+However, users can set a global integer to determine
+the number of significand bits.  This lets them trade
+between precision and representable range.
+
+(We came up with this example by recalling the ARPREC library
+(Bailey et al. 2002), though its `mp_real` class performs
+dynamic allocation and thus could not be trivially copyable.)
+
+Suppose that one program sets the number of significand bits
+to 236 (the number used by IEEE 754's binary256 type),
+creates an `fp256` object `src`, copies its object representation,
+ahd sends the object representation over a network to another program.
+That program had already set the number of significand bits
+to some other value.  The receiving program then uses
+`bit_cast<fp256>` to create an `fp256` object implicitly
+with the received bytes.
+The resulting value is a valid `fp256` value,
+but does not represent the value in the sending program.
+
+Our reading of the *Returns* clause of [bit.cast]
+is that this falls under the the following case:
+
+> If there are multiple such values
+> [corresponding to the value representation produced],
+> which value is produced is unspecified.
+
+That is, a single value representation (the 256 bits)
+can represent multiple floating-point values,
+and which value it represents depends on external state
+(the global number of significand bits).
+
+We could imagine adding more global state
+that controls the total number of bits used for the representation,
+and establish an invariant that all unused bits must be set to zero.
+This would fall into the following [bit.cast] *Returns* case.
+
+> For the result and each object created within it,
+> if there is no value of the object's type
+> corresponding to the value representation produced,
+> the behavior is undefined.
+
+This class is trivially copyable!
+This proposal would do nothing to affect classes like this.
+They already behave strangely.
+C++ currently has no way to tell users
+not to take the liberties that trivial copyability offers them.
+
 # Implementation
 
 ## Compiler changes due to Core language relaxation?
@@ -914,6 +973,10 @@ is_copy_constructible_from_bytes_v =
 # Acknowledgments
 
 Thanks to my NVIDIA colleague Ilya Burylov for reviewing this paper and suggesting wording changes!
+
+# References
+
+* David H. Bailey, Yozo Hida, Xiaoye S. Li, and Brandon Thompson.  "ARPREC: An Arbitrary Precision Computational Package," Lawrence Berkeley National Laboratory technical report, 2002-10-14.  [Available online](https://www.davidhbailey.com/dhbpapers/arprec.pdf) (last viewed 2025-12-11).  Please see also [David H. Bailey's web page](https://www.davidhbailey.com/dhbsoftware/) and the [ARPREC GitHub page](https://github.com/BL-highprecision/ARPREC).
 
 # Proposed wording
 
