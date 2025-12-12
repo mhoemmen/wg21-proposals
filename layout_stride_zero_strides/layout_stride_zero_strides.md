@@ -1,7 +1,7 @@
 ---
 title: "Let `layout_stride::mapping` with zero extent(s) accept zero strides"
 document: PXXXXR0
-date: 2025-10-23
+date: today
 audience: LEWG
 author:
   - name: Jacob Faibussowitsch
@@ -23,7 +23,7 @@ toc: true
 
 # Revision history
 
-* Revision 0 to be submitted 2025-??-??
+* Revision 0 to be submitted 202?-??-??
 
 # Introduction
 
@@ -63,35 +63,26 @@ by calling the BLAS or LAPACK must already account for this.
 Its [`ndarray` protocol](https://numpy.org/doc/2.3/reference/arrays.ndarray.html)
 defines an application binary interface for sharing multidimensional array views
 across libraries, programming languages, and hardware interfaces.
+It would be natural to translate Python objects
+that conform with the `ndarray` protocol
+directly to C++ as `mdspan` with `layout_stride`.
 
-Since `ndarray` objects represent multidimensional strided array views,
-it would be natural to translate them to C++ by using `mdspan` with `layout_stride`.
-Translation from C++ `mdspan` with `layout_stride` to Python `ndarray`
-works just fine, because Python permits arbitrary strides
-if the multidimensional index space has size zero.
-We show how to do this conversion from C++ to Python below
-by using the `pybind11` library.
+Python `ndarray`
+[permits arbitrary strides under two conditions](https://numpy.org/devdocs/reference/arrays.ndarray.html#internal-memory-layout-of-an-ndarray).
 
-```c++
-namespace py = pybind11;
+1. If an extent (what Python calls a "shape") is zero,
+    then the corresponding stride can be arbitrary.
 
-template<class ElementType, class Extents, class Accessor>
-py::dict make_array_interface_dict(
-  std::mdspan<ElementType, Extents, std::layout_stride, Accessor> md)
-{
-  py::dict array_interface;
-  array_interface["strides"] = md.mapping().strides();
-  array_interface["shape"] = md.extents();
-  // ... fill in other ndarray fields ...
-  return array_interface;
-}
-```
+2. If an array has size zero, then the strides are never used,
+    and thus all the strides can be arbitrary.
 
-However, when converting from Python to C++,
-the strides need an extra conversion step.
-This is because `layout_stride::mapping`'s constructor
-has a precondition that all strides are positive,
-even for zero extents.
+However, `layout_stride::mapping`'s constructor has a precondition
+that all strides are positive, even for zero extents.
+As a result, conversion from Python `ndarray` to C++ `mdspan`
+requires an extra step.
+We show below how to use the `pybind11` library to get a
+`layout_stride::mapping` corresponding to a given Python `ndarray`
+whose rank is known at compile time.
 
 ```c++
 template<std::size_t Rank>
@@ -119,6 +110,9 @@ python_to_cpp_mapping(const py::dict& array_interface)
     cpp_extents, cpp_strides};
 }
 ```
+
+The conversion from C++ to Python
+can just use the `mdspan`'s strides directly.
 
 ## Permit conversion of empty `layout_{left,right}::mapping` to `layout_stride::mapping`
 
