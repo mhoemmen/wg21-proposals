@@ -960,7 +960,7 @@ Thanks to my NVIDIA colleague Ilya Burylov for reviewing this paper and suggesti
 
 > Text in blockquotes is not proposed wording, but rather instructions for generating proposed wording.
 
-## Increment `__cpp_lib_copy_constructible_from_bytes` feature test macro
+## Add `__cpp_lib_copy_constructible_from_bytes` feature test macro
 
 In [version.syn], add the `__cpp_lib_copy_constructible_from_bytes` macro by replacing YYYMML below with the integer literal encoding the appropriate year (YYYY) and month (MM).
 
@@ -1108,7 +1108,8 @@ template<class T>
 
 [4]{.pnum} *Returns*: A pointer to the $a$ defined in the *Effects* paragraph.
 
-[We do not need to change `start_lifetime_as_array`, since the Standard specifies it in terms of `start_lifetime_as`.]{.ednote}
+[We do not need to change `start_lifetime_as_array`, since the Standard
+specifies it in terms of `start_lifetime_as`.]{.ednote}
 
 ## Change [bit.cast]
 
