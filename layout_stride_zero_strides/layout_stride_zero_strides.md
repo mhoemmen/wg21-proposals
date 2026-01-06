@@ -44,10 +44,12 @@ created in Python or other languages.
 
 This change would relax preconditions of two existing
 `layout_stride::mapping` constructors.
-It would not change what C++ code is currently well-formed or ill-formed.
+It would not change what code is currently well-formed or ill-formed.
 The only way in which it could affect backwards compatibility is by
 introducing `layout_stride::mapping` instances that have zero strides.
-This may affect use of some libraries like the BLAS and LAPACK
+This may affect use of some libraries like the
+[BLAS](https://www.netlib.org/blas/) and
+[LAPACK](https://www.netlib.org/lapack/)
 that forbid a zero stride,
 even if the corresponding matrix dimension is zero.
 On the other hand, `layout_left` and `layout_right` mappings
@@ -70,26 +72,34 @@ The design intent of `layout_stride` is to support the following use cases.
 
 The mapping actually supports more general conversions than (1).
 This is because its constructor with a `const StridedLayoutMapping&`
-parameter accepts any strided layout mapping (see `m.is_strided()`
-in the layout mapping requirements [mdspan.layout.reqmts]),
-not just the Standard strided mappings.
+parameter accepts any layout mapping (including user-defined mappings)
+for which `is_always_strided()` is `true`.  According to the
+[layout mapping requirements](https://eel.is/c++draft/mdspan.layout.reqmts),
+this means that the result of evaluating the layout mapping
+on any multidimensional index in its extents
+is the dot product of the index and the strides.
+The Notes attached to the layout mapping requirements
+call such a layout mapping a "strided layout [mapping]."
 
-Note that `layout_stride::mapping` is *not* a general strided layout mapping.
+"Strided layout mappings" can exist that
+`layout_stride::mapping` cannot represent.
 
-* It does *not* support "broadcasting" layouts --
+* `layout_stride::mapping` does *not* support "broadcasting" layouts --
     that is, nonunique layouts with all nonzero extents,
     where one or more strides are zero, with the intent
     of "broadcasting" one element over corresponding extent(s).
     Broadcasting layout mappings can be strided per
     [mdspan.layout.reqmts], even though they are not unique.
 
-* It does *not* support negative strides.
-    The Standard does not let a strided layout
-    have a negative stride for any extent greater than 1,
-    because then some multidimensional index would exist
+* `layout_stride::mapping` does *not* support negative strides.
+    A strided layout mapping may have a negative stride
+    as long as the corresponding extent is no greater than one.
+    (If that extent were greater than one,
+    then some multidimensional index would exist
     for which the mapping should return a negative number.
+    The layout mapping requirements forbid this.)
 
-* It is always a unique layout mapping.
+* `layout_stride::mapping` is always unique.
     (That all the strides are positive is necessary
     but not sufficient in order for this to hold.)
 
@@ -203,7 +213,7 @@ int main(int, char* argv[]) {
 }
 ```
 
-## Interoperability between Python and `mdspan`
+## Simplify interoperability between Python and `mdspan`
 
 The past two decades have seen ever-increasing use of Python
 for data science, scientific computations, machine learning,
@@ -287,7 +297,13 @@ However, this may be less intuitive for a Python developer.
 
 We show below how to use the `pybind11` library to get a
 `layout_stride::mapping` corresponding to a given Python `ndarray`
-whose rank is known at compile time.
+whose rank is known at compile time.  We omit checks for two cases.
+
+1. One extent may be -1, in which case the actual extent
+    is to be inferred from the size and the remaining extents.
+
+2. A nonunique input layout with positive strides,
+    which `ndarray` permits but `layout_stride` does not.
 
 ```c++
 template<std::size_t Rank>
@@ -300,9 +316,6 @@ python_ndarray_to_cpp_mapping(
   auto py_shape    = array_interface["shape"];
   using stride_type = std::intptr_t; // numpy.intp, a signed type
 
-  // One extent may be -1, in which case the actual extent
-  // is to be inferred from the size and the remaining extents.
-  // Omit this case for now.
   bool any_extent_is_zero = false;
   for (std::size_t i = 0; i < Rank; ++i) {
     assert(py_shape[i] >= 0);
@@ -350,9 +363,6 @@ python_ndarray_to_cpp_mapping(
   auto py_shape    = array_interface["shape"];
   using stride_type = std::intptr_t; // numpy.intp
 
-  // One extent may be -1, in which case the actual extent
-  // is to be inferred from the size and the remaining extents.
-  // Omit this case for now.
   for (std::size_t i = 0; i < Rank; ++i) {
     if (py_shape[i] != 0 && py_strides[i] == 0) { // SIMPLER
       throw unsupported_layout("Nonzero extent with zero stride")

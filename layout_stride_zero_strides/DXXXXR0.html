@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2025-10-23" />
+  <meta name="dcterms.date" content="2026-01-06" />
   <title>Let layout_stride::mapping with zero extent(s) accept zero strides</title>
   <style>
 code{white-space: pre-wrap;}
@@ -427,7 +427,7 @@ strides</h1>
   </tr>
   <tr>
     <td>Date: </td>
-    <td>2025-10-23</td>
+    <td>2026-01-06</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project: </td>
@@ -453,26 +453,26 @@ strides</h1>
 <li><a href="#author" id="toc-author"><span class="toc-section-number">1</span> Author</a></li>
 <li><a href="#revision-history" id="toc-revision-history"><span class="toc-section-number">2</span> Revision history</a></li>
 <li><a href="#introduction" id="toc-introduction"><span class="toc-section-number">3</span> Introduction</a></li>
-<li><a href="#motivation" id="toc-motivation"><span class="toc-section-number">4</span> Motivation</a>
+<li><a href="#design-intent-of-layout_stride" id="toc-design-intent-of-layout_stride"><span class="toc-section-number">4</span> Design intent of
+<code>layout_stride</code></a></li>
+<li><a href="#motivation" id="toc-motivation"><span class="toc-section-number">5</span> Motivation</a>
 <ul>
-<li><a href="#interoperability-between-numpy-arrays-and-mdspan" id="toc-interoperability-between-numpy-arrays-and-mdspan"><span class="toc-section-number">4.1</span> Interoperability between NumPy
-arrays and <code>mdspan</code></a></li>
-<li><a href="#permit-conversion-of-empty-layout_leftrightmapping-to-layout_stridemapping" id="toc-permit-conversion-of-empty-layout_leftrightmapping-to-layout_stridemapping"><span class="toc-section-number">4.2</span> Permit conversion of empty
-<code>layout_{left,right}::mapping</code> to
-<code>layout_stride::mapping</code></a></li>
-<li><a href="#work-around-create-a-new-layout" id="toc-work-around-create-a-new-layout"><span class="toc-section-number">4.3</span> Work-around: Create a new
-layout</a></li>
+<li><a href="#permit-conversion-of-empty-layout_left-or-layout_right-mapping-to-layout_stridemapping" id="toc-permit-conversion-of-empty-layout_left-or-layout_right-mapping-to-layout_stridemapping"><span class="toc-section-number">5.1</span> Permit conversion of empty
+<code>layout_left</code> or <code>layout_right</code>
+<code>mapping</code> to <code>layout_stride::mapping</code></a></li>
+<li><a href="#simplify-interoperability-between-python-and-mdspan" id="toc-simplify-interoperability-between-python-and-mdspan"><span class="toc-section-number">5.2</span> Simplify interoperability between
+Python and <code>mdspan</code></a></li>
 </ul></li>
-<li><a href="#relaxing-the-precondition-does-not-violate-current-requirements" id="toc-relaxing-the-precondition-does-not-violate-current-requirements"><span class="toc-section-number">5</span> Relaxing the precondition does not
+<li><a href="#relaxing-the-precondition-does-not-violate-current-requirements" id="toc-relaxing-the-precondition-does-not-violate-current-requirements"><span class="toc-section-number">6</span> Relaxing the precondition does not
 violate current requirements</a></li>
-<li><a href="#implementation" id="toc-implementation"><span class="toc-section-number">6</span> Implementation</a></li>
-<li><a href="#proposed-wording" id="toc-proposed-wording"><span class="toc-section-number">7</span> Proposed wording</a>
+<li><a href="#implementation" id="toc-implementation"><span class="toc-section-number">7</span> Implementation</a></li>
+<li><a href="#proposed-wording" id="toc-proposed-wording"><span class="toc-section-number">8</span> Proposed wording</a>
 <ul>
-<li><a href="#increment-__cpp_lib_mdspan-feature-test-macro" id="toc-increment-__cpp_lib_mdspan-feature-test-macro"><span class="toc-section-number">7.1</span> Increment
+<li><a href="#increment-__cpp_lib_mdspan-feature-test-macro" id="toc-increment-__cpp_lib_mdspan-feature-test-macro"><span class="toc-section-number">8.1</span> Increment
 <code>__cpp_lib_mdspan</code> feature test macro</a></li>
-<li><a href="#change-mdspan.layout.stride.cons-4.1" id="toc-change-mdspan.layout.stride.cons-4.1"><span class="toc-section-number">7.2</span> Change [mdspan.layout.stride.cons]
+<li><a href="#change-mdspan.layout.stride.cons-4.1" id="toc-change-mdspan.layout.stride.cons-4.1"><span class="toc-section-number">8.2</span> Change [mdspan.layout.stride.cons]
 4.1</a></li>
-<li><a href="#change-mdspan.layout.stride.cons-7.2" id="toc-change-mdspan.layout.stride.cons-7.2"><span class="toc-section-number">7.3</span> Change [mdspan.layout.stride.cons]
+<li><a href="#change-mdspan.layout.stride.cons-7.2" id="toc-change-mdspan.layout.stride.cons-7.2"><span class="toc-section-number">8.3</span> Change [mdspan.layout.stride.cons]
 7.2</a></li>
 </ul></li>
 </ul>
@@ -486,108 +486,102 @@ Laboratories)</p></li>
 </ul>
 <h1 data-number="2" id="revision-history"><span class="header-section-number">2</span> Revision history<a href="#revision-history" class="self-link"></a></h1>
 <ul>
-<li>Revision 0 to be submitted 2025-??-??</li>
+<li>Revision 0 to be submitted 2026-01-15</li>
 </ul>
 <h1 data-number="3" id="introduction"><span class="header-section-number">3</span> Introduction<a href="#introduction" class="self-link"></a></h1>
 <p>We propose to change <code>layout_stride::mapping</code>’s
 constructors to permit strides to be zero if one or more extents are
 zero. For example, for extents (3, 5, 0, 11), this change would permit
-strides (1, 3, 0, 105). Currently, users would need to set the stride(s)
-corresponding to zero extents to an arbitrary positive value, such as 1.
-That would make the strides (1, 3, 1, 105) in this example.</p>
-<p>This change has two benefits. First, it conforms with NumPy’s
-<code>ndarray</code> convention for specifying strides. This would let
-users construct a <code>layout_stride::mapping</code> directly from a
-NumPy array, or from any library that follows this convention. Second,
-it would let users convert <code>layout_left::mapping</code> or
-<code>layout_right::mapping</code> with size-zero extents to
-<code>layout_stride::mapping</code>.</p>
+any nonnegative strides. Currently, users would need to set the
+stride(s) corresponding to zero extents to an arbitrary positive value,
+such as 1. That would make the strides (1, 3, 1, 105) in this
+example.</p>
+<p>This change has two benefits. First, it would let users convert any
+empty <code>layout_left::mapping</code> or
+<code>layout_right::mapping</code> to
+<code>layout_stride::mapping</code>. Second, it would prevent
+unnecessary precondition violations when creating <code>mdspan</code>
+objects that view multidimensional arrays created in Python or other
+languages.</p>
 <p>This change would relax preconditions of two existing
 <code>layout_stride::mapping</code> constructors. It would not change
-what C++ code is currently well-formed or ill-formed. The only way in
-which it could affect backwards compatibility is by introducing
+what code is currently well-formed or ill-formed. The only way in which
+it could affect backwards compatibility is by introducing
 <code>layout_stride::mapping</code> instances that have zero strides.
-This may affect use of some libraries like the BLAS and LAPACK that
-forbid a zero stride, even if the corresponding matrix dimension is
-zero. On the other hand, <code>layout_left</code> and
-<code>layout_right</code> mappings can already have zero strides, so
-generic code that operates on the elements of an <code>mdspan</code> by
-calling the BLAS or LAPACK must already account for this.</p>
-<h1 data-number="4" id="motivation"><span class="header-section-number">4</span> Motivation<a href="#motivation" class="self-link"></a></h1>
-<h2 data-number="4.1" id="interoperability-between-numpy-arrays-and-mdspan"><span class="header-section-number">4.1</span> Interoperability between NumPy
-arrays and <code>mdspan</code><a href="#interoperability-between-numpy-arrays-and-mdspan" class="self-link"></a></h2>
-<p><a href="https://numpy.org/">NumPy</a> is a Python package for
-scientific computing. Its <a href="https://numpy.org/doc/2.3/reference/arrays.ndarray.html"><code>ndarray</code>
-protocol</a> defines an application binary interface for sharing
-multidimensional array views across libraries, programming languages,
-and hardware interfaces.</p>
-<p>Since <code>ndarray</code> objects represent multidimensional strided
-array views, it would be natural to translate them to C++ by using
-<code>mdspan</code> with <code>layout_stride</code>. Translation from
-C++ <code>mdspan</code> with <code>layout_stride</code> to Python
-<code>ndarray</code> works just fine, because Python permits arbitrary
-strides if the multidimensional index space has size zero. We show how
-to do this conversion from C++ to Python below by using the
-<code>pybind11</code> library.</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">namespace</span> py <span class="op">=</span> pybind11;</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="kw">class</span> Extents, <span class="kw">class</span> Accessor<span class="op">&gt;</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>py<span class="op">::</span>dict make_array_interface_dict<span class="op">(</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>mdspan<span class="op">&lt;</span>ElementType, Extents, std<span class="op">::</span>layout_stride, Accessor<span class="op">&gt;</span> md<span class="op">)</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  py<span class="op">::</span>dict array_interface;</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  array_interface<span class="op">[</span><span class="st">&quot;strides&quot;</span><span class="op">]</span> <span class="op">=</span> md<span class="op">.</span>mapping<span class="op">().</span>strides<span class="op">()</span>;</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  array_interface<span class="op">[</span><span class="st">&quot;shape&quot;</span><span class="op">]</span> <span class="op">=</span> md<span class="op">.</span>extents<span class="op">()</span>;</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ... fill in other ndarray fields ...</span></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> array_interface;</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
-<p>However, when converting from Python to C++, the strides need an
-extra conversion step. This is because
-<code>layout_stride::mapping</code>’s constructor has a precondition
-that all strides are positive, even for zero extents.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span>std<span class="op">::</span><span class="dt">size_t</span> Rank<span class="op">&gt;</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>layout_stride<span class="op">::</span>mapping<span class="op">&lt;</span>std<span class="op">::</span>dims<span class="op">&lt;</span>Rank<span class="op">&gt;&gt;</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>python_to_cpp_mapping<span class="op">(</span><span class="kw">const</span> py<span class="op">::</span>dict<span class="op">&amp;</span> array_interface<span class="op">)</span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> cpp_strides <span class="op">=</span> std<span class="op">::</span>array<span class="op">&lt;</span>std<span class="op">::</span><span class="dt">size_t</span>, Rank<span class="op">&gt;{}</span>;</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> py_strides  <span class="op">=</span> array_interface<span class="op">[</span><span class="st">&quot;strides&quot;</span><span class="op">]</span>;</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> <span class="op">(</span>std<span class="op">::</span><span class="dt">size_t</span> i <span class="op">=</span> <span class="dv">0</span>; i <span class="op">&lt;</span> Rank; <span class="op">++</span>i<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>py_strides<span class="op">[</span>i<span class="op">]</span> <span class="op">==</span> <span class="dv">0</span><span class="op">)</span> <span class="op">{</span></span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>      <span class="ot">assert</span><span class="op">(</span>array_interface<span class="op">[</span><span class="st">&quot;shape&quot;</span><span class="op">][</span>i<span class="op">]</span> <span class="op">==</span> <span class="dv">0</span><span class="op">)</span>;</span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>      cpp_strides<span class="op">[</span>i<span class="op">]</span> <span class="op">=</span> <span class="dv">1</span>; <span class="co">// to satisfy layout_stride</span></span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span> <span class="cf">else</span> <span class="op">{</span></span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>      cpp_strides<span class="op">[</span>i<span class="op">]</span> <span class="op">=</span> py_strides<span class="op">[</span>i<span class="op">]</span>;</span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> py_extents <span class="op">=</span> array_interface<span class="op">[</span><span class="st">&quot;shape&quot;</span><span class="op">]</span>;</span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> cpp_extents <span class="op">=</span></span>
-<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>    <span class="op">[&amp;]</span> <span class="op">&lt;</span>std<span class="op">::</span><span class="dt">size_t</span><span class="op">...</span> Inds<span class="op">&gt;</span> <span class="op">(</span>std<span class="op">::</span>index_sequence<span class="op">&lt;</span>Inds<span class="op">...&gt;)</span> <span class="op">{</span></span>
-<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> std<span class="op">::</span>dims<span class="op">&lt;</span>Rank<span class="op">&gt;{</span>py_extents<span class="op">[</span>Inds<span class="op">]...}</span>;</span>
-<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span> <span class="op">(</span>std<span class="op">::</span>make_index_sequence<span class="op">&lt;</span>Rank<span class="op">&gt;())</span>;</span>
-<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> std<span class="op">::</span>layout_stride<span class="op">::</span>mapping<span class="op">&lt;</span>std<span class="op">::</span>dims<span class="op">&lt;</span>Rank<span class="op">&gt;&gt;{</span></span>
-<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>    cpp_extents, cpp_strides<span class="op">}</span>;</span>
-<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
-<h2 data-number="4.2" id="permit-conversion-of-empty-layout_leftrightmapping-to-layout_stridemapping"><span class="header-section-number">4.2</span> Permit conversion of empty
-<code>layout_{left,right}::mapping</code> to
-<code>layout_stride::mapping</code><a href="#permit-conversion-of-empty-layout_leftrightmapping-to-layout_stridemapping" class="self-link"></a></h2>
-<p>The <code>layout_stride::mapping</code> class can represent the
-layout mapping of any <code>submdspan</code> of an <code>mdspan</code>
-with <code>layout_left</code> or <code>layout_right</code>. In other
-words, <code>layout_stride</code> is the “fixed point” of applying
-<code>submdspan</code> to any valid <code>layout_left</code> or
-<code>layout_right</code> mdspan. The
-<code>layout_stride::mapping(const StridedLayoutMapping&amp;)</code>
-constructor accepts any strided mapping, including but not limited to
-the four defined in C++26 (the above two, plus
-<code>layout_left_padded</code> and <code>layout_right_padded</code>).
-This makes it tempting to treat <code>layout_stride::mapping</code> as a
-“maximally type-erased” mapping, for example when defining stable
-application binary interfaces. This was part of the design intent for
-<code>layout_stride</code>.</p>
-<p>That works fine, except when the conversion’s input mapping has a
-zero extent. Creating a <code>layout_right</code> or
+This may affect use of some libraries like the <a href="https://www.netlib.org/blas/">BLAS</a> and <a href="https://www.netlib.org/lapack/">LAPACK</a> that forbid a zero
+stride, even if the corresponding matrix dimension is zero. On the other
+hand, <code>layout_left</code> and <code>layout_right</code> mappings
+can already have zero strides, so generic code that operates on the
+elements of an <code>mdspan</code> by calling the BLAS or LAPACK must
+already account for this.</p>
+<h1 data-number="4" id="design-intent-of-layout_stride"><span class="header-section-number">4</span> Design intent of
+<code>layout_stride</code><a href="#design-intent-of-layout_stride" class="self-link"></a></h1>
+<p>The design intent of <code>layout_stride</code> is to support the
+following use cases.</p>
+<ol type="1">
+<li><p>Any <code>layout_left</code>, <code>layout_right</code>,
+<code>layout_left_padded</code>, or <code>layout_right_padded</code>
+mapping can be converted to a <code>layout_stride</code> mapping without
+loss of information or possibility of failure.</p></li>
+<li><p><code>layout_stride::mapping</code> can represent any layout
+mapping resulting from one or more applications of
+<code>submdspan</code>, starting with any <code>mdspan</code> with
+<code>layout_left</code>, <code>layout_right</code>,
+<code>layout_left_padded</code>, or <code>layout_right_padded</code>
+mapping.</p></li>
+</ol>
+<p>The mapping actually supports more general conversions than (1). This
+is because its constructor with a
+<code>const StridedLayoutMapping&amp;</code> parameter accepts any
+layout mapping (including user-defined mappings) for which
+<code>is_always_strided()</code> is <code>true</code>. According to the
+<a href="https://eel.is/c++draft/mdspan.layout.reqmts">layout mapping
+requirements</a>, this means that the result of evaluating the layout
+mapping on any multidimensional index in its extents is the dot product
+of the index and the strides. The Notes attached to the layout mapping
+requirements call such a layout mapping a “strided layout
+[mapping].”</p>
+<p>“Strided layout mappings” can exist that
+<code>layout_stride::mapping</code> cannot represent.</p>
+<ul>
+<li><p><code>layout_stride::mapping</code> does <em>not</em> support
+“broadcasting” layouts – that is, nonunique layouts with all nonzero
+extents, where one or more strides are zero, with the intent of
+“broadcasting” one element over corresponding extent(s). Broadcasting
+layout mappings can be strided per [mdspan.layout.reqmts], even though
+they are not unique.</p></li>
+<li><p><code>layout_stride::mapping</code> does <em>not</em> support
+negative strides. A strided layout mapping may have a negative stride as
+long as the corresponding extent is no greater than one. (If that extent
+were greater than one, then some multidimensional index would exist for
+which the mapping should return a negative number. The layout mapping
+requirements forbid this.)</p></li>
+<li><p><code>layout_stride::mapping</code> is always unique. (That all
+the strides are positive is necessary but not sufficient in order for
+this to hold.)</p></li>
+</ul>
+<p>While <code>mdspan</code> generally permits custom nonunique layouts,
+the <code>mdspan</code> authors did not want a commonly used layout such
+as <code>layout_stride</code> to have this behavior. This is because it
+can be difficult to understand how to write generic algorithms for
+nonunique layouts, especially for algorithms that need to write to the
+<code>mdspan</code>’s elements.</p>
+<p>These restrictions were always part of <code>layout_stride</code>’s
+design. It’s something <code>mdspan</code>’s layouts inherited from
+<code>Kokkos::View</code>. It’s also part of the reason why the layout
+mapping requirements define a strided layout mapping separately from
+<code>layout_stride</code>. Relaxing this would break
+<code>submdspan</code>.</p>
+<h1 data-number="5" id="motivation"><span class="header-section-number">5</span> Motivation<a href="#motivation" class="self-link"></a></h1>
+<h2 data-number="5.1" id="permit-conversion-of-empty-layout_left-or-layout_right-mapping-to-layout_stridemapping"><span class="header-section-number">5.1</span> Permit conversion of empty
+<code>layout_left</code> or <code>layout_right</code>
+<code>mapping</code> to <code>layout_stride::mapping</code><a href="#permit-conversion-of-empty-layout_left-or-layout_right-mapping-to-layout_stridemapping" class="self-link"></a></h2>
+<p>Availability of so many conversions to
+<code>layout_stride::mapping</code> makes it natural for users to treat
+<code>layout_stride::mapping</code> as a “type-erased” mapping, for
+example when defining stable application binary interfaces. That works
+fine, except when the conversion’s input mapping has a zero extent. For
+example, creating a <code>layout_right</code> or
 <code>layout_left</code> <code>mdspan</code> with one or more extents of
 zero can result in an <code>mdspan</code> with one or more strides of
 zero. For example, a <code>layout_right</code> <code>mdspan</code> with
@@ -599,26 +593,26 @@ using build options <code>-std=c++26 -stdlib=libc++ -Wall</code>. <a href="https
 builds and runs the same example (with just a namespace change) with the
 <a href="https://github.com/kokkos/mdspan">reference <code>mdspan</code>
 implementation</a>.</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;cassert&gt;</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mdspan&gt;</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;print&gt;</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Layout<span class="op">&gt;</span></span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> mdspan_2d <span class="op">=</span> std<span class="op">::</span>mdspan<span class="op">&lt;</span><span class="dt">float</span>, std<span class="op">::</span>dims<span class="op">&lt;</span><span class="dv">2</span><span class="op">&gt;</span>, Layout<span class="op">&gt;</span>;</span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">()</span> <span class="op">{</span></span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  mdspan_2d<span class="op">&lt;</span>std<span class="op">::</span>layout_right<span class="op">&gt;</span> mr<span class="op">(</span><span class="kw">nullptr</span>, <span class="dv">1</span>, <span class="dv">0</span><span class="op">)</span>;</span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>print<span class="op">(</span><span class="st">&quot;{} {}</span><span class="sc">\n</span><span class="st">&quot;</span>, mr<span class="op">.</span>stride<span class="op">(</span><span class="dv">0</span><span class="op">)</span>, mr<span class="op">.</span>stride<span class="op">(</span><span class="dv">1</span><span class="op">))</span>;</span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>  <span class="ot">assert</span><span class="op">(</span>mr<span class="op">.</span>stride<span class="op">(</span><span class="dv">0</span><span class="op">)</span> <span class="op">==</span> <span class="dv">0</span><span class="op">)</span>;</span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>  <span class="ot">assert</span><span class="op">(</span>mr<span class="op">.</span>stride<span class="op">(</span><span class="dv">1</span><span class="op">)</span> <span class="op">==</span> <span class="dv">1</span><span class="op">)</span>;</span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>  mdspan_2d<span class="op">&lt;</span>std<span class="op">::</span>layout_left<span class="op">&gt;</span> ml<span class="op">(</span><span class="kw">nullptr</span>, <span class="dv">0</span>, <span class="dv">1</span><span class="op">)</span>;</span>
-<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>print<span class="op">(</span><span class="st">&quot;{} {}</span><span class="sc">\n</span><span class="st">&quot;</span>, ml<span class="op">.</span>stride<span class="op">(</span><span class="dv">0</span><span class="op">)</span>, ml<span class="op">.</span>stride<span class="op">(</span><span class="dv">1</span><span class="op">))</span>;</span>
-<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>  <span class="ot">assert</span><span class="op">(</span>ml<span class="op">.</span>stride<span class="op">(</span><span class="dv">0</span><span class="op">)</span> <span class="op">==</span> <span class="dv">1</span><span class="op">)</span>;</span>
-<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>  <span class="ot">assert</span><span class="op">(</span>ml<span class="op">.</span>stride<span class="op">(</span><span class="dv">1</span><span class="op">)</span> <span class="op">==</span> <span class="dv">0</span><span class="op">)</span>;</span>
-<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="dv">0</span>;</span>
-<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;cassert&gt;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mdspan&gt;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;print&gt;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Layout<span class="op">&gt;</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> mdspan_2d <span class="op">=</span> std<span class="op">::</span>mdspan<span class="op">&lt;</span><span class="dt">float</span>, std<span class="op">::</span>dims<span class="op">&lt;</span><span class="dv">2</span><span class="op">&gt;</span>, Layout<span class="op">&gt;</span>;</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  mdspan_2d<span class="op">&lt;</span>std<span class="op">::</span>layout_right<span class="op">&gt;</span> mr<span class="op">(</span><span class="kw">nullptr</span>, <span class="dv">1</span>, <span class="dv">0</span><span class="op">)</span>;</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>print<span class="op">(</span><span class="st">&quot;{} {}</span><span class="sc">\n</span><span class="st">&quot;</span>, mr<span class="op">.</span>stride<span class="op">(</span><span class="dv">0</span><span class="op">)</span>, mr<span class="op">.</span>stride<span class="op">(</span><span class="dv">1</span><span class="op">))</span>;</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  <span class="ot">assert</span><span class="op">(</span>mr<span class="op">.</span>stride<span class="op">(</span><span class="dv">0</span><span class="op">)</span> <span class="op">==</span> <span class="dv">0</span><span class="op">)</span>;</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  <span class="ot">assert</span><span class="op">(</span>mr<span class="op">.</span>stride<span class="op">(</span><span class="dv">1</span><span class="op">)</span> <span class="op">==</span> <span class="dv">1</span><span class="op">)</span>;</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>  mdspan_2d<span class="op">&lt;</span>std<span class="op">::</span>layout_left<span class="op">&gt;</span> ml<span class="op">(</span><span class="kw">nullptr</span>, <span class="dv">0</span>, <span class="dv">1</span><span class="op">)</span>;</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>print<span class="op">(</span><span class="st">&quot;{} {}</span><span class="sc">\n</span><span class="st">&quot;</span>, ml<span class="op">.</span>stride<span class="op">(</span><span class="dv">0</span><span class="op">)</span>, ml<span class="op">.</span>stride<span class="op">(</span><span class="dv">1</span><span class="op">))</span>;</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>  <span class="ot">assert</span><span class="op">(</span>ml<span class="op">.</span>stride<span class="op">(</span><span class="dv">0</span><span class="op">)</span> <span class="op">==</span> <span class="dv">1</span><span class="op">)</span>;</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>  <span class="ot">assert</span><span class="op">(</span>ml<span class="op">.</span>stride<span class="op">(</span><span class="dv">1</span><span class="op">)</span> <span class="op">==</span> <span class="dv">0</span><span class="op">)</span>;</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="dv">0</span>;</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>Conversion from these <code>layout_right</code> or
 <code>layout_left</code> <code>mdspan</code> to
 <code>layout_stride</code> <code>mdspan</code> violates the
@@ -629,71 +623,224 @@ all strides to be positive.</p>
 well-formed. Neither the reference implementation nor libc++ enforces
 the precondition, and the conversion works as expected. <a href="https://godbolt.org/z/3Thfrb1W9">This Compiler Explorer link</a>
 demonstrates that with both implementations.</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define USE_REFERENCE_MDSPAN </span><span class="dv">1</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#if defined(USE_REFERENCE_MDSPAN)</span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="pp">#  include </span><span class="im">&lt;https://raw.githubusercontent.com/kokkos/mdspan/single-header/mdspan.hpp&gt;</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="pp">#else</span></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="pp">#  define _LIBCPP_DEBUG </span><span class="dv">1</span></span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="pp">#  include </span><span class="im">&lt;mdspan&gt;</span></span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="pp">#endif</span></span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;cassert&gt;</span></span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;print&gt;</span></span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="pp">#if defined(USE_REFERENCE_MDSPAN)</span></span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a><span class="kw">namespace</span> md <span class="op">=</span> std<span class="op">::</span>experimental;</span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a><span class="pp">#else</span></span>
-<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a><span class="kw">namespace</span> md <span class="op">=</span> std;</span>
-<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a><span class="pp">#endif</span></span>
-<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Layout<span class="op">&gt;</span></span>
-<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> mdspan_2d <span class="op">=</span> md<span class="op">::</span>mdspan<span class="op">&lt;</span><span class="dt">float</span>, md<span class="op">::</span>dims<span class="op">&lt;</span><span class="dv">2</span><span class="op">&gt;</span>, Layout<span class="op">&gt;</span>;</span>
-<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">(</span><span class="dt">int</span>, <span class="dt">char</span><span class="op">*</span> argv<span class="op">[])</span> <span class="op">{</span></span>
-<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>  mdspan_2d<span class="op">&lt;</span>md<span class="op">::</span>layout_right<span class="op">&gt;</span> mr<span class="op">(</span><span class="kw">nullptr</span>, <span class="dv">1</span>, <span class="dv">0</span><span class="op">)</span>;</span>
-<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>  mdspan_2d<span class="op">&lt;</span>md<span class="op">::</span>layout_stride<span class="op">&gt;</span> mrs<span class="op">(</span>mr<span class="op">)</span>;</span>
-<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>  <span class="ot">assert</span><span class="op">(</span>mrs<span class="op">.</span>stride<span class="op">(</span><span class="dv">0</span><span class="op">)</span> <span class="op">==</span> <span class="dv">0</span><span class="bu">u</span><span class="op">)</span>;</span>
-<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>  <span class="ot">assert</span><span class="op">(</span>mrs<span class="op">.</span>stride<span class="op">(</span><span class="dv">1</span><span class="op">)</span> <span class="op">==</span> <span class="dv">1</span><span class="bu">u</span><span class="op">)</span>;</span>
-<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>  mdspan_2d<span class="op">&lt;</span>md<span class="op">::</span>layout_left<span class="op">&gt;</span> ml<span class="op">(</span><span class="kw">nullptr</span>, <span class="dv">0</span>, <span class="dv">1</span><span class="op">)</span>;</span>
-<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>  mdspan_2d<span class="op">&lt;</span>md<span class="op">::</span>layout_stride<span class="op">&gt;</span> mls<span class="op">(</span>ml<span class="op">)</span>;</span>
-<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>  <span class="ot">assert</span><span class="op">(</span>mls<span class="op">.</span>stride<span class="op">(</span><span class="dv">0</span><span class="op">)</span> <span class="op">==</span> <span class="dv">1</span><span class="bu">u</span><span class="op">)</span>;</span>
-<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>  <span class="ot">assert</span><span class="op">(</span>mls<span class="op">.</span>stride<span class="op">(</span><span class="dv">1</span><span class="op">)</span> <span class="op">==</span> <span class="dv">0</span><span class="bu">u</span><span class="op">)</span>;</span>
-<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="dv">0</span>;</span>
-<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
-<h2 data-number="4.3" id="work-around-create-a-new-layout"><span class="header-section-number">4.3</span> Work-around: Create a new
-layout<a href="#work-around-create-a-new-layout" class="self-link"></a></h2>
-<p>One could imagine working around these issues by creating a new
-layout whose mapping’s constructor accepts zero strides. One could
-provisionally call it “<code>layout_any_stride</code>.”</p>
-<p>We reject this approach because the design intent of
-<code>layout_stride</code> is to represent any <code>submdspan</code> of
-a <code>layout_left</code> or <code>layout_right</code> mapping, even if
-the mapping has one or more extents that are zero. The precondition
-hinders complete expression of the design intent.</p>
-<p>Adding a new layout that explicitly permits zero strides would
-encourage its use as a “broadcast” layout – a nonunique, nonempty
-mapping where a single index may be “broadcasted” to an entire extent of
-indices. While <code>mdspan</code> generally permits custom nonunique
-layouts, the <code>mdspan</code> authors did not want a commonly used
-layout such as <code>layout_stride</code> to have this behavior. This is
-because it can be difficult to understand how to write generic
-algorithms for nonunique layouts, especially for algorithms that need to
-write to the <code>mdspan</code>’s elements.</p>
-<h1 data-number="5" id="relaxing-the-precondition-does-not-violate-current-requirements"><span class="header-section-number">5</span> Relaxing the precondition does
+<div class="sourceCode" id="cb2"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define USE_REFERENCE_MDSPAN </span><span class="dv">1</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#if defined(USE_REFERENCE_MDSPAN)</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="pp">#  include </span><span class="im">&lt;https://raw.githubusercontent.com/kokkos/mdspan/single-header/mdspan.hpp&gt;</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="pp">#else</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="pp">#  define _LIBCPP_DEBUG </span><span class="dv">1</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="pp">#  include </span><span class="im">&lt;mdspan&gt;</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="pp">#endif</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;cassert&gt;</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;print&gt;</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="pp">#if defined(USE_REFERENCE_MDSPAN)</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="kw">namespace</span> md <span class="op">=</span> std<span class="op">::</span>experimental;</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="pp">#else</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="kw">namespace</span> md <span class="op">=</span> std;</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="pp">#endif</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Layout<span class="op">&gt;</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> mdspan_2d <span class="op">=</span> md<span class="op">::</span>mdspan<span class="op">&lt;</span><span class="dt">float</span>, md<span class="op">::</span>dims<span class="op">&lt;</span><span class="dv">2</span><span class="op">&gt;</span>, Layout<span class="op">&gt;</span>;</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">(</span><span class="dt">int</span>, <span class="dt">char</span><span class="op">*</span> argv<span class="op">[])</span> <span class="op">{</span></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>  mdspan_2d<span class="op">&lt;</span>md<span class="op">::</span>layout_right<span class="op">&gt;</span> mr<span class="op">(</span><span class="kw">nullptr</span>, <span class="dv">1</span>, <span class="dv">0</span><span class="op">)</span>;</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>  mdspan_2d<span class="op">&lt;</span>md<span class="op">::</span>layout_stride<span class="op">&gt;</span> mrs<span class="op">(</span>mr<span class="op">)</span>;</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>  <span class="ot">assert</span><span class="op">(</span>mrs<span class="op">.</span>stride<span class="op">(</span><span class="dv">0</span><span class="op">)</span> <span class="op">==</span> <span class="dv">0</span><span class="bu">u</span><span class="op">)</span>;</span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>  <span class="ot">assert</span><span class="op">(</span>mrs<span class="op">.</span>stride<span class="op">(</span><span class="dv">1</span><span class="op">)</span> <span class="op">==</span> <span class="dv">1</span><span class="bu">u</span><span class="op">)</span>;</span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>  mdspan_2d<span class="op">&lt;</span>md<span class="op">::</span>layout_left<span class="op">&gt;</span> ml<span class="op">(</span><span class="kw">nullptr</span>, <span class="dv">0</span>, <span class="dv">1</span><span class="op">)</span>;</span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>  mdspan_2d<span class="op">&lt;</span>md<span class="op">::</span>layout_stride<span class="op">&gt;</span> mls<span class="op">(</span>ml<span class="op">)</span>;</span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>  <span class="ot">assert</span><span class="op">(</span>mls<span class="op">.</span>stride<span class="op">(</span><span class="dv">0</span><span class="op">)</span> <span class="op">==</span> <span class="dv">1</span><span class="bu">u</span><span class="op">)</span>;</span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>  <span class="ot">assert</span><span class="op">(</span>mls<span class="op">.</span>stride<span class="op">(</span><span class="dv">1</span><span class="op">)</span> <span class="op">==</span> <span class="dv">0</span><span class="bu">u</span><span class="op">)</span>;</span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="dv">0</span>;</span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h2 data-number="5.2" id="simplify-interoperability-between-python-and-mdspan"><span class="header-section-number">5.2</span> Simplify interoperability
+between Python and <code>mdspan</code><a href="#simplify-interoperability-between-python-and-mdspan" class="self-link"></a></h2>
+<p>The past two decades have seen ever-increasing use of Python for data
+science, scientific computations, machine learning, and other domains
+that involve computations on multidimensional arrays. Many Python
+libraries for these domains have an implementation strategy of calling
+existing Fortran, C, or C++ libraries (such as the BLAS) with
+multidimensional arrays that are created and managed by Python code.
+These reasons have motivated Python developers to define common binary
+interfaces for multidimensional array data. Examples include</p>
+<ul>
+<li><p>the <a href="https://docs.python.org/3/c-api/buffer.html#bufferobjects">Buffer
+Protocol</a>,</p></li>
+<li><p>the NumPy library’s <a href="https://numpy.org/doc/stable/reference/arrays.ndarray.html"><code>ndarray</code>
+protocol</a>,</p></li>
+<li><p><a href="https://dmlc.github.io/dlpack/latest/">DLPack
+format</a>, and the</p></li>
+<li><p><a href="https://numba.readthedocs.io/en/stable/cuda/cuda_array_interface.html">CUDA
+Array Interface</a>.</p></li>
+</ul>
+<p>The growth of Python-based programming models and library ecosystems
+for domains like machine learning has also led to wide interoperability
+between multidimensional array formats. For example, JAX, PyTorch,
+TensorFlow, and XLA “Tensors” all can be converted to and from NumPy
+<code>ndarray</code> arrays. Many such libraries also support the DLPack
+format. NVIDIA’s <a href="https://docs.nvidia.com/cuda/cutile-python/data/array.html#cuda-tile-array">cuTile
+Python</a> has native support for objects that implement either the
+DLPack format or the CUDA Array Interface (e.g., CuPy arrays).</p>
+<p>All these multidimensional array formats claim to provide what they
+call “strided” indexing. However, all of them support much more general
+layouts than what <code>layout_stride</code> supports, for three
+reasons.</p>
+<ol type="1">
+<li><p>All these formats but DLPack use byte strides, while
+<code>layout_stride</code> uses element strides. (One can use
+<code>layout_stride</code> to represent possibly nonaligned byte
+strides, but only in combination with a custom accessor. Please see <a href="https://github.com/kokkos/mdspan/pull/249">this pull request</a>
+for an example and discussion.)</p></li>
+<li><p>All four formats permit zero or even negative strides, as well as
+positive strides that explicitly construct a nonunique layout. In
+contrast, <code>layout_stride::mapping</code> is always unique
+(<code>is_always_unique()</code> and <code>is_unique()</code> are both
+always <code>true</code>).</p></li>
+<li><p>The four formats generally impose no requirements on strides for
+arrays with zero elements (where the product of the extents is zero).
+However, <code>layout_stride::mapping</code> currently does not permit
+zero strides, even if the corresponding extents are zero.</p></li>
+</ol>
+<p>Adoption of this proposal would fix Reason (3) by permitting zero
+strides when the product of the extents is zero. Reasons (1) and (2) are
+out of scope, because relaxing those requirements on the strides would
+break the design intent of <code>layout_stride</code>. Therefore, if
+users want a layout mapping that can represent everything that (say)
+DLPack can represent, then they will need to write a custom layout
+mapping.</p>
+<p>That being said, Python multidimensional array formats have a common
+convention to permit zero strides for zero extents. The
+<code>ndarray</code> format permits arbitrary values for strides <a href="https://numpy.org/devdocs/reference/arrays.ndarray.html#internal-memory-layout-of-an-ndarray">under
+two conditions</a>.</p>
+<ol type="1">
+<li><p>If an extent (what Python calls a “shape”) is zero, then the
+corresponding stride can be arbitrary.</p></li>
+<li><p>If an array has size zero, then the strides are never used, and
+thus all the strides can be arbitrary.</p></li>
+</ol>
+<p>The constructor of <code>layout_stride::mapping</code> has a
+precondition that all strides are positive, even for zero extents. Users
+of the Fortran or C BLAS already are used to this convention, because
+the BLAS requires nonzero strides (though it supports negative strides
+in some cases!). However, this may be less intuitive for a Python
+developer.</p>
+<p>We show below how to use the <code>pybind11</code> library to get a
+<code>layout_stride::mapping</code> corresponding to a given Python
+<code>ndarray</code> whose rank is known at compile time. We omit checks
+for two cases.</p>
+<ol type="1">
+<li><p>One extent may be -1, in which case the actual extent is to be
+inferred from the size and the remaining extents.</p></li>
+<li><p>A nonunique input layout with positive strides, which
+<code>ndarray</code> permits but <code>layout_stride</code> does
+not.</p></li>
+</ol>
+<div class="sourceCode" id="cb3"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span>std<span class="op">::</span><span class="dt">size_t</span> Rank<span class="op">&gt;</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>layout_stride<span class="op">::</span>mapping<span class="op">&lt;</span>std<span class="op">::</span>dims<span class="op">&lt;</span>Rank<span class="op">&gt;&gt;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>python_ndarray_to_cpp_mapping<span class="op">(</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> py<span class="op">::</span>dict<span class="op">&amp;</span> array_interface,</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span><span class="dt">size_t</span> bytes_per_element<span class="op">)</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> py_strides  <span class="op">=</span> array_interface<span class="op">[</span><span class="st">&quot;strides&quot;</span><span class="op">]</span>;</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> py_shape    <span class="op">=</span> array_interface<span class="op">[</span><span class="st">&quot;shape&quot;</span><span class="op">]</span>;</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> stride_type <span class="op">=</span> std<span class="op">::</span><span class="dt">intptr_t</span>; <span class="co">// numpy.intp, a signed type</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>  <span class="dt">bool</span> any_extent_is_zero <span class="op">=</span> <span class="kw">false</span>;</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> <span class="op">(</span>std<span class="op">::</span><span class="dt">size_t</span> i <span class="op">=</span> <span class="dv">0</span>; i <span class="op">&lt;</span> Rank; <span class="op">++</span>i<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>    <span class="ot">assert</span><span class="op">(</span>py_shape<span class="op">[</span>i<span class="op">]</span> <span class="op">&gt;=</span> <span class="dv">0</span><span class="op">)</span>;</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>py_shape<span class="op">[</span>i<span class="op">]</span> <span class="op">==</span> <span class="dv">0</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>      any_extent_is_zero <span class="op">=</span> <span class="kw">true</span>;</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span> <span class="cf">else</span> <span class="cf">if</span> <span class="op">(</span>py_strides<span class="op">[</span>i<span class="op">]</span> <span class="op">==</span> <span class="dv">0</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>      <span class="cf">throw</span> unsupported_layout<span class="op">(</span><span class="st">&quot;Nonzero extent with zero stride&quot;</span><span class="op">)</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>py_strides<span class="op">[</span>i<span class="op">]</span> <span class="op">&lt;</span> <span class="dv">0</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>      <span class="cf">throw</span> unsupported_layout<span class="op">(</span><span class="st">&quot;One or more negative strides&quot;</span><span class="op">)</span>;</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> cpp_strides <span class="op">=</span></span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>    <span class="op">[&amp;]</span> <span class="op">&lt;</span>std<span class="op">::</span><span class="dt">size_t</span><span class="op">...</span> Inds<span class="op">&gt;</span> <span class="op">(</span>std<span class="op">::</span>index_sequence<span class="op">&lt;</span>Inds<span class="op">...&gt;)</span> <span class="op">{</span></span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> std<span class="op">::</span>array<span class="op">&lt;</span>std<span class="op">::</span><span class="dt">size_t</span>, Rank<span class="op">&gt;{</span></span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>        <span class="op">(</span>any_extent_is_zero <span class="op">?</span></span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>          <span class="dt">size_t</span><span class="op">(</span><span class="dv">1</span><span class="op">)</span> <span class="op">:</span></span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>          py_strides<span class="op">[</span>Inds<span class="op">]</span> <span class="op">/</span> bytes_per_element<span class="op">)...</span></span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>      <span class="op">}</span>;</span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span> <span class="op">(</span>std<span class="op">::</span>make_index_sequence<span class="op">&lt;</span>Rank<span class="op">&gt;())</span>;</span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> cpp_extents <span class="op">=</span></span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>    <span class="op">[&amp;]</span> <span class="op">&lt;</span>std<span class="op">::</span><span class="dt">size_t</span><span class="op">...</span> Inds<span class="op">&gt;</span> <span class="op">(</span>std<span class="op">::</span>index_sequence<span class="op">&lt;</span>Inds<span class="op">...&gt;)</span> <span class="op">{</span></span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> std<span class="op">::</span>dims<span class="op">&lt;</span>Rank<span class="op">&gt;{</span>py_shape<span class="op">[</span>Inds<span class="op">]...}</span>;</span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span> <span class="op">(</span>std<span class="op">::</span>make_index_sequence<span class="op">&lt;</span>Rank<span class="op">&gt;())</span>;</span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> std<span class="op">::</span>layout_stride<span class="op">::</span>mapping<span class="op">&lt;</span>std<span class="op">::</span>dims<span class="op">&lt;</span>Rank<span class="op">&gt;&gt;{</span></span>
+<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a>    cpp_extents, cpp_strides<span class="op">}</span>;</span>
+<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Relaxing the requirement that strides be positive even if any extents
+are zero would simplify the code in two places (look for the “SIMPLER”
+comments) as follows.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span>std<span class="op">::</span><span class="dt">size_t</span> Rank<span class="op">&gt;</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>layout_stride<span class="op">::</span>mapping<span class="op">&lt;</span>std<span class="op">::</span>dims<span class="op">&lt;</span>Rank<span class="op">&gt;&gt;</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>python_ndarray_to_cpp_mapping<span class="op">(</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> py<span class="op">::</span>dict<span class="op">&amp;</span> array_interface,</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span><span class="dt">size_t</span> bytes_per_element<span class="op">)</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> py_strides  <span class="op">=</span> array_interface<span class="op">[</span><span class="st">&quot;strides&quot;</span><span class="op">]</span>;</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> py_shape    <span class="op">=</span> array_interface<span class="op">[</span><span class="st">&quot;shape&quot;</span><span class="op">]</span>;</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> stride_type <span class="op">=</span> std<span class="op">::</span><span class="dt">intptr_t</span>; <span class="co">// numpy.intp</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> <span class="op">(</span>std<span class="op">::</span><span class="dt">size_t</span> i <span class="op">=</span> <span class="dv">0</span>; i <span class="op">&lt;</span> Rank; <span class="op">++</span>i<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>py_shape<span class="op">[</span>i<span class="op">]</span> <span class="op">!=</span> <span class="dv">0</span> <span class="op">&amp;&amp;</span> py_strides<span class="op">[</span>i<span class="op">]</span> <span class="op">==</span> <span class="dv">0</span><span class="op">)</span> <span class="op">{</span> <span class="co">// SIMPLER</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>      <span class="cf">throw</span> unsupported_layout<span class="op">(</span><span class="st">&quot;Nonzero extent with zero stride&quot;</span><span class="op">)</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>py_strides<span class="op">[</span>i<span class="op">]</span> <span class="op">&lt;</span> <span class="dv">0</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>      <span class="cf">throw</span> unsupported_layout<span class="op">(</span><span class="st">&quot;One or more negative strides&quot;</span><span class="op">)</span>;</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> cpp_strides <span class="op">=</span></span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>    <span class="op">[&amp;]</span> <span class="op">&lt;</span>std<span class="op">::</span><span class="dt">size_t</span><span class="op">...</span> Inds<span class="op">&gt;</span> <span class="op">(</span>std<span class="op">::</span>index_sequence<span class="op">&lt;</span>Inds<span class="op">...&gt;)</span> <span class="op">{</span></span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> std<span class="op">::</span>array<span class="op">&lt;</span>std<span class="op">::</span><span class="dt">size_t</span>, Rank<span class="op">&gt;{</span></span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>        py_strides<span class="op">[</span>Inds<span class="op">]</span> <span class="op">/</span> bytes_per_element<span class="op">)...</span> <span class="co">// SIMPLER</span></span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>      <span class="op">}</span>;</span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span> <span class="op">(</span>std<span class="op">::</span>make_index_sequence<span class="op">&lt;</span>Rank<span class="op">&gt;())</span>;</span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> cpp_extents <span class="op">=</span></span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>    <span class="op">[&amp;]</span> <span class="op">&lt;</span>std<span class="op">::</span><span class="dt">size_t</span><span class="op">...</span> Inds<span class="op">&gt;</span> <span class="op">(</span>std<span class="op">::</span>index_sequence<span class="op">&lt;</span>Inds<span class="op">...&gt;)</span> <span class="op">{</span></span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> std<span class="op">::</span>dims<span class="op">&lt;</span>Rank<span class="op">&gt;{</span>py_shape<span class="op">[</span>Inds<span class="op">]...}</span>;</span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span> <span class="op">(</span>std<span class="op">::</span>make_index_sequence<span class="op">&lt;</span>Rank<span class="op">&gt;())</span>;</span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> std<span class="op">::</span>layout_stride<span class="op">::</span>mapping<span class="op">&lt;</span>std<span class="op">::</span>dims<span class="op">&lt;</span>Rank<span class="op">&gt;&gt;{</span></span>
+<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a>    cpp_extents, cpp_strides<span class="op">}</span>;</span>
+<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h1 data-number="6" id="relaxing-the-precondition-does-not-violate-current-requirements"><span class="header-section-number">6</span> Relaxing the precondition does
 not violate current requirements<a href="#relaxing-the-precondition-does-not-violate-current-requirements" class="self-link"></a></h1>
 <p>In this section, we prove that relaxing the precondition to allow a
 stride of 0 for empty extents does not violate
 <code>layout_stride::mapping</code>’s requirements, and therefore does
 not necessitate a new mapping type.</p>
-<p>A <code>layout_stride::mapping</code> must must satisfy two
-properties.</p>
+<p>A <code>layout_stride::mapping</code> currently satisfies the
+following properties.</p>
 <ol type="1">
-<li><p>It is always unique (<code>is_always_unique()</code> is
-<code>true</code>)</p></li>
-<li><p>It is always exhaustive (<code>is_always_exhaustive()</code> is
-<code>true</code>)</p></li>
+<li><p>It is always unique. That is,</p>
+<ol type="a">
+<li><p><code>is_always_unique()</code> is <code>true</code>,
+and</p></li>
+<li><p><code>is_unique()</code> is <code>true</code> (for any mapping
+with a valid extents object).</p></li>
+</ol></li>
+<li><p>If it has rank zero or if
+<code>extents_type::static_extent(</code><span class="math inline"><em>r</em></span><code>)</code> is zero for any rank
+index <span class="math inline"><em>r</em></span> of
+<code>extents()</code>, then it is always exhaustive. That is,</p>
+<ol type="a">
+<li><p><code>is_always_exhausive()</code> is <code>true</code>,
+and</p></li>
+<li><p><code>is_exhaustive()</code> is <code>true</code> (for any
+mapping with a valid extents object).</p></li>
+</ol></li>
 </ol>
 <p>Uniqueness means that every multidimensional index in the mapping’s
 extents must map to a distinct offset in <span class="math inline">[0</span>, <code>required_span_size()</code><span class="math inline">)</span>. That is, the mapping must be
@@ -707,7 +854,7 @@ and exhaustiveness. In the case where an extent is zero, the
 multidimensional index set is empty, and the mapping becomes a function
 from the empty set to the empty set. That makes the mapping both
 injective and surjective vacuously.</p>
-<h1 data-number="6" id="implementation"><span class="header-section-number">6</span> Implementation<a href="#implementation" class="self-link"></a></h1>
+<h1 data-number="7" id="implementation"><span class="header-section-number">7</span> Implementation<a href="#implementation" class="self-link"></a></h1>
 <p>As shown above, both the reference <code>mdspan</code> implementation
 and libc++’s implementation actually implement this proposal by not
 checking the preconditions and by producing a valid
@@ -715,18 +862,18 @@ checking the preconditions and by producing a valid
 that does check the preconditions, the only required changes would be
 removing these checks from three <code>layout_stride::mapping</code>
 constructors.</p>
-<h1 data-number="7" id="proposed-wording"><span class="header-section-number">7</span> Proposed wording<a href="#proposed-wording" class="self-link"></a></h1>
+<h1 data-number="8" id="proposed-wording"><span class="header-section-number">8</span> Proposed wording<a href="#proposed-wording" class="self-link"></a></h1>
 <blockquote>
 <p>Text in blockquotes is not proposed wording, but rather instructions
 for generating proposed wording.</p>
 </blockquote>
-<h2 data-number="7.1" id="increment-__cpp_lib_mdspan-feature-test-macro"><span class="header-section-number">7.1</span> Increment
+<h2 data-number="8.1" id="increment-__cpp_lib_mdspan-feature-test-macro"><span class="header-section-number">8.1</span> Increment
 <code>__cpp_lib_mdspan</code> feature test macro<a href="#increment-__cpp_lib_mdspan-feature-test-macro" class="self-link"></a></h2>
 <p>In [version.syn], increase the value of the
 <code>__cpp_lib_mdspan</code> macro by replacing YYYMML below with the
 integer literal encoding the appropriate year (YYYY) and month (MM).</p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define __cpp_lib_mdspan </span>YYYYMML<span class="pp"> </span><span class="co">// also in &lt;mdspan&gt;</span></span></code></pre></div>
-<h2 data-number="7.2" id="change-mdspan.layout.stride.cons-4.1"><span class="header-section-number">7.2</span> Change
+<h2 data-number="8.2" id="change-mdspan.layout.stride.cons-4.1"><span class="header-section-number">8.2</span> Change
 [mdspan.layout.stride.cons] 4.1<a href="#change-mdspan.layout.stride.cons-4.1" class="self-link"></a></h2>
 <blockquote>
 <p>Change [mdspan.layout.stride.cons] as follows.</p>
@@ -778,17 +925,17 @@ in the range <span class="math inline">[1</span>,
 element of <span class="math inline"><em>P</em></span>.</p></li>
 </ul>
 <p><span class="ednote" style="color: #0000ff">[ Editor&#39;s note: This
-definition also permits zero strides, because the permutation can be
-selected to move them to the front of the list of strides. For example,
-suppose that the extents are (2, 3, 0, 7, 0, 13) and the strides are (1,
-2, 0, 30, 0, 2310). If the permutation is (2, 3, 0, 4, 1, 5), then the
-permuted extents are (0, 0, 2, 3, 7, 13) and the permuted strides are
-(0, 0, 1, 2, 30, 2310). This even works if the extents corresponding to
-the zero strides are nonzero. ]</span></p>
+definition permits strides to be zero if their corresponding extents are
+zero, because the permutation can be selected to move the zero strides
+to the front of the list of strides. For example, suppose that the
+extents are (2, 3, 0, 7, 0, 13) and the strides are (1, 2, 0, 30, 0,
+2310). If the permutation is (2, 3, 0, 4, 1, 5), then the permuted
+extents are (0, 0, 2, 3, 7, 13) and the permuted strides are (0, 0, 1,
+2, 30, 2310). ]</span></p>
 <p>[<em>Note 1</em>: For <code>layout_stride</code>, this condition is
 necessary and sufficient for <code>is_unique()</code> to be true. —
 <em>end note</em>]</p>
-<h2 data-number="7.3" id="change-mdspan.layout.stride.cons-7.2"><span class="header-section-number">7.3</span> Change
+<h2 data-number="8.3" id="change-mdspan.layout.stride.cons-7.2"><span class="header-section-number">8.3</span> Change
 [mdspan.layout.stride.cons] 7.2<a href="#change-mdspan.layout.stride.cons-7.2" class="self-link"></a></h2>
 <blockquote>
 <p>Change [mdspan.layout.stride.cons] as follows, to permit conversion
