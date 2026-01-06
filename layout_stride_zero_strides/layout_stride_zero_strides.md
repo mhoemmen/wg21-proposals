@@ -23,24 +23,24 @@ toc: true
 
 # Revision history
 
-* Revision 0 to be submitted 202?-??-??
+* Revision 0 to be submitted 2026-01-15
 
 # Introduction
 
 We propose to change `layout_stride::mapping`'s constructors
 to permit strides to be zero if one or more extents are zero.
 For example, for extents (3, 5, 0, 11),
-this change would permit strides (1, 3, 0, 105).
+this change would permit any nonnegative strides.
 Currently, users would need to set the stride(s) corresponding
 to zero extents to an arbitrary positive value, such as 1.
 That would make the strides (1, 3, 1, 105) in this example.
 
 This change has two benefits.
-First, it conforms with NumPy's `ndarray` convention for specifying strides.
-This would let users construct a `layout_stride::mapping`
-directly from a NumPy array, or from any library that follows this convention.
-Second, it would let users convert `layout_left::mapping`
-or `layout_right::mapping` with size-zero extents to `layout_stride::mapping`.
+First, it would let users convert any empty `layout_left::mapping`
+or `layout_right::mapping` to `layout_stride::mapping`.
+Second, it would prevent unnecessary precondition violations
+when creating `mdspan` objects that view multidimensional arrays
+created in Python or other languages.
 
 This change would relax preconditions of two existing
 `layout_stride::mapping` constructors.
@@ -55,88 +55,74 @@ can already have zero strides,
 so generic code that operates on the elements of an `mdspan`
 by calling the BLAS or LAPACK must already account for this.
 
+# Design intent of `layout_stride`
+
+The design intent of `layout_stride` is to support the following use cases.
+
+1. Any `layout_left`, `layout_right`, `layout_left_padded`, or
+    `layout_right_padded` mapping can be converted to a `layout_stride`
+    mapping without loss of information or possibility of failure.
+
+2. `layout_stride::mapping` can represent any layout mapping
+    resulting from one or more applications of `submdspan`,
+    starting with any `mdspan` with `layout_left`, `layout_right`,
+    `layout_left_padded`, or `layout_right_padded` mapping.
+
+The mapping actually supports more general conversions than (1).
+This is because its constructor with a `const StridedLayoutMapping&`
+parameter accepts any strided layout mapping (see `m.is_strided()`
+in the layout mapping requirements [mdspan.layout.reqmts]),
+not just the Standard strided mappings.
+
+Note that `layout_stride::mapping` is *not* a general strided layout mapping.
+
+* It does *not* support "broadcasting" layouts --
+    that is, nonunique layouts with all nonzero extents,
+    where one or more strides are zero, with the intent
+    of "broadcasting" one element over corresponding extent(s).
+    Broadcasting layout mappings can be strided per
+    [mdspan.layout.reqmts], even though they are not unique.
+
+* It does *not* support negative strides.
+    The Standard does not let a strided layout
+    have a negative stride for any extent greater than 1,
+    because then some multidimensional index would exist
+    for which the mapping should return a negative number.
+
+* It is always a unique layout mapping.
+    (That all the strides are positive is necessary
+    but not sufficient in order for this to hold.)
+
+While `mdspan` generally permits custom nonunique layouts,
+the `mdspan` authors did not want a commonly used layout
+such as `layout_stride` to have this behavior.
+This is because it can be difficult to understand
+how to write generic algorithms for nonunique layouts,
+especially for algorithms that need to write to the `mdspan`'s elements.
+
+These restrictions were always part of `layout_stride`'s design.
+It's something `mdspan`'s layouts inherited from `Kokkos::View`.
+It's also part of the reason why the layout mapping requirements
+define a strided layout mapping separately from `layout_stride`.
+Relaxing this would break `submdspan`.
+
 # Motivation
 
-## Interoperability between NumPy arrays and `mdspan`
+## Permit conversion of empty `layout_left` or `layout_right` `mapping` to `layout_stride::mapping`
 
-[NumPy](https://numpy.org/) is a Python package for scientific computing.
-Its [`ndarray` protocol](https://numpy.org/doc/2.3/reference/arrays.ndarray.html)
-defines an application binary interface for sharing multidimensional array views
-across libraries, programming languages, and hardware interfaces.
-It would be natural to translate Python objects
-that conform with the `ndarray` protocol
-directly to C++ as `mdspan` with `layout_stride`.
-
-Python `ndarray`
-[permits arbitrary strides under two conditions](https://numpy.org/devdocs/reference/arrays.ndarray.html#internal-memory-layout-of-an-ndarray).
-
-1. If an extent (what Python calls a "shape") is zero,
-    then the corresponding stride can be arbitrary.
-
-2. If an array has size zero, then the strides are never used,
-    and thus all the strides can be arbitrary.
-
-However, `layout_stride::mapping`'s constructor has a precondition
-that all strides are positive, even for zero extents.
-As a result, conversion from Python `ndarray` to C++ `mdspan`
-requires an extra step.
-We show below how to use the `pybind11` library to get a
-`layout_stride::mapping` corresponding to a given Python `ndarray`
-whose rank is known at compile time.
-
-```c++
-template<std::size_t Rank>
-std::layout_stride::mapping<std::dims<Rank>>
-python_to_cpp_mapping(const py::dict& array_interface)
-{
-  auto cpp_strides = std::array<std::size_t, Rank>{};
-  auto py_strides  = array_interface["strides"];
-  for (std::size_t i = 0; i < Rank; ++i) {
-    if (py_strides[i] == 0) {
-      assert(array_interface["shape"][i] == 0);
-      cpp_strides[i] = 1; // to satisfy layout_stride
-    } else {
-      cpp_strides[i] = py_strides[i];
-    }
-  }
-
-  auto py_extents = array_interface["shape"];
-  auto cpp_extents =
-    [&] <std::size_t... Inds> (std::index_sequence<Inds...>) {
-      return std::dims<Rank>{py_extents[Inds]...};
-    } (std::make_index_sequence<Rank>());
-
-  return std::layout_stride::mapping<std::dims<Rank>>{
-    cpp_extents, cpp_strides};
-}
-```
-
-The conversion from C++ to Python
-can just use the `mdspan`'s strides directly.
-
-## Permit conversion of empty `layout_{left,right}::mapping` to `layout_stride::mapping`
-
-The `layout_stride::mapping` class can represent the layout mapping
-of any `submdspan` of an `mdspan` with `layout_left` or `layout_right`.
-In other words, `layout_stride` is the "fixed point"
-of applying `submdspan` to any valid `layout_left` or `layout_right` mdspan.
-The `layout_stride::mapping(const StridedLayoutMapping&)` constructor
-accepts any strided mapping,
-including but not limited to the four defined in C++26
-(the above two, plus `layout_left_padded` and `layout_right_padded`).
-This makes it tempting to treat `layout_stride::mapping`
-as a "maximally type-erased" mapping,
+Availability of so many conversions to `layout_stride::mapping`
+makes it natural for users to treat `layout_stride::mapping`
+as a "type-erased" mapping,
 for example when defining stable application binary interfaces.
-This was part of the design intent for `layout_stride`.
-
-That works fine, except when the conversion's input mapping has a zero extent.
-Creating a `layout_right` or `layout_left` `mdspan`
+That works fine, except when the conversion's input mapping
+has a zero extent.  For example,
+creating a `layout_right` or `layout_left` `mdspan`
 with one or more extents of zero can result in
 an `mdspan` with one or more strides of zero.
-For example, a `layout_right` `mdspan` with extents (1, 0)
-will have strides (0, 1),
-and a `layout_left` `mdspan` with extents (0, 1)
-will have strides (1, 0).
+For example, a `layout_right` `mdspan`
+with extents (1, 0) will have strides (0, 1),
+and a `layout_left` `mdspan`
+with extents (0, 1) will have strides (1, 0).
 This is expected behavior, and it matches implementations.
 For example, [this Compiler Explorer link](https://godbolt.org/z/G37WGKa4G)
 builds and runs the following example with Clang 21.1.0 and libc++,
@@ -176,8 +162,8 @@ that requires all strides to be positive.
 
 We propose to relax this precondition.
 The conversion is otherwise well-formed.
-Neither the reference implementation nor libc++ enforces the precondition,
-and the conversion works as expected.
+Neither the reference implementation nor libc++
+enforces the precondition, and the conversion works as expected.
 [This Compiler Explorer link](https://godbolt.org/z/3Thfrb1W9)
 demonstrates that with both implementations.
 
@@ -217,27 +203,181 @@ int main(int, char* argv[]) {
 }
 ```
 
-## Work-around: Create a new layout
+## Interoperability between Python and `mdspan`
 
-One could imagine working around these issues by creating a new layout
-whose mapping's constructor accepts zero strides.
-One could provisionally call it "`layout_any_stride`."
+The past two decades have seen ever-increasing use of Python
+for data science, scientific computations, machine learning,
+and other domains that involve computations on multidimensional arrays.
+Many Python libraries for these domains have an implementation strategy
+of calling existing Fortran, C, or C++ libraries (such as the BLAS)
+with multidimensional arrays that are created and managed by Python code.
+These reasons have motivated Python developers to define
+common binary interfaces for multidimensional array data.
+Examples include
 
-We reject this approach because the design intent of `layout_stride`
-is to represent any `submdspan` of a `layout_left` or `layout_right` mapping,
-even if the mapping has one or more extents that are zero.
-The precondition hinders complete expression of the design intent.
+* the [Buffer Protocol](https://docs.python.org/3/c-api/buffer.html#bufferobjects),
 
-Adding a new layout that explicitly permits zero strides
-would encourage its use as a "broadcast" layout --
-a nonunique, nonempty mapping where a single index
-may be "broadcasted" to an entire extent of indices.
-While `mdspan` generally permits custom nonunique layouts,
-the `mdspan` authors did not want a commonly used layout
-such as `layout_stride` to have this behavior.
-This is because it can be difficult to understand
-how to write generic algorithms for nonunique layouts,
-especially for algorithms that need to write to the `mdspan`'s elements.
+* the NumPy library's [`ndarray` protocol](https://numpy.org/doc/stable/reference/arrays.ndarray.html),
+
+* [DLPack format](https://dmlc.github.io/dlpack/latest/), and the
+
+* [CUDA Array Interface](https://numba.readthedocs.io/en/stable/cuda/cuda_array_interface.html).
+
+The growth of Python-based programming models and library ecosystems
+for domains like machine learning has also led to wide interoperability
+between multidimensional array formats.
+For example, JAX, PyTorch, TensorFlow, and XLA "Tensors"
+all can be converted to and from NumPy `ndarray` arrays.
+Many such libraries also support the DLPack format.
+NVIDIA's
+[cuTile Python](https://docs.nvidia.com/cuda/cutile-python/data/array.html#cuda-tile-array)
+has native support for objects that implement either the DLPack format
+or the CUDA Array Interface (e.g., CuPy arrays).
+
+All these multidimensional array formats claim to provide
+what they call "strided" indexing.
+However, all of them support much more general layouts
+than what `layout_stride` supports, for three reasons.
+
+1. All these formats but DLPack use byte strides,
+    while `layout_stride` uses element strides.
+    (One can use `layout_stride` to represent
+    possibly nonaligned byte strides, but only
+    in combination with a custom accessor.  Please see
+    [this pull request](https://github.com/kokkos/mdspan/pull/249)
+    for an example and discussion.)
+
+2. All four formats permit zero or even negative strides,
+    as well as positive strides that explicitly construct
+    a nonunique layout.  In contrast, `layout_stride::mapping`
+    is always unique (`is_always_unique()` and `is_unique()`
+    are both always `true`).
+
+3. The four formats generally impose no requirements on strides
+    for arrays with zero elements (where the product of the extents
+    is zero). However, `layout_stride::mapping` currently does not
+    permit zero strides, even if the corresponding extents are zero.
+
+Adoption of this proposal would fix Reason (3)
+by permitting zero strides when the product of the extents is zero.
+Reasons (1) and (2) are out of scope,
+because relaxing those requirements on the strides
+would break the design intent of `layout_stride`.
+Therefore, if users want a layout mapping that can represent
+everything that (say) DLPack can represent,
+then they will need to write a custom layout mapping.
+
+That being said, Python multidimensional array formats
+have a common convention to permit zero strides for zero extents.
+The `ndarray` format permits arbitrary values for strides
+[under two conditions](https://numpy.org/devdocs/reference/arrays.ndarray.html#internal-memory-layout-of-an-ndarray).
+
+1. If an extent (what Python calls a "shape") is zero,
+    then the corresponding stride can be arbitrary.
+
+2. If an array has size zero, then the strides are never used,
+    and thus all the strides can be arbitrary.
+
+The constructor of `layout_stride::mapping` has a precondition
+that all strides are positive, even for zero extents.
+Users of the Fortran or C BLAS already are used to this
+convention, because the BLAS requires nonzero strides
+(though it supports negative strides in some cases!).
+However, this may be less intuitive for a Python developer.
+
+We show below how to use the `pybind11` library to get a
+`layout_stride::mapping` corresponding to a given Python `ndarray`
+whose rank is known at compile time.
+
+```c++
+template<std::size_t Rank>
+std::layout_stride::mapping<std::dims<Rank>>
+python_ndarray_to_cpp_mapping(
+  const py::dict& array_interface,
+  std::size_t bytes_per_element)
+{
+  auto py_strides  = array_interface["strides"];
+  auto py_shape    = array_interface["shape"];
+  using stride_type = std::intptr_t; // numpy.intp, a signed type
+
+  // One extent may be -1, in which case the actual extent
+  // is to be inferred from the size and the remaining extents.
+  // Omit this case for now.
+  bool any_extent_is_zero = false;
+  for (std::size_t i = 0; i < Rank; ++i) {
+    assert(py_shape[i] >= 0);
+    if (py_shape[i] == 0) {
+      any_extent_is_zero = true;
+    } else if (py_strides[i] == 0) {
+      throw unsupported_layout("Nonzero extent with zero stride")
+    }
+    if (py_strides[i] < 0) {
+      throw unsupported_layout("One or more negative strides");
+    }
+  }
+
+  auto cpp_strides =
+    [&] <std::size_t... Inds> (std::index_sequence<Inds...>) {
+      return std::array<std::size_t, Rank>{
+        (any_extent_is_zero ?
+          size_t(1) :
+          py_strides[Inds] / bytes_per_element)...
+      };
+    } (std::make_index_sequence<Rank>());
+
+  auto cpp_extents =
+    [&] <std::size_t... Inds> (std::index_sequence<Inds...>) {
+      return std::dims<Rank>{py_shape[Inds]...};
+    } (std::make_index_sequence<Rank>());
+
+  return std::layout_stride::mapping<std::dims<Rank>>{
+    cpp_extents, cpp_strides};
+}
+```
+
+Relaxing the requirement that strides be positive
+even if any extents are zero would simplify the code
+in two places (look for the "SIMPLER" comments) as follows.
+
+```c++
+template<std::size_t Rank>
+std::layout_stride::mapping<std::dims<Rank>>
+python_ndarray_to_cpp_mapping(
+  const py::dict& array_interface,
+  std::size_t bytes_per_element)
+{
+  auto py_strides  = array_interface["strides"];
+  auto py_shape    = array_interface["shape"];
+  using stride_type = std::intptr_t; // numpy.intp
+
+  // One extent may be -1, in which case the actual extent
+  // is to be inferred from the size and the remaining extents.
+  // Omit this case for now.
+  for (std::size_t i = 0; i < Rank; ++i) {
+    if (py_shape[i] != 0 && py_strides[i] == 0) { // SIMPLER
+      throw unsupported_layout("Nonzero extent with zero stride")
+    }
+    if (py_strides[i] < 0) {
+      throw unsupported_layout("One or more negative strides");
+    }
+  }
+
+  auto cpp_strides =
+    [&] <std::size_t... Inds> (std::index_sequence<Inds...>) {
+      return std::array<std::size_t, Rank>{
+        py_strides[Inds] / bytes_per_element)... // SIMPLER
+      };
+    } (std::make_index_sequence<Rank>());
+
+  auto cpp_extents =
+    [&] <std::size_t... Inds> (std::index_sequence<Inds...>) {
+      return std::dims<Rank>{py_shape[Inds]...};
+    } (std::make_index_sequence<Rank>());
+
+  return std::layout_stride::mapping<std::dims<Rank>>{
+    cpp_extents, cpp_strides};
+}
+```
 
 # Relaxing the precondition does not violate current requirements
 
@@ -246,11 +386,21 @@ to allow a stride of 0 for empty extents
 does not violate `layout_stride::mapping`'s requirements,
 and therefore does not necessitate a new mapping type.
 
-A `layout_stride::mapping` must must satisfy two properties.
+A `layout_stride::mapping` currently satisfies the following properties.
 
-1. It is always unique (`is_always_unique()` is `true`)
+1. It is always unique.  That is,
 
-2. It is always exhaustive (`is_always_exhaustive()` is `true`)
+    a. `is_always_unique()` is `true`, and
+
+    b. `is_unique()` is `true` (for any mapping with a valid extents object).
+
+2. If it has rank zero or if `extents_type::static_extent(`$r$`)` is zero
+    for any rank index $r$ of `extents()`, then it is always exhaustive.
+    That is,
+
+    a. `is_always_exhausive()` is `true`, and
+
+    b. `is_exhaustive()` is `true` (for any mapping with a valid extents object).
 
 Uniqueness means that every multidimensional index in the mapping's extents
 must map to a distinct offset in $[0$, `required_span_size()`$)$.
@@ -330,16 +480,15 @@ template<class OtherIndexType>
     for all $i$ in the range $[1$, _`rank_`_$)$,
     where $p_i$ is the $i^{th}$ element of $P$.
 
-[This definition also permits zero strides,
-because the permutation can be selected to move them
-to the front of the list of strides.
+[This definition permits strides to be zero
+if their corresponding extents are zero,
+because the permutation can be selected
+to move the zero strides to the front of the list of strides.
 For example, suppose that the extents are (2, 3, 0, 7, 0, 13)
 and the strides are (1, 2, 0, 30, 0, 2310).
 If the permutation is (2, 3, 0, 4, 1, 5),
 then the permuted extents are (0, 0, 2, 3, 7, 13)
-and the permuted strides are (0, 0, 1, 2, 30, 2310).
-This even works if the extents corresponding to the zero strides
-are nonzero.]{.ednote}
+and the permuted strides are (0, 0, 1, 2, 30, 2310).]{.ednote}
 
 [*Note 1*:
 For `layout_stride`, this condition is necessary and sufficient
