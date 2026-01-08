@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2026-01-06" />
+  <meta name="dcterms.date" content="2026-01-08" />
   <title>Let layout_stride::mapping with zero extent(s) accept zero strides</title>
   <style>
 code{white-space: pre-wrap;}
@@ -423,11 +423,11 @@ strides</h1>
 <table style="border:none;float:right">
   <tr>
     <td>Document #: </td>
-    <td>PXXXXR0</td>
+    <td>P3959R0</td>
   </tr>
   <tr>
     <td>Date: </td>
-    <td>2026-01-06</td>
+    <td>2026-01-08</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project: </td>
@@ -454,7 +454,13 @@ strides</h1>
 <li><a href="#revision-history" id="toc-revision-history"><span class="toc-section-number">2</span> Revision history</a></li>
 <li><a href="#introduction" id="toc-introduction"><span class="toc-section-number">3</span> Introduction</a></li>
 <li><a href="#design-intent-of-layout_stride" id="toc-design-intent-of-layout_stride"><span class="toc-section-number">4</span> Design intent of
-<code>layout_stride</code></a></li>
+<code>layout_stride</code></a>
+<ul>
+<li><a href="#supported-use-cases" id="toc-supported-use-cases"><span class="toc-section-number">4.1</span> Supported use cases</a></li>
+<li><a href="#layout_stridemapping-is-not-the-most-general-strided-layout-mapping" id="toc-layout_stridemapping-is-not-the-most-general-strided-layout-mapping"><span class="toc-section-number">4.2</span>
+<code>layout_stride::mapping</code> is not the most general strided
+layout mapping</a></li>
+</ul></li>
 <li><a href="#motivation" id="toc-motivation"><span class="toc-section-number">5</span> Motivation</a>
 <ul>
 <li><a href="#permit-conversion-of-empty-layout_left-or-layout_right-mapping-to-layout_stridemapping" id="toc-permit-conversion-of-empty-layout_left-or-layout_right-mapping-to-layout_stridemapping"><span class="toc-section-number">5.1</span> Permit conversion of empty
@@ -486,7 +492,7 @@ Laboratories)</p></li>
 </ul>
 <h1 data-number="2" id="revision-history"><span class="header-section-number">2</span> Revision history<a href="#revision-history" class="self-link"></a></h1>
 <ul>
-<li>Revision 0 to be submitted 2026-01-15</li>
+<li>Revision 0 to be submitted by 2026-01-16</li>
 </ul>
 <h1 data-number="3" id="introduction"><span class="header-section-number">3</span> Introduction<a href="#introduction" class="self-link"></a></h1>
 <p>We propose to change <code>layout_stride::mapping</code>’s
@@ -503,7 +509,7 @@ empty <code>layout_left::mapping</code> or
 unnecessary precondition violations when creating <code>mdspan</code>
 objects that view multidimensional arrays created in Python or other
 languages.</p>
-<p>This change would relax preconditions of two existing
+<p>This change would relax preconditions of three existing
 <code>layout_stride::mapping</code> constructors. It would not change
 what code is currently well-formed or ill-formed. The only way in which
 it could affect backwards compatibility is by introducing
@@ -516,6 +522,7 @@ elements of an <code>mdspan</code> by calling the BLAS or LAPACK must
 already account for this.</p>
 <h1 data-number="4" id="design-intent-of-layout_stride"><span class="header-section-number">4</span> Design intent of
 <code>layout_stride</code><a href="#design-intent-of-layout_stride" class="self-link"></a></h1>
+<h2 data-number="4.1" id="supported-use-cases"><span class="header-section-number">4.1</span> Supported use cases<a href="#supported-use-cases" class="self-link"></a></h2>
 <p>The design intent of <code>layout_stride</code> is to support the
 following use cases.</p>
 <ol type="1">
@@ -523,8 +530,8 @@ following use cases.</p>
 <code>layout_left_padded</code>, or <code>layout_right_padded</code>
 mapping can be converted to a <code>layout_stride</code> mapping without
 loss of information or possibility of failure.</p></li>
-<li><p><code>layout_stride::mapping</code> can represent any layout
-mapping resulting from one or more applications of
+<li><p><code>layout_stride::mapping</code> represents exactly the set of
+layout mappings resulting from one or more applications of
 <code>submdspan</code>, starting with any <code>mdspan</code> with
 <code>layout_left</code>, <code>layout_right</code>,
 <code>layout_left_padded</code>, or <code>layout_right_padded</code>
@@ -541,31 +548,41 @@ mapping on any multidimensional index in its extents is the dot product
 of the index and the strides. The Notes attached to the layout mapping
 requirements call such a layout mapping a “strided layout
 [mapping].”</p>
-<p>“Strided layout mappings” can exist that
+<h2 data-number="4.2" id="layout_stridemapping-is-not-the-most-general-strided-layout-mapping"><span class="header-section-number">4.2</span>
+<code>layout_stride::mapping</code> is not the most general strided
+layout mapping<a href="#layout_stridemapping-is-not-the-most-general-strided-layout-mapping" class="self-link"></a></h2>
+<p>Strided layout mappings exist that
 <code>layout_stride::mapping</code> cannot represent.</p>
-<ul>
+<ol type="1">
 <li><p><code>layout_stride::mapping</code> does <em>not</em> support
-“broadcasting” layouts – that is, nonunique layouts with all nonzero
-extents, where one or more strides are zero, with the intent of
-“broadcasting” one element over corresponding extent(s). Broadcasting
-layout mappings can be strided per [mdspan.layout.reqmts], even though
-they are not unique.</p></li>
+“broadcasting” layout mappings.</p></li>
 <li><p><code>layout_stride::mapping</code> does <em>not</em> support
-negative strides. A strided layout mapping may have a negative stride as
-long as the corresponding extent is no greater than one. (If that extent
-were greater than one, then some multidimensional index would exist for
-which the mapping should return a negative number. The layout mapping
-requirements forbid this.)</p></li>
+negative strides.</p></li>
 <li><p><code>layout_stride::mapping</code> is always unique. (That all
 the strides are positive is necessary but not sufficient in order for
 this to hold.)</p></li>
-</ul>
-<p>While <code>mdspan</code> generally permits custom nonunique layouts,
-the <code>mdspan</code> authors did not want a commonly used layout such
-as <code>layout_stride</code> to have this behavior. This is because it
-can be difficult to understand how to write generic algorithms for
-nonunique layouts, especially for algorithms that need to write to the
-<code>mdspan</code>’s elements.</p>
+</ol>
+<p>Regarding (1), a <em>broadcasting layout mapping</em> has one or more
+broadcasting extents. A <em>broadcasting extent</em> is greater than
+one, but all indices in that extent refer to the same element. For
+example, if an <code>mdspan</code> <code>x</code> with
+<code>default_accessor</code> has rank 3 and extent 2 (the rightmost
+extent) is broadcasting, then
+<code>&amp;x[i, j, k1] == &amp;x[i, j, k2]</code> for all indices
+<code>k1</code> and <code>k2</code> in <span class="math inline">[0</span>, <code>x.extent(2)</code><span class="math inline">)</span>. One way to get a broadcasting layout
+mapping would be to have a strided layout with stride zero in its
+broadcasting extent(s).</p>
+<p>Regarding (2), a strided layout mapping may have a negative stride as
+long as the corresponding extent is no greater than one. (If that extent
+were greater than one, then some multidimensional index would exist for
+which the mapping should return a negative number. The layout mapping
+requirements forbid this.)</p>
+<p>Regarding (3), while <code>mdspan</code> generally permits custom
+nonunique layouts, the <code>mdspan</code> authors did not want a
+commonly used layout such as <code>layout_stride</code> to have this
+behavior. This is because it can be difficult to understand how to write
+generic algorithms for nonunique layouts, especially for algorithms that
+need to write to the <code>mdspan</code>’s elements.</p>
 <p>These restrictions were always part of <code>layout_stride</code>’s
 design. It’s something <code>mdspan</code>’s layouts inherited from
 <code>Kokkos::View</code>. It’s also part of the reason why the layout
@@ -683,7 +700,7 @@ TensorFlow, and XLA “Tensors” all can be converted to and from NumPy
 <code>ndarray</code> arrays. Many such libraries also support the DLPack
 format. NVIDIA’s <a href="https://docs.nvidia.com/cuda/cutile-python/data/array.html#cuda-tile-array">cuTile
 Python</a> has native support for objects that implement either the
-DLPack format or the CUDA Array Interface (e.g., CuPy arrays).</p>
+DLPack format or the CUDA Array Interface (e.g., <a href="https://cupy.dev/">CuPy</a> arrays).</p>
 <p>All these multidimensional array formats claim to provide what they
 call “strided” indexing. However, all of them support much more general
 layouts than what <code>layout_stride</code> supports, for three

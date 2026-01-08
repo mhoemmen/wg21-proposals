@@ -1,6 +1,6 @@
 ---
 title: "Let `layout_stride::mapping` with zero extent(s) accept zero strides"
-document: PXXXXR0
+document: P3959R0
 date: today
 audience: LEWG
 author:
@@ -23,7 +23,7 @@ toc: true
 
 # Revision history
 
-* Revision 0 to be submitted 2026-01-15
+* Revision 0 to be submitted by 2026-01-16
 
 # Introduction
 
@@ -42,7 +42,7 @@ Second, it would prevent unnecessary precondition violations
 when creating `mdspan` objects that view multidimensional arrays
 created in Python or other languages.
 
-This change would relax preconditions of two existing
+This change would relax preconditions of three existing
 `layout_stride::mapping` constructors.
 It would not change what code is currently well-formed or ill-formed.
 The only way in which it could affect backwards compatibility is by
@@ -59,13 +59,15 @@ by calling the BLAS or LAPACK must already account for this.
 
 # Design intent of `layout_stride`
 
+## Supported use cases
+
 The design intent of `layout_stride` is to support the following use cases.
 
 1. Any `layout_left`, `layout_right`, `layout_left_padded`, or
     `layout_right_padded` mapping can be converted to a `layout_stride`
     mapping without loss of information or possibility of failure.
 
-2. `layout_stride::mapping` can represent any layout mapping
+2. `layout_stride::mapping` represents exactly the set of layout mappings
     resulting from one or more applications of `submdspan`,
     starting with any `mdspan` with `layout_left`, `layout_right`,
     `layout_left_padded`, or `layout_right_padded` mapping.
@@ -81,29 +83,39 @@ is the dot product of the index and the strides.
 The Notes attached to the layout mapping requirements
 call such a layout mapping a "strided layout [mapping]."
 
-"Strided layout mappings" can exist that
-`layout_stride::mapping` cannot represent.
+## `layout_stride::mapping` is not the most general strided layout mapping
 
-* `layout_stride::mapping` does *not* support "broadcasting" layouts --
-    that is, nonunique layouts with all nonzero extents,
-    where one or more strides are zero, with the intent
-    of "broadcasting" one element over corresponding extent(s).
-    Broadcasting layout mappings can be strided per
-    [mdspan.layout.reqmts], even though they are not unique.
+Strided layout mappings exist that `layout_stride::mapping` cannot represent.
 
-* `layout_stride::mapping` does *not* support negative strides.
-    A strided layout mapping may have a negative stride
-    as long as the corresponding extent is no greater than one.
-    (If that extent were greater than one,
-    then some multidimensional index would exist
-    for which the mapping should return a negative number.
-    The layout mapping requirements forbid this.)
+1. `layout_stride::mapping` does *not* support "broadcasting"
+    layout mappings.
 
-* `layout_stride::mapping` is always unique.
+2. `layout_stride::mapping` does *not* support negative strides.
+
+3. `layout_stride::mapping` is always unique.
     (That all the strides are positive is necessary
     but not sufficient in order for this to hold.)
 
-While `mdspan` generally permits custom nonunique layouts,
+Regarding (1), a *broadcasting layout mapping*
+has one or more broadcasting extents.
+A *broadcasting extent* is greater than one,
+but all indices in that extent refer to the same element.
+For example, if an `mdspan` `x` with `default_accessor` has
+rank 3 and extent 2 (the rightmost extent) is broadcasting,
+then `&x[i, j, k1] == &x[i, j, k2]`
+for all indices `k1` and `k2` in $[0$, `x.extent(2)`$)$.
+One way to get a broadcasting layout mapping would be to have
+a strided layout with stride zero in its broadcasting extent(s).
+
+Regarding (2), a strided layout mapping may have a negative stride
+as long as the corresponding extent is no greater than one.
+(If that extent were greater than one,
+then some multidimensional index would exist
+for which the mapping should return a negative number.
+The layout mapping requirements forbid this.)
+
+Regarding (3), while `mdspan` generally permits
+custom nonunique layouts,
 the `mdspan` authors did not want a commonly used layout
 such as `layout_stride` to have this behavior.
 This is because it can be difficult to understand
@@ -242,7 +254,7 @@ Many such libraries also support the DLPack format.
 NVIDIA's
 [cuTile Python](https://docs.nvidia.com/cuda/cutile-python/data/array.html#cuda-tile-array)
 has native support for objects that implement either the DLPack format
-or the CUDA Array Interface (e.g., CuPy arrays).
+or the CUDA Array Interface (e.g., [CuPy](https://cupy.dev/) arrays).
 
 All these multidimensional array formats claim to provide
 what they call "strided" indexing.
