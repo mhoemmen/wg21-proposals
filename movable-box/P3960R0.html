@@ -727,8 +727,9 @@ member. The <code>f2</code> lambda has a capture that gives it a
 <code>f2</code> is still trivially copyable, because each of its default
 copy and move operations is either trivial or deleted, and its
 destructor is trivial and not deleted.</p>
-<p>The problem is <em><code>movable-box</code></em>. As <span class="unnumbered sref">range.move.wrap</span> 1.3 explains, since
-<code>copyable&lt;decltype(f2)&gt;</code> is not modeled,
+<p>The problem is <em><code>movable-box</code></em>. As <a href="https://eel.is/c++draft/range.move.wrap#1.3">[range.move.wrap]
+1.3</a> explains, since <code>copyable&lt;decltype(f2)&gt;</code> is not
+modeled,
 <em><code>movable-box</code></em><code>&lt;decltype(f2)&gt;</code>
 provides a nontrivial, not deleted copy assignment operator. This makes
 <em><code>movable-box</code></em><code>&lt;decltype(f2)&gt;</code>, and
@@ -891,15 +892,15 @@ copyable types. Otherwise, its value is unspecified and can be
 indeterminate. The current specification of
 <code>start_lifetime_as</code> looks like this.</p>
 <blockquote>
-<p>The value of each created object <span class="math inline"><em>o</em></span> of trivially copyable type
-([basic.types.general]) <code>U</code> is determined in the same manner
-as for a call to <code>bit_cast&lt;U&gt;(E)</code> ([bit.cast]), where
+<p>The value of each created object <span class="math inline"><em>o</em></span> of trivially copyable type (<a href="https://eel.is/c++draft/basic.types.general">[basic.types.general]</a>)
+<code>U</code> is determined in the same manner as for a call to
+<code>bit_cast&lt;U&gt;(E)</code> (<a href="https://eel.is/c++draft/bit.cast">[bit.cast]</a>), where
 <code>E</code> is an lvalue of type <code>U</code> denoting <span class="math inline"><em>o</em></span>, except that the storage is not
 accessed. The value of any other created object is unspecified.</p>
 </blockquote>
-<p>It refers to <code>bit_cast</code>. The <em>Returns</em> clause of
-[bit.cast] has a detailed description of the desired behavior. We would
-like to preserve this, as it would seem to apply even for
+<p>It refers to <code>bit_cast</code>. The <a href="https://eel.is/c++draft/bit.cast#4"><em>Returns</em> clause of
+[bit.cast]</a> has a detailed description of the desired behavior. We
+would like to preserve this, as it would seem to apply even for
 copy-constructible-by-bytes types. All we need to do is relax
 <code>bit_cast</code>’s <em>Constraints</em>, which currently require
 that both the input type <code>To</code> and the return type
@@ -942,11 +943,12 @@ Unfortunately, this would collide with the existing trait
 meaning than we need. If
 <code>is_trivially_copy_constructible_v&lt;T&gt;</code> is
 <code>true</code>, then this only means that the copy constructor is
-trivial ([meta.unary.prop]). However, if
-<code>is_trivially_copyable_v&lt;T&gt;</code> is <code>true</code>, then
-<code>T</code> is trivially copyable, which imposes requirements on
-other special member functions, including the destructor. Our new
-property needs to impose analogous requirements beyond those implied by
+trivial (<a href="https://eel.is/c++draft/meta.unary.prop">[meta.unary.prop]</a>).
+However, if <code>is_trivially_copyable_v&lt;T&gt;</code> is
+<code>true</code>, then <code>T</code> is trivially copyable, which
+imposes requirements on other special member functions, including the
+destructor. Our new property needs to impose analogous requirements
+beyond those implied by
 <code>is_trivially_copy_constructible_v&lt;T&gt;</code> being
 <code>true</code>.</p>
 <h2 data-number="4.6" id="movable-box-is-already-an-implicit-lifetime-type"><span class="header-section-number">4.6</span>
@@ -956,12 +958,12 @@ and on the ability to create those arguments implicitly from their value
 representations. The latter requires that the arguments be
 implicit-lifetime types ([class.prop]).</p>
 <p>The Standard specifies <em><code>movable-box</code></em> as an
-enumerated list of differences from <code>optional&lt;T&gt;</code>
-([range.move.wrap]). None of these differences include the destructor.
-The specification of <code>optional&lt;T&gt;</code> says that its
-destructor is trivial if
+enumerated list of differences from <code>optional&lt;T&gt;</code> (<a href="https://eel.is/c++draft/range.move.wrap">[range.move.wrap]</a>).
+None of these differences include the destructor. The specification of
+<code>optional&lt;T&gt;</code> says that its destructor is trivial if
 <code>is_trivially_destructible_v&lt;T&gt;</code> is <code>true</code>
-([optional.dtor]). Thus, the same applies to
+(<a href="https://eel.is/c++draft/optional.dtor">[optional.dtor]</a>).
+Thus, the same applies to
 <em><code>movable-box</code></em><code>&lt;F&gt;</code>. This makes
 <em><code>movable-box</code></em><code>&lt;F&gt;</code> an
 implicit-lifetime type as long as <code>F</code> is.</p>

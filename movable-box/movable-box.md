@@ -247,9 +247,9 @@ because each of its default copy and move operations
 is either trivial or deleted,
 and its destructor is trivial and not deleted.
 
-The problem is _`movable-box`_.
-As [range.move.wrap]{- .sref} 1.3 explains,
-since `copyable<decltype(f2)>` is not modeled,
+The problem is _`movable-box`_.  As
+[[range.move.wrap] 1.3](https://eel.is/c++draft/range.move.wrap#1.3)
+explains, since `copyable<decltype(f2)>` is not modeled,
 _`movable-box`_`<decltype(f2)>` provides a nontrivial,
 not deleted copy assignment operator.
 This makes _`movable-box`_`<decltype(f2)>`,
@@ -451,13 +451,15 @@ Otherwise, its value is unspecified and can be indeterminate.
 The current specification of `start_lifetime_as` looks like this.
 
 > The value of each created object $o$ of trivially copyable type
-> ([basic.types.general]) `U` is determined in the same manner
-> as for a call to `bit_cast<U>(E)` ([bit.cast]),
+> ([[basic.types.general]](https://eel.is/c++draft/basic.types.general))
+> `U` is determined in the same manner as for a call to `bit_cast<U>(E)`
+> ([[bit.cast]](https://eel.is/c++draft/bit.cast)),
 > where `E` is an lvalue of type `U` denoting $o$,
 > except that the storage is not accessed.
 > The value of any other created object is unspecified.
 
-It refers to `bit_cast`.  The *Returns* clause of [bit.cast]
+It refers to `bit_cast`.  The
+[*Returns* clause of [bit.cast]](https://eel.is/c++draft/bit.cast#4)
 has a detailed description of the desired behavior.
 We would like to preserve this, as it would seem to apply
 even for copy-constructible-by-bytes types.
@@ -505,7 +507,7 @@ Unfortunately, this would collide with the existing trait
 which has a much narrower meaning than we need.
 If `is_trivially_copy_constructible_v<T>` is `true`,
 then this only means that the copy constructor is trivial
-([meta.unary.prop]).
+([[meta.unary.prop]](https://eel.is/c++draft/meta.unary.prop)).
 However, if `is_trivially_copyable_v<T>` is `true`,
 then `T` is trivially copyable, which imposes requirements
 on other special member functions, including the destructor.
@@ -521,10 +523,12 @@ from their value representations.  The latter requires
 that the arguments be implicit-lifetime types ([class.prop]).
 
 The Standard specifies _`movable-box`_ as an enumerated
-list of differences from `optional<T>` ([range.move.wrap]).
+list of differences from `optional<T>`
+([[range.move.wrap]](https://eel.is/c++draft/range.move.wrap)).
 None of these differences include the destructor.
 The specification of `optional<T>` says that its destructor is trivial
-if `is_trivially_destructible_v<T>` is `true` ([optional.dtor]).
+if `is_trivially_destructible_v<T>` is `true`
+([[optional.dtor]](https://eel.is/c++draft/optional.dtor)).
 Thus, the same applies to _`movable-box`_`<F>`.
 This makes _`movable-box`_`<F>` an implicit-lifetime type
 as long as `F` is.
