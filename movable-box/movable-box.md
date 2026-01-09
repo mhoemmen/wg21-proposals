@@ -881,7 +881,7 @@ that would let a class opt into the privileges of trivial copyability.
 Other prior art includes
 [Clang's `trivial_abi` attribute](https://clang.llvm.org/docs/AttributeReference.html#trivial-abi).
 
-We do not favor this approach, because trivial copyability
+We do not propose this approach here, because trivial copyability
 is more coarse-grained than what our applications actually need.
 We do not need to copy bytes between existing objects,
 so we do not need to bypass a nontrivial copy assignment operator.
@@ -1015,6 +1015,10 @@ if invoked with a nonconst `X` object.]{.ednote}
 
 > Add an example to the end of [class.prop] ("Properties of classes") as follows.
 
+[*Note 3*:
+Aggregates of class type are described in [dcl.init.aggr].
+— *end note*]
+
 [16]{.pnum} A class `S` is an *implicit-lifetime class* if
 
 * [16.1]{.pnum} it is an aggregate whose destructor is not user-provided or
@@ -1022,7 +1026,7 @@ if invoked with a nonconst `X` object.]{.ednote}
 * [16.2]{.pnum} it has at least one trivial eligible constructor and a trivial, non-deleted destructor.
 
 ::: add
-[*Note 7*:
+[*Note 4*:
 A copy-constructible-from-bytes class `S` is also an implicit-lifetime class.
 — *end note*]
 
@@ -1031,10 +1035,10 @@ If `S` is a copy-constructible-from-bytes class and `src` is an object of type `
 then the following starts the lifetime of an `S` object at `dst_ptr`
 with the same object representation as that of `src`.
 
-```c++
+```
 void* dst_mem = std::aligned_alloc(alignof(S), sizeof(S));
 std::memcpy(dst_mem, &src, sizeof(T));
-S* dst_ptr = std::start_lifetime_as(dst_mem);
+S* dst_ptr = std::start_lifetime_as<S>(dst_mem);
 ```
 — *end example*]
 :::
@@ -1191,8 +1195,10 @@ consteval bool is_standard_layout_type(info type);
     constexpr bool is_volatile_v = is_volatile<T>::value;
 ```
 ::: add
+```
   template<class T>
     constexpr bool is_copy_constructible_from_bytes_v = is_copy_constructible_from_bytes<T>::value;
+```
 :::
 ```
   template<class T>
