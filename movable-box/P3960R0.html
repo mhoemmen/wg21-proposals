@@ -474,10 +474,10 @@ copy-constructible-from-bytes type property</a></li>
 types are implicit-lifetime types</a></li>
 <li><a href="#copy-construction-from-bytes" id="toc-copy-construction-from-bytes"><span class="toc-section-number">4.3</span> Copy-construction from
 bytes</a></li>
-<li><a href="#adjust-start_lifetime_as-and-bit_cast-accordingly" id="toc-adjust-start_lifetime_as-and-bit_cast-accordingly"><span class="toc-section-number">4.4</span> Adjust
-<code>start_lifetime_as</code> and <code>bit_cast</code>
+<li><a href="#adjust-start_lifetime_as-and-bit_cast-wording-accordingly" id="toc-adjust-start_lifetime_as-and-bit_cast-wording-accordingly"><span class="toc-section-number">4.4</span> Adjust
+<code>start_lifetime_as</code> and <code>bit_cast</code> wording
 accordingly</a></li>
-<li><a href="#avoid-conflict-with-is_trivially_copy_constructible" id="toc-avoid-conflict-with-is_trivially_copy_constructible"><span class="toc-section-number">4.5</span> Avoid conflict with
+<li><a href="#proposed-name-avoids-conflict-with-is_trivially_copy_constructible" id="toc-proposed-name-avoids-conflict-with-is_trivially_copy_constructible"><span class="toc-section-number">4.5</span> Proposed name avoids conflict with
 <code>is_trivially_copy_constructible</code></a></li>
 <li><a href="#movable-box-is-already-an-implicit-lifetime-type" id="toc-movable-box-is-already-an-implicit-lifetime-type"><span class="toc-section-number">4.6</span> <em><code>movable-box</code></em>
 is already an implicit-lifetime type</a></li>
@@ -597,11 +597,12 @@ optimization.</p>
 <code>memcpy</code> or a non-Standard function that behaves like it. If
 the objects to copy can’t be correctly copied bytewise, then the only
 other option is serialization and deserialization. That is, the
-accelerator needs to run extra code (generally written by the user) to
-“deserialize” raw data into objects. Accelerator users generally don’t
-want to incur this overhead. There is also no Standard serialization
-interface, so implementers cannot ask users to implement serialization
-for their types in portable code.</p>
+accelerator would need to run extra code (which users would normally
+write, at least pre-Reflection) to “deserialize” raw data into objects.
+Accelerator users generally don’t want to incur this overhead. There is
+also no Standard serialization interface, so users would have no
+portable way to make serialization for their types available to
+implementations.</p>
 <p>Algorithms accesses memory both when accessing the elements of their
 input and output ranges, and when accessing the views or iterators that
 represent these ranges. Even if the elements live in accelerator memory,
@@ -613,10 +614,9 @@ bytewise copying apply to views or iterators as to the actual data.</p>
 <p>As a result, if an input view, such as a <code>transform_view</code>
 or <code>zip_transform_view</code>, cannot be copied bytewise to the
 accelerator, then the algorithm’s implementation generally would not
-attempt to run on the accelerator. It would instead fall back to a
-possibly nonparallel and likely slower host implementation.
-Implementations thus need some type trait to test all the parallel
-algorithm arguments’ types.</p>
+attempt to run on the accelerator. It would instead fall back to a host
+implementation. That would likely be slower, especially if the data to
+process were already placed in the accelerator’s memory.</p>
 <h2 data-number="3.2" id="type-trait-that-models-launching-a-parallel-algorithm-on-an-accelerator"><span class="header-section-number">3.2</span> Type trait that models
 launching a parallel algorithm on an accelerator?<a href="#type-trait-that-models-launching-a-parallel-algorithm-on-an-accelerator" class="self-link"></a></h2>
 <p>Implementations need a type trait to know whether a parallel
@@ -765,28 +765,29 @@ entire implementation and can give any algorithm access to any nonpublic
 component of a view or iterator. In the extreme case, this leads to a
 “fully coupled” implementation, where many parallel algorithms have
 specializations on many different view and iterator types.</p>
-<p>We do not advocate a fully coupled approach for three reasons. First,
-software engineering best practice generally prefers minimizing coupling
-between components. Users of accelerators consider it a software defect
-for an accelerator-based implementation not to run some operations on
-the accelerator. Thus, we would prefer not to require so much coupling
-just to make acceleration work for something so common in ranges as a
-<code>views::transform</code>. Second, <a href="https://wg21.link/p2500">P2500</a> proposes opening up the
-Standard algorithms to customization. In order to be portable,
+<p>We do not advocate a fully coupled approach for three reasons.</p>
+<ol type="1">
+<li><p>Software engineering best practice generally prefers minimizing
+coupling between components.</p></li>
+<li><p><a href="https://wg21.link/p2500">P2500</a> proposes opening up
+the Standard algorithms to customization. In order to be portable,
 customizations would still need to work with Standard view and iterator
-types. Third, even without <a href="https://wg21.link/p2500">P2500</a>,
-accelerator vendors would still like to provide parallel algorithms that
-live in a different namespace than <code>std</code>, but otherwise
-conform to the Standard. The only way for vendors to do that now would
-be to provide a reimplementation of much of the Standard Library in a
-vendor-specific namespace. The reimplementation would need to include
-Standard containers that are also ranges, such as
-<code>std::vector</code>. Even with this heavyweight vendor
-reimplementation, users would still like vendor-provided algorithms to
-work with Standard view and iterator types. For example, users might
-want to define a library that accepts Standard views or iterators, but
-dispatches to different vendor-provided implementations underneath. <a href="https://github.com/kokkos/kokkos">Kokkos</a> is an example of such
-a library.</p>
+types.</p></li>
+<li><p>Accelerator vendors would like to provide parallel algorithms
+that can be used across different C++ implementations. These necessarily
+live in a different namespace than <code>std</code>, but otherwise aim
+to conform to the Standard. Users would prefer these algorithms to work
+with Standard view and iterator types.</p></li>
+</ol>
+<p>Regarding (1), users of accelerators consider it a software defect
+for an accelerator-based implementation not to run operations on the
+accelerator if possible. Thus, we would prefer not to require so much
+coupling just to make acceleration work for something so common in
+ranges as a <code>views::transform</code>.</p>
+<p>Regarding (2) and (3), anyone who wants to provide parallel
+algorithms currently must reimplement much of Ranges – a large portion
+of the Standard Library. Users must then opt into this reimplementation,
+rather than using Standard types.</p>
 <p>Minimizing coupling between algorithms and views calls for making it
 possible for algorithms to iterate over views without specializing on
 the view or iterator type. This includes making views bytewise copyable
@@ -837,7 +838,8 @@ copy-constructibility.” Unfortunately, that name is taken already (see
 discussion in a section below), so we use the term
 “copy-constructible-from-bytes.”</p>
 <p>We define a <em>copy-constructible-from-bytes class</em> (analogously
-to [class.prop] 1) to be any class</p>
+to <a href="https://eel.is/c++draft/class.prop#1">[class.prop] 1</a>) to
+be any class</p>
 <ul>
 <li><p>that has at least one eligible copy constructor,</p></li>
 <li><p>where each eligible copy constructor is trivial,</p></li>
@@ -863,14 +865,14 @@ in the following example.</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span><span class="op">*</span> dst_mem <span class="op">=</span> std<span class="op">::</span>malloc<span class="op">(</span><span class="kw">sizeof</span><span class="op">(</span>T<span class="op">))</span>;</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>memcpy<span class="op">(</span>dst_mem, <span class="op">&amp;</span>src, <span class="kw">sizeof</span><span class="op">(</span>T<span class="op">))</span>;</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>T<span class="op">*</span> dst_ptr <span class="op">=</span> std<span class="op">::</span>start_lifetime_as<span class="op">&lt;</span>T<span class="op">&gt;(</span>dst_mem<span class="op">)</span>;</span></code></pre></div>
-<p>Analogously to [basic.types.general] 3, given an object
-<code>src</code> of copy-constructible-from-bytes type <code>T</code>,
-and given correctly aligned storage for an object of type <code>T</code>
-at address <code>dst_mem</code>, copying the bytes of <code>src</code>
-into <code>dst_mem</code> and then implicitly creating a <code>T</code>
-object at address <code>dst_mem</code> would ensure that
-<code>dst_mem</code> points to a valid <code>T</code> object that holds
-the same value as <code>src</code>.</p>
+<p>Analogously to <a href="https://eel.is/c++draft/basic.types.general#3">[basic.types.general]
+3</a>, given an object <code>src</code> of copy-constructible-from-bytes
+type <code>T</code>, and given correctly aligned storage for an object
+of type <code>T</code> at address <code>dst_mem</code>, copying the
+bytes of <code>src</code> into <code>dst_mem</code> and then implicitly
+creating a <code>T</code> object at address <code>dst_mem</code> would
+ensure that <code>dst_mem</code> points to a valid <code>T</code> object
+that holds the same value as <code>src</code>.</p>
 <p>Implicit object creation via <code>start_lifetime_as</code> expresses
 exactly what we want to express here. Other existing syntax options
 would not. Default initialization with placement <code>new</code> would
@@ -879,8 +881,9 @@ the default constructor or even require that types be default
 constructible. None of the <code>uninitialized_*</code> or
 <code>ranges::uninitialized_*</code> algorithms in
 <code>&lt;memory&gt;</code> would accomplish this.</p>
-<h2 data-number="4.4" id="adjust-start_lifetime_as-and-bit_cast-accordingly"><span class="header-section-number">4.4</span> Adjust
-<code>start_lifetime_as</code> and <code>bit_cast</code> accordingly<a href="#adjust-start_lifetime_as-and-bit_cast-accordingly" class="self-link"></a></h2>
+<h2 data-number="4.4" id="adjust-start_lifetime_as-and-bit_cast-wording-accordingly"><span class="header-section-number">4.4</span> Adjust
+<code>start_lifetime_as</code> and <code>bit_cast</code> wording
+accordingly<a href="#adjust-start_lifetime_as-and-bit_cast-wording-accordingly" class="self-link"></a></h2>
 <p>The <code>start_lifetime_as</code> function implicitly creates an
 object of any complete, implicit-lifetime type. However, the
 <em>value</em> of the created object is only determined for trivially
@@ -929,8 +932,8 @@ relax <code>is_trivially_copyable_v&lt;To&gt;</code> to
 <p>The Standard specifies <code>start_lifetime_as_array</code> using
 <code>start_lifetime_as</code>, so we do not need to change the wording
 of <code>start_lifetime_as_array</code>.</p>
-<h2 data-number="4.5" id="avoid-conflict-with-is_trivially_copy_constructible"><span class="header-section-number">4.5</span> Avoid conflict with
-<code>is_trivially_copy_constructible</code><a href="#avoid-conflict-with-is_trivially_copy_constructible" class="self-link"></a></h2>
+<h2 data-number="4.5" id="proposed-name-avoids-conflict-with-is_trivially_copy_constructible"><span class="header-section-number">4.5</span> Proposed name avoids conflict
+with <code>is_trivially_copy_constructible</code><a href="#proposed-name-avoids-conflict-with-is_trivially_copy_constructible" class="self-link"></a></h2>
 <p>We would have preferred to call this property “trivial
 copy-constructibility,” as it is a restriction of trivial copyability
 for types that are copy constructible but not copy assignable.
@@ -1047,9 +1050,10 @@ nontrivial.”</p>
 <h3 data-number="4.7.2" id="thankfully-not-trivially-copyable-types"><span class="header-section-number">4.7.2</span> “Thankfully not trivially
 copyable” types<a href="#thankfully-not-trivially-copyable-types" class="self-link"></a></h3>
 <p>It might help to contrast the above examples with some types that
-really should not be copy constructible from bytes. These types have
-“essentially nontrivial” copy assignment, move assignment, and/or
-destructors. We can think of at least three subcategories.</p>
+<em>are</em> not and <em>should</em> not be copy constructible from
+bytes. These types have “essentially nontrivial” copy assignment, move
+assignment, and/or destructors. We can think of at least three
+subcategories.</p>
 <ol type="1">
 <li><p>Containers that use dynamic allocation, like
 <code>std::vector</code></p></li>
@@ -1246,8 +1250,8 @@ members behave as if they are trivial. In return,
 <code>is_trivially_copyable_v&lt;C&gt;</code> would be
 <code>true</code>, and both the compiler and users would have permission
 to make any code transformations that they is allowed to make for
-trivially copyable types, including the permissions expressed in
-[basic.types.general] 2-3.</p>
+trivially copyable types, including the permissions expressed in <a href="https://eel.is/c++draft/basic.types.general#2">[basic.types.general]
+2-3</a>.</p>
 <p>The syntax might look like the special identifier
 <code>trivially_relocatable_if_eligible</code> that was part of C++26’s
 trivial relocation proposal <a href="https://wg21.link/p2786r13">P2786R13</a>. One could imagine an

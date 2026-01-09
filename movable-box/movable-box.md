@@ -93,13 +93,13 @@ Copying from host to accelerator memory happens bytewise,
 using `memcpy` or a non-Standard function that behaves like it.
 If the objects to copy can't be correctly copied bytewise,
 then the only other option is serialization and deserialization.
-That is, the accelerator needs to run extra code
-(generally written by the user)
+That is, the accelerator would need to run extra code
+(which users would normally write, at least pre-Reflection)
 to "deserialize" raw data into objects.
 Accelerator users generally don't want to incur this overhead.
 There is also no Standard serialization interface,
-so implementers cannot ask users to implement serialization
-for their types in portable code.
+so users would have no portable way to make serialization
+for their types available to implementations.
 
 Algorithms accesses memory both when accessing the elements
 of their input and output ranges,
@@ -119,10 +119,9 @@ such as a `transform_view` or `zip_transform_view`,
 cannot be copied bytewise to the accelerator,
 then the algorithm's implementation
 generally would not attempt to run on the accelerator.
-It would instead fall back to a possibly nonparallel
-and likely slower host implementation.
-Implementations thus need some type trait
-to test all the parallel algorithm arguments' types.
+It would instead fall back to a host implementation.
+That would likely be slower, especially if the data
+to process were already placed in the accelerator's memory.
 
 ## Type trait that models launching a parallel algorithm on an accelerator?
 
@@ -294,34 +293,33 @@ where many parallel algorithms have specializations
 on many different view and iterator types.
 
 We do not advocate a fully coupled approach for three reasons.
-First, software engineering best practice
-generally prefers minimizing coupling between components.
-Users of accelerators consider it a software defect
-for an accelerator-based implementation
-not to run some operations on the accelerator.
+
+1. Software engineering best practice generally prefers
+    minimizing coupling between components.
+
+2. [P2500](https://wg21.link/p2500) proposes
+    opening up the Standard algorithms to customization.
+    In order to be portable, customizations would still
+    need to work with Standard view and iterator types.
+
+3. Accelerator vendors would like to provide parallel algorithms
+    that can be used across different C++ implementations.
+    These necessarily live in a different namespace than `std`,
+    but otherwise aim to conform to the Standard.
+    Users would prefer these algorithms to work
+    with Standard view and iterator types.
+
+Regarding (1), users of accelerators consider it
+a software defect for an accelerator-based implementation
+not to run operations on the accelerator if possible.
 Thus, we would prefer not to require so much coupling
 just to make acceleration work for something
 so common in ranges as a `views::transform`.
-Second, [P2500](https://wg21.link/p2500)
-proposes opening up the Standard algorithms to customization.
-In order to be portable, customizations would still
-need to work with Standard view and iterator types.
-Third, even without [P2500](https://wg21.link/p2500),
-accelerator vendors would still like to provide parallel algorithms
-that live in a different namespace than `std`,
-but otherwise conform to the Standard.
-The only way for vendors to do that now would be
-to provide a reimplementation of much of the Standard Library
-in a vendor-specific namespace.
-The reimplementation would need to include
-Standard containers that are also ranges, such as `std::vector`.
-Even with this heavyweight vendor reimplementation,
-users would still like vendor-provided algorithms
-to work with Standard view and iterator types.
-For example, users might want to define a library
-that accepts Standard views or iterators,
-but dispatches to different vendor-provided implementations underneath.
-[Kokkos](https://github.com/kokkos/kokkos) is an example of such a library.
+
+Regarding (2) and (3), anyone who wants to provide parallel
+algorithms currently must reimplement much of Ranges --
+a large portion of the Standard Library.  Users must then
+opt into this reimplementation, rather than using Standard types.
 
 Minimizing coupling between algorithms and views
 calls for making it possible for algorithms to iterate over views
@@ -385,7 +383,8 @@ Unfortunately, that name is taken already
 so we use the term "copy-constructible-from-bytes."
 
 We define a *copy-constructible-from-bytes class*
-(analogously to [class.prop] 1) to be any class
+(analogously to [[class.prop] 1](https://eel.is/c++draft/class.prop#1))
+to be any class
 
 * that has at least one eligible copy constructor,
 
@@ -422,7 +421,8 @@ std::memcpy(dst_mem, &src, sizeof(T));
 T* dst_ptr = std::start_lifetime_as<T>(dst_mem);
 ```
 
-Analogously to [basic.types.general] 3,
+Analogously to
+[[basic.types.general] 3](https://eel.is/c++draft/basic.types.general#3),
 given an object `src` of copy-constructible-from-bytes type `T`,
 and given correctly aligned storage
 for an object of type `T` at address `dst_mem`,
@@ -441,7 +441,7 @@ or even require that types be default constructible.
 None of the `uninitialized_*` or `ranges::uninitialized_*`
 algorithms in `<memory>` would accomplish this.
 
-## Adjust `start_lifetime_as` and `bit_cast` accordingly
+## Adjust `start_lifetime_as` and `bit_cast` wording accordingly
 
 The `start_lifetime_as` function implicitly creates an object
 of any complete, implicit-lifetime type.
@@ -494,7 +494,7 @@ We propose two changes.
 The Standard specifies `start_lifetime_as_array` using `start_lifetime_as`,
 so we do not need to change the wording of `start_lifetime_as_array`.
 
-## Avoid conflict with `is_trivially_copy_constructible`
+## Proposed name avoids conflict with `is_trivially_copy_constructible`
 
 We would have preferred to call this property
 "trivial copy-constructibility,"
@@ -638,7 +638,7 @@ Like _`movable-box`_, copy assignment is "accidentally nontrivial."
 ### "Thankfully not trivially copyable" types
 
 It might help to contrast the above examples with some types
-that really should not be copy constructible from bytes.
+that *are* not and *should* not be copy constructible from bytes.
 These types have "essentially nontrivial" copy assignment,
 move assignment, and/or destructors.
 We can think of at least three subcategories.
@@ -869,8 +869,9 @@ any nontrivial special members behave as if they are trivial.
 In return, `is_trivially_copyable_v<C>` would be `true`,
 and both the compiler and users would have permission
 to make any code transformations that they is allowed to make
-for trivially copyable types, including the permissions
-expressed in [basic.types.general] 2-3.
+for trivially copyable types,
+including the permissions expressed in
+[[basic.types.general] 2-3](https://eel.is/c++draft/basic.types.general#2).
 
 The syntax might look like the special identifier
 `trivially_relocatable_if_eligible`
