@@ -1131,24 +1131,56 @@ template<class To, class From>
 
 * [1.1]{.pnum} `sizeof(To) == sizeof(From)` is `true`;
 
-* [1.2]{.pnum} [`is_trivially_copyable_v]{.rm}[`is_copy_constructible_from_bytes_v`]{.add}`<To>` is `true`.
+* [1.2]{.pnum} [`is_trivially_copyable_v`]{.rm}[`is_copy_constructible_from_bytes_v`]{.add}`<To>` is `true`.
 
-* [1.3]{.pnum} [`is_trivially_copyable_v]{.rm}[`is_copy_constructible_from_bytes_v`]{.add}`<From>` is `true`.
+* [1.3]{.pnum} [`is_trivially_copyable_v`]{.rm}[`is_copy_constructible_from_bytes_v`]{.add}`<From>` is `true`.
 
 ## Change [meta.unary.prop]
 
 > Change [meta.unary.prop] ("Type properties") as follows.
 
-| **Template** | **Condition** | **Preconditions** |
-| === | === | === |
-| ... | ... | ... |
-| `template<class T> struct is_const;` | `T` is const-qualified ([basic.type.qualifier]) | |
-| `template<class T> struct is_volatile;` | `T` is volatile-qualified ([basic.type.qualifier]) | |
-::: add
-| `template<class T> struct is_copy_constructible_from_bytes;` | `T` is a copy-constructible-from-bytes type ([basic.types.general]) | `remove_all_extents_t<T>` shall be a complete type or *cv* `void`. |
-:::
-| `template<class T> struct is_trivially_copyable;` | `T` is a trivially copyable type ([basic.types.general]) | `remove_all_extents_t<T>` shall be a complete type or *cv* `void`. |
-| `template<class T> struct is_standard_layout;` | `T` is a standard-layout type ([basic.types.general]) | `remove_all_extents_t<T>` shall be a complete type or *cv* `void`. |
+<table>
+  <tr>
+    <th> **Template** </th>
+    <th> **Condition** </th>
+    <th> **Preconditions** </th>
+  </tr>
+  <tr>
+    <td> ... </td>
+    <td> ... </td>
+    <td> ... </td>
+  </tr>
+  <tr>
+    <td> `template<class T> struct is_const;` </td>
+    <td> `T` is const-qualified ([basic.type.qualifier]) </td>
+    <td> </td>
+  </tr>
+  <tr>
+    <td> `template<class T> struct is_volatile;` </td>
+    <td> `T` is volatile-qualified ([basic.type.qualifier]) </td>
+    <td> </td>
+  </tr>
+  <tr>
+    <td> [`template<class T> struct is_copy_constructible_from_bytes;`]{.add} </td>
+    <td> [`T` is a copy-constructible-from-bytes type ([basic.types.general])]{.add} </td>
+    <td> [`remove_all_extents_t<T>` shall be a complete type or *cv* `void`.]{.add} </td>
+  </tr>
+  <tr>
+    <td> `template<class T> struct is_trivially_copyable;` </td>
+    <td> `T` is a trivially copyable type ([basic.types.general]) </td>
+    <td> `remove_all_extents_t<T>` shall be a complete type or *cv* `void`. </td>
+  </tr>
+  <tr>
+    <td> `template<class T> struct is_standard_layout;` </td>
+    <td> `T` is a standard-layout type ([basic.types.general]) </td>
+    <td> `remove_all_extents_t<T>` shall be a complete type or *cv* `void`. </td>
+  </tr>
+  <tr>
+    <td> ... </td>
+    <td> ... </td>
+    <td> ... </td>
+  </tr>
+</table>
 
 ## Change [meta.reflection.traits]
 

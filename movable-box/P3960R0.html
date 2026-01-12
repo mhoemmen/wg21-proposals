@@ -1526,38 +1526,109 @@ follows.</p>
 <li><p><span class="marginalizedparent"><a class="marginalized">(1.1)</a></span>
 <code>sizeof(To) == sizeof(From)</code> is <code>true</code>;</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(1.2)</a></span>
-[<code>is_trivially_copyable_v]{.rm}[</code>is_copy_constructible_from_bytes_v<code>]{.add}</code><To><code>is</code>true`.</p></li>
+<span class="rm" style="color: #bf0303"><del><span><code>is_trivially_copyable_v</code></span></del></span><span class="add" style="color: #00AA00"><ins><span><code>is_copy_constructible_from_bytes_v</code></span></ins></span><code>&lt;To&gt;</code>
+is <code>true</code>.</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(1.3)</a></span>
-[<code>is_trivially_copyable_v]{.rm}[</code>is_copy_constructible_from_bytes_v<code>]{.add}</code><From><code>is</code>true`.</p></li>
+<span class="rm" style="color: #bf0303"><del><span><code>is_trivially_copyable_v</code></span></del></span><span class="add" style="color: #00AA00"><ins><span><code>is_copy_constructible_from_bytes_v</code></span></ins></span><code>&lt;From&gt;</code>
+is <code>true</code>.</p></li>
 </ul>
 <h2 data-number="9.7" id="change-meta.unary.prop"><span class="header-section-number">9.7</span> Change [meta.unary.prop]<a href="#change-meta.unary.prop" class="self-link"></a></h2>
 <blockquote>
 <p>Change [meta.unary.prop] (“Type properties”) as follows.</p>
 </blockquote>
-<div class="line-block"><strong>Template</strong> |
-<strong>Condition</strong> | <strong>Preconditions</strong> |<br />
-=== | === | === |<br />
-… | … | … |<br />
-<code>template&lt;class T&gt; struct is_const;</code> | <code>T</code>
-is const-qualified ([basic.type.qualifier]) | |<br />
-<code>template&lt;class T&gt; struct is_volatile;</code> |
-<code>T</code> is volatile-qualified ([basic.type.qualifier]) | |</div>
-<div class="add" style="color: #00AA00">
-
-<div class="line-block"><code>template&lt;class T&gt; struct is_copy_constructible_from_bytes;</code>
-| <code>T</code> is a copy-constructible-from-bytes type
-([basic.types.general]) | <code>remove_all_extents_t&lt;T&gt;</code>
-shall be a complete type or <em>cv</em> <code>void</code>. |</div>
-
-</div>
-<div class="line-block"><code>template&lt;class T&gt; struct is_trivially_copyable;</code>
-| <code>T</code> is a trivially copyable type ([basic.types.general]) |
+<table>
+<tr>
+<th>
+<strong>Template</strong>
+</th>
+<th>
+<strong>Condition</strong>
+</th>
+<th>
+<strong>Preconditions</strong>
+</th>
+</tr>
+<tr>
+<td>
+…
+</td>
+<td>
+…
+</td>
+<td>
+…
+</td>
+</tr>
+<tr>
+<td>
+<code>template&lt;class T&gt; struct is_const;</code>
+</td>
+<td>
+<code>T</code> is const-qualified ([basic.type.qualifier])
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>template&lt;class T&gt; struct is_volatile;</code>
+</td>
+<td>
+<code>T</code> is volatile-qualified ([basic.type.qualifier])
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<span class="add" style="color: #00AA00"><ins><span><code>template&lt;class T&gt; struct is_copy_constructible_from_bytes;</code></span></ins></span>
+</td>
+<td>
+<span class="add" style="color: #00AA00"><ins><span><code>T</code></span> is a
+copy-constructible-from-bytes type ([basic.types.general])</ins></span>
+</td>
+<td>
+<span class="add" style="color: #00AA00"><ins><span><code>remove_all_extents_t&lt;T&gt;</code></span>
+shall be a complete type or <em>cv</em>
+<span><code>void</code></span>.</ins></span>
+</td>
+</tr>
+<tr>
+<td>
+<code>template&lt;class T&gt; struct is_trivially_copyable;</code>
+</td>
+<td>
+<code>T</code> is a trivially copyable type ([basic.types.general])
+</td>
+<td>
 <code>remove_all_extents_t&lt;T&gt;</code> shall be a complete type or
-<em>cv</em> <code>void</code>. |<br />
-<code>template&lt;class T&gt; struct is_standard_layout;</code> |
-<code>T</code> is a standard-layout type ([basic.types.general]) |
+<em>cv</em> <code>void</code>.
+</td>
+</tr>
+<tr>
+<td>
+<code>template&lt;class T&gt; struct is_standard_layout;</code>
+</td>
+<td>
+<code>T</code> is a standard-layout type ([basic.types.general])
+</td>
+<td>
 <code>remove_all_extents_t&lt;T&gt;</code> shall be a complete type or
-<em>cv</em> <code>void</code>. |</div>
+<em>cv</em> <code>void</code>.
+</td>
+</tr>
+<tr>
+<td>
+…
+</td>
+<td>
+…
+</td>
+<td>
+…
+</td>
+</tr>
+</table>
 <h2 data-number="9.8" id="change-meta.reflection.traits"><span class="header-section-number">9.8</span> Change
 [meta.reflection.traits]<a href="#change-meta.reflection.traits" class="self-link"></a></h2>
 <blockquote>
