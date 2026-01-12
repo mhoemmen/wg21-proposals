@@ -462,7 +462,7 @@ It refers to `bit_cast`.  The
 [*Returns* clause of [bit.cast]](https://eel.is/c++draft/bit.cast#4)
 has a detailed description of the desired behavior.
 We would like to preserve this, as it would seem to apply
-even for copy-constructible-by-bytes types.
+even for copy-constructible-from-bytes types.
 All we need to do is relax `bit_cast`'s *Constraints*,
 which currently require that both the input type `To` and
 the return type `From` are trivially copyable.
@@ -485,7 +485,7 @@ on both `From` and `To`.
 We propose two changes.
 
 1. In the *Effects* clause of `start_lifetime_as`,
-    relax "trivially copyable type" to "copy-constructible-by-bytes type"
+    relax "trivially copyable type" to "copy-constructible-from-bytes type"
 
 2. In the *Constraints* clause of `bit_cast`,
     relax `is_trivially_copyable_v<To>` to
@@ -985,8 +985,6 @@ In [version.syn], add the `__cpp_lib_copy_constructible_from_bytes` macro by rep
 
 > Change the beginning of [class.prop] ("Properties of classes") as follows.
 
-[This assumes removal of trivial relocatability (P2786R13).]{.ednote}
-
 ::: add
 [1]{.pnum} A *copy-constructible-from-bytes class* is a class:
 
@@ -1110,7 +1108,7 @@ template<class T>
 
 [2]{.pnum} *Preconditions*: $[$`p`, `(char*)p + sizeof(T)`$)$ denotes a region of allocated storage that is a subset of the region of storage reachable through ([basic.compound]) `p` and suitably aligned for the type `T`.
 
-[3]{.pnum} *Effects*: Implicitly creates objects ([intro.object]) within the denoted region consisting of an object $a$ of type `T` whose address is `p`, and objects nested within $a$, as follows: The object representation of $a$ is the contents of the storage prior to the call to `start_lifetime_as`.  The value of each created object $o$ of [trivially copyable]{.rm}[copy-constructible-by-bytes]{.add} type ([basic.types.general]) `U` is determined in the same manner as for a call to `bit_cast<U>(E)` ([bit.cast]), where `E` is an lvalue of type `U` denoting $o$, except that the storage is not accessed.  The value of any other created object is unspecified.
+[3]{.pnum} *Effects*: Implicitly creates objects ([intro.object]) within the denoted region consisting of an object $a$ of type `T` whose address is `p`, and objects nested within $a$, as follows: The object representation of $a$ is the contents of the storage prior to the call to `start_lifetime_as`.  The value of each created object $o$ of [trivially copyable]{.rm}[copy-constructible-from-bytes]{.add} type ([basic.types.general]) `U` is determined in the same manner as for a call to `bit_cast<U>(E)` ([bit.cast]), where `E` is an lvalue of type `U` denoting $o$, except that the storage is not accessed.  The value of any other created object is unspecified.
 
 [*Note 1*: The unspecified value can be indeterminate.
 — *end note*]

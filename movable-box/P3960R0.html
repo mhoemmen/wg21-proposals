@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2026-01-09" />
+  <meta name="dcterms.date" content="2026-01-12" />
   <title>Define copy-constructibility-from-bytes</title>
   <style>
 code{white-space: pre-wrap;}
@@ -426,7 +426,7 @@ copy-constructibility-from-bytes</h1>
   </tr>
   <tr>
     <td>Date: </td>
-    <td>2026-01-09</td>
+    <td>2026-01-12</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project: </td>
@@ -901,7 +901,7 @@ accessed. The value of any other created object is unspecified.</p>
 <p>It refers to <code>bit_cast</code>. The <a href="https://eel.is/c++draft/bit.cast#4"><em>Returns</em> clause of
 [bit.cast]</a> has a detailed description of the desired behavior. We
 would like to preserve this, as it would seem to apply even for
-copy-constructible-by-bytes types. All we need to do is relax
+copy-constructible-from-bytes types. All we need to do is relax
 <code>bit_cast</code>’s <em>Constraints</em>, which currently require
 that both the input type <code>To</code> and the return type
 <code>From</code> are trivially copyable.</p>
@@ -922,7 +922,7 @@ produced, the behavior is undefined.</p>
 <p>We propose two changes.</p>
 <ol type="1">
 <li><p>In the <em>Effects</em> clause of <code>start_lifetime_as</code>,
-relax “trivially copyable type” to “copy-constructible-by-bytes
+relax “trivially copyable type” to “copy-constructible-from-bytes
 type”</p></li>
 <li><p>In the <em>Constraints</em> clause of <code>bit_cast</code>,
 relax <code>is_trivially_copyable_v&lt;To&gt;</code> to
@@ -1351,8 +1351,6 @@ YYYMML below with the integer literal encoding the appropriate year
 <p>Change the beginning of [class.prop] (“Properties of classes”) as
 follows.</p>
 </blockquote>
-<p><span class="ednote" style="color: #0000ff">[ Editor&#39;s note: This
-assumes removal of trivial relocatability (P2786R13). ]</span></p>
 <div class="add" style="color: #00AA00">
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 A <em>copy-constructible-from-bytes class</em> is a class:</p>
@@ -1501,7 +1499,7 @@ denoted region consisting of an object <span class="math inline"><em>a</em></spa
 address is <code>p</code>, and objects nested within <span class="math inline"><em>a</em></span>, as follows: The object
 representation of <span class="math inline"><em>a</em></span> is the
 contents of the storage prior to the call to
-<code>start_lifetime_as</code>. The value of each created object <span class="math inline"><em>o</em></span> of <span class="rm" style="color: #bf0303"><del>trivially copyable</del></span><span class="add" style="color: #00AA00"><ins>copy-constructible-by-bytes</ins></span>
+<code>start_lifetime_as</code>. The value of each created object <span class="math inline"><em>o</em></span> of <span class="rm" style="color: #bf0303"><del>trivially copyable</del></span><span class="add" style="color: #00AA00"><ins>copy-constructible-from-bytes</ins></span>
 type ([basic.types.general]) <code>U</code> is determined in the same
 manner as for a call to <code>bit_cast&lt;U&gt;(E)</code> ([bit.cast]),
 where <code>E</code> is an lvalue of type <code>U</code> denoting <span class="math inline"><em>o</em></span>, except that the storage is not
