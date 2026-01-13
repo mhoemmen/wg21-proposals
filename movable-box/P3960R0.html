@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2026-01-12" />
+  <meta name="dcterms.date" content="2026-01-13" />
   <title>Define copy-constructibility-from-bytes</title>
   <style>
 code{white-space: pre-wrap;}
@@ -426,7 +426,7 @@ copy-constructibility-from-bytes</h1>
   </tr>
   <tr>
     <td>Date: </td>
-    <td>2026-01-12</td>
+    <td>2026-01-13</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project: </td>
@@ -1416,9 +1416,10 @@ copy-constructible-from-bytes class and <code>src</code> is an object of
 type <code>S</code>, then the following starts the lifetime of an
 <code>S</code> object at <code>dst_ptr</code> with the same object
 representation as that of <code>src</code>.</p>
-<div class="sourceCode" id="cb11"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>void* dst_mem = std::aligned_alloc(alignof(S), sizeof(S));</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>std::memcpy(dst_mem, &amp;src, sizeof(T));</span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>S* dst_ptr = std::start_lifetime_as&lt;S&gt;(dst_mem);</span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>auto* dst_mem = static_cast&lt;std::byte*&gt;(</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  std::aligned_alloc(alignof(S), sizeof(S)));</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>std::memcpy(dst_mem, &amp;src, sizeof(S));</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>S* dst_ptr = std::start_lifetime_as&lt;S&gt;(dst_mem);</span></code></pre></div>
 <p>— <em>end example</em>]</p>
 </div>
 <h2 data-number="9.4" id="change-beginning-of-basic.types.general"><span class="header-section-number">9.4</span> Change beginning of
@@ -1437,22 +1438,30 @@ note</em>]</p>
 For any object <code>src</code> (other than a potentially-overlapping
 subobject) of copy-constructible-from-bytes type <code>T</code>
 ([class.prop]), the underlying bytes ([intro.memory]) making up
-<code>src</code> can be copied into an array of <code>char</code>,
-<code>unsigned char</code>, or <code>std::byte</code> ([cstddef.syn]).
-If the start of the array has alignment at least to
-<code>alignof(T)</code> and an object <code>dst</code> of type
-<code>T</code> is implicitly created ([intro.object]) in the array, then
-<code>dst</code> shall subsequently hold the same value as
-<code>src</code>.</p>
+<code>src</code> can be copied into an array of
+<code>unsigned char</code> or <code>std::byte</code> ([cstddef.syn]). If
+the start of the array has alignment at least to <code>alignof(T)</code>
+and an object <code>dst</code> of type <code>T</code> is implicitly
+created within the region of storage occupied by the array
+([intro.object]), then <code>dst</code> shall subsequently hold the same
+value as <code>src</code>.</p>
 <p>[<em>Example 1</em>: At the end of this example, <code>dst_ptr</code>
 points to a valid <code>T</code> object that holds the same value as
 <code>src</code>.</p>
 <div class="sourceCode" id="cb12"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>T src(valid_T_object());</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>T* dst_mem = std::malloc(sizeof(T));</span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>std::memcpy(&amp;src, dst_mem, sizeof(T));</span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>T* dst_ptr = std::start_lifetime_as&lt;T&gt;(dst_mem);</span></code></pre></div>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>auto* dst_mem = static_cast&lt;std::byte*&gt;(</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  std::aligned_alloc(alignof(T), sizeof(T)));</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>std::memcpy(dst_mem, &amp;src, sizeof(T));</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>T* dst_ptr = std::start_lifetime_as&lt;T&gt;(dst_mem);</span></code></pre></div>
 <p>— <em>end example</em>]</p>
 </div>
+<p><span class="ednote" style="color: #0000ff">[ Editor&#39;s note: Adoption
+of the proposed resolution of <a href="https://cplusplus.github.io/CWG/issues/2489.html">CWG 2489</a> at
+the February 2023 meeting removed <code>char</code> from the list of
+types in <a href="https://eel.is/c++draft/intro.object#3">[intro.object]
+3</a>. This is why the list of copy destination types for
+copy-constructible-from-bytes types differs from the list for trivially
+copyable types in the following paragraph. ]</span></p>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
 For any object (other than a potentially-overlapping subobject) of
 trivially copyable type T, whether or not the object holds a valid value
@@ -1460,9 +1469,9 @@ of type <code>T</code>, the underlying bytes ([intro.memory]) making up
 the object can be copied into an array of <code>char</code>,
 <code>unsigned char</code>, or <code>std​::​byte</code> ([cstddef.syn]).
 <span class="ednote" style="color: #0000ff">[ Editor&#39;s note: We omit the
-existing footnote link “[26]” because we do not know how to format it.
-]</span> If the content of that array is copied back into the object,
-the object shall subsequently hold its original value.</p>
+existing footnote link because we do not know how to format it. ]</span>
+If the content of that array is copied back into the object, the object
+shall subsequently hold its original value.</p>
 <p>[<em>Example 2</em>:</p>
 <div class="sourceCode" id="cb13"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>constexpr std::size_t N = sizeof(T);</span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>char buf[N];</span>

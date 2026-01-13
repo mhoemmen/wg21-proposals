@@ -1039,8 +1039,9 @@ then the following starts the lifetime of an `S` object at `dst_ptr`
 with the same object representation as that of `src`.
 
 ```
-void* dst_mem = std::aligned_alloc(alignof(S), sizeof(S));
-std::memcpy(dst_mem, &src, sizeof(T));
+auto* dst_mem = static_cast<std::byte*>(
+  std::aligned_alloc(alignof(S), sizeof(S)));
+std::memcpy(dst_mem, &src, sizeof(S));
 S* dst_ptr = std::start_lifetime_as<S>(dst_mem);
 ```
 — *end example*]
@@ -1058,10 +1059,11 @@ S* dst_ptr = std::start_lifetime_as<S>(dst_mem);
 of copy-constructible-from-bytes type `T` ([class.prop]),
 the underlying bytes ([intro.memory]) making up `src`
 can be copied into an array of
-`char`, `unsigned char`, or `std::byte` ([cstddef.syn]).
+`unsigned char` or `std::byte` ([cstddef.syn]).
 If the start of the array has alignment at least to `alignof(T)`
 and an object `dst` of type `T`
-is implicitly created ([intro.object]) in the array,
+is implicitly created within the region of storage
+occupied by the array ([intro.object]),
 then `dst` shall subsequently hold the same value as `src`.
 
 [*Example 1*:
@@ -1070,14 +1072,23 @@ a valid `T` object that holds the same value as `src`.
 
 ```
 T src(valid_T_object());
-T* dst_mem = std::malloc(sizeof(T));
-std::memcpy(&src, dst_mem, sizeof(T));
+auto* dst_mem = static_cast<std::byte*>(
+  std::aligned_alloc(alignof(T), sizeof(T)));
+std::memcpy(dst_mem, &src, sizeof(T));
 T* dst_ptr = std::start_lifetime_as<T>(dst_mem);
 ```
 — *end example*]
 :::
 
-[3]{.pnum} For any object (other than a potentially-overlapping subobject) of trivially copyable type T, whether or not the object holds a valid value of type `T`, the underlying bytes ([intro.memory]) making up the object can be copied into an array of `char`, `unsigned char`, or `std​::​byte` ([cstddef.syn]).  [We omit the existing footnote link "[26]" because we do not know how to format it.]{.ednote}  If the content of that array is copied back into the object, the object shall subsequently hold its original value.
+[Adoption of the proposed resolution of
+[CWG 2489](https://cplusplus.github.io/CWG/issues/2489.html)
+at the February 2023 meeting removed `char` from the list of types
+in [[intro.object] 3](https://eel.is/c++draft/intro.object#3).
+This is why the list of copy destination types
+for copy-constructible-from-bytes types differs from the list
+for trivially copyable types in the following paragraph.]{.ednote}
+
+[3]{.pnum} For any object (other than a potentially-overlapping subobject) of trivially copyable type T, whether or not the object holds a valid value of type `T`, the underlying bytes ([intro.memory]) making up the object can be copied into an array of `char`, `unsigned char`, or `std​::​byte` ([cstddef.syn]).  [We omit the existing footnote link because we do not know how to format it.]{.ednote}  If the content of that array is copied back into the object, the object shall subsequently hold its original value.
 
 [*Example 2*:
 ```
