@@ -1,2 +1,4 @@
 submdspan_future/generated/
 linalg_reduce/generated/
+layout_stride_zero_strides/generated/
+movable-box/generated/
