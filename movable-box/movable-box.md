@@ -955,7 +955,7 @@ is_copy_constructible_from_bytes_v =
 
 # Acknowledgments
 
-Thanks to my NVIDIA colleagues Ilya Burylov, Christof Meerwald, and Gonzalo Brito for reviewing this paper and suggesting wording changes!
+Author Mark Hoemmen thanks his NVIDIA colleagues Ilya Burylov, Christof Meerwald, and Gonzalo Brito for reviewing this paper and suggesting wording changes!
 
 # References
 
