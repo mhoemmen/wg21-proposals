@@ -857,9 +857,12 @@ This section covers alternate solutions that we do NOT propose here.
 ## Make lambdas assignable if their members are?
 
 Lambdas with capture clauses currently have a defaulted copy constructor,
-but deleted assignment operators.
-We could instead make their assignment operators defaulted.
-This would, in turn, make lambdas assignable if their members are.
+but deleted assignment operators.  This makes _`movable-box`_ of such a lambda
+have nontrivial assignment operators, and thus makes it not trivially copyable.
+
+We could instead make lambdas have defaulted assignment operators.
+This would make lambdas trivially assignable (and thus trivially copyable)
+if their members are.
 
 We like this approach, because it would make lambdas more consistent
 with other objects of class type.
