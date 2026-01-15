@@ -315,12 +315,15 @@ We do not advocate a fully coupled approach for four reasons.
     Users would prefer these algorithms to work
     with Standard view and iterator types.
 
-4. Ranges were designed to be composable with any C++ standard
-   conformant views, not just the views that are in the standard
-   itself. Specializing the algorithms for only standard views
-   would kill that composability. Users would likely want to build
-   their ranges pipeline with both standard and non-standard views
-   and still be able to pass it to C++ algorithms.
+4. Ranges were designed to be composable with any classes
+    that conform with the Standard's requirements on views,
+    not just the views that are in the Standard itself.
+    Specializing the algorithms for only Standard views
+    would hinder composability.
+    Users would like to build their ranges pipelines
+    with both Standard and non-Standard views,
+    pass them to Standard parallel algorithms,
+    and have those algorithms run in parallel.
 
 Regarding (1), users of accelerators consider it
 a software defect for an accelerator-based implementation
@@ -334,11 +337,11 @@ algorithms currently must reimplement much of Ranges --
 a large portion of the Standard Library. Users must then
 opt into this reimplementation, rather than using Standard types.
 
-Regarding (4), if users want to mix both standard and non-standard
-views in their code, it creates a big discrepancy of what can or
-cannot be passed to the C++ algorithms; remember that some (already
-pre-built) views composition may come from the 3rd party library,
-users don't have control for.
+Regarding (4), if users mix both Standard and non-Standard views
+in their code, it would create a big discrepancy between
+what the Standard parallel algorithms actually parallelize
+and what they do not.  Some composition of views may come from
+a third-party library that users may not be able to control.
 
 Minimizing coupling between algorithms and views
 calls for making it possible for algorithms to iterate over views
