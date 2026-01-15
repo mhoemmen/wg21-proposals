@@ -753,19 +753,20 @@ as it has a trivially copyable underlying view and function object. This
 would require specializing the parallel algorithm implementation on
 different view or iterator types.</p>
 <p>This approach has three disadvantages.</p>
-<ul>
-<li>First, it adds implementation complexity, especially with deeply
-nested views.</li>
-<li>Second, it increases compilation time, especially with deeply nested
-views.</li>
-<li>Third, the Standard views generally do not have a public interface
-that exposes all their components. While <code>transform_view</code>
-exposes the underlying view via <code>base()</code>, it does not offer a
-Standard public interface to its function object. Some views don’t even
-have <code>base()</code>, e.g, <code>zip_</code> family. As a result,
-this approach couples the parallel algorithm implementation to the view
-implementation.</li>
-</ul>
+<ol type="1">
+<li><p>It adds implementation complexity, especially with deeply nested
+views.</p></li>
+<li><p>It may increase compilation time, especially with deeply nested
+views.</p></li>
+<li><p>The Standard views generally do not have a public interface that
+exposes all their components. As a result, this approach couples the
+parallel algorithm implementation to the view implementation.</p></li>
+</ol>
+<p>As examples of (3), <code>transform_view</code> and
+<code>zip_transform_view</code> do not offer a Standard public interface
+to their function object. While <code>transform_view</code> has a
+<code>base()</code> member function that exposes its underlying view,
+<code>zip_transform_view</code> does not.</p>
 <p>Implementations such as libc++ already accept this coupling in order
 to optimize some algorithms for some iterator or view types. The
 Standard presumes that implementers have complete control over the

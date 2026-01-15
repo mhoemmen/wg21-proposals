@@ -276,13 +276,18 @@ on different view or iterator types.
 
 This approach has three disadvantages.
 
-- First, it adds implementation complexity, especially with deeply nested views.
-- Second, it increases compilation time, especially with deeply nested views.
-- Third, the Standard views generally do not have a public interface
-  that exposes all their components. While `transform_view` exposes the underlying view via `base()`,
-  it does not offer a Standard public interface to its function object.
-  Some views don't even have `base()`, e.g, `zip_` family. As a result, this approach
-  couples the parallel algorithm implementation to the view implementation.
+1. It adds implementation complexity, especially with deeply nested views.
+
+2. It may increase compilation time, especially with deeply nested views.
+
+3. The Standard views generally do not have a public interface
+    that exposes all their components.  As a result, this approach
+    couples the parallel algorithm implementation to the view implementation.
+
+As examples of (3), `transform_view` and `zip_transform_view`
+do not offer a Standard public interface to their function object.
+While `transform_view` has a `base()` member function
+that exposes its underlying view, `zip_transform_view` does not.
 
 Implementations such as libc++ already accept this coupling
 in order to optimize some algorithms for some iterator or view types.
