@@ -884,16 +884,25 @@ invoking `transform_view`'s copy assignment operator.
 It's a purely syntactic requirement for trivial copyability.
 We could simply *decree* that _`movable-box`_`<F>`
 is trivially copyable if `F` is.
-However, this would require adding a special case
-to the core language for a type with no Standard name.
-Lack of a Standard name might hinder use of different
-Standard Library implementations with the same compiler.
-Furthermore, this approach does not scale; users (or libraries)
-can have non-standard views that are implemented with something
-similar to _`movable-box`_ but not quite and definitely with the
-different name, so it would not work.
 
-Thus, we do not favor this approach.
+We do not favor this approach, for three reasons.
+
+1. It would require adding a special case to the core language.
+
+2. The special case would be for an exposition-only type
+    with no Standard name.
+
+    a. This would hinder use of different Standard Library
+        implementations with the same compiler.
+
+    b. Users or accelerator vendors would not be able
+        to use this type in portable implementations
+        of their non-Standard views.
+
+3. The benefit of this change would not scale.
+    Users or accelerator vendors whose non-Standard views
+    use an implementation mechanism similar to _`movable-box`_
+    would not be able to take advantage of the special case.
 
 ## Let types opt into trivial copyability?
 
