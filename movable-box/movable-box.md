@@ -855,8 +855,9 @@ This would, in turn, make lambdas assignable if their members are.
 
 We like this approach, because it would make lambdas more consistent
 with other objects of class type.
-However, we think it should be pursued as a separate proposal, which
-already exists: [@P3963R0].
+However, we think it should be pursued as a separate proposal.
+This proposal already exists as
+[P3963R0](https://isocpp.org/files/papers/P3963R0.html).
 
 There are other applications for relaxing trivial copyability
 that do not involve lambdas.

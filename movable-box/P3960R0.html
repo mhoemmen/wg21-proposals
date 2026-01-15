@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2026-01-13" />
+  <meta name="dcterms.date" content="2026-01-15" />
   <title>Define copy-constructibility-from-bytes</title>
   <style>
 code{white-space: pre-wrap;}
@@ -426,7 +426,7 @@ copy-constructibility-from-bytes</h1>
   </tr>
   <tr>
     <td>Date: </td>
-    <td>2026-01-13</td>
+    <td>2026-01-15</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project: </td>
@@ -495,8 +495,8 @@ affecting how they copy</a></li>
 </ul></li>
 <li><a href="#what-we-do-not-propose" id="toc-what-we-do-not-propose"><span class="toc-section-number">5</span> What we do NOT propose</a>
 <ul>
-<li><a href="#make-lambdas-trivially-copyable-if-their-members-are" id="toc-make-lambdas-trivially-copyable-if-their-members-are"><span class="toc-section-number">5.1</span> Make lambdas trivially copyable if
-their members are?</a></li>
+<li><a href="#make-lambdas-assignable-if-their-members-are" id="toc-make-lambdas-assignable-if-their-members-are"><span class="toc-section-number">5.1</span> Make lambdas assignable if their
+members are?</a></li>
 <li><a href="#decree-that-movable-box-is-trivially-copyable-if-its-component-is" id="toc-decree-that-movable-box-is-trivially-copyable-if-its-component-is"><span class="toc-section-number">5.2</span> Decree that
 <em><code>movable-box</code></em> is trivially copyable if its component
 is?</a></li>
@@ -603,7 +603,7 @@ Accelerator users generally don’t want to incur this overhead. There is
 also no Standard serialization interface, so users would have no
 portable way to make serialization for their types available to
 implementations.</p>
-<p>Algorithms accesses memory both when accessing the elements of their
+<p>Algorithms access memory both when accessing the elements of their
 input and output ranges, and when accessing the views or iterators that
 represent these ranges. Even if the elements live in accelerator memory,
 the views themselves might not. Implementations generally address that
@@ -752,13 +752,20 @@ let parallel algorithms work with a <code>transform_view</code>, as long
 as it has a trivially copyable underlying view and function object. This
 would require specializing the parallel algorithm implementation on
 different view or iterator types.</p>
-<p>This approach has two disadvantages. First, it adds implementation
-complexity, especially with deeply nested views. Second, the Standard
-views generally do not have a public interface that exposes all their
-components. While <code>transform_view</code> exposes the underlying
-view via <code>base()</code>, it does not offer a Standard public
-interface to its function object. As a result, this approach couples the
-parallel algorithm implementation to the view implementation.</p>
+<p>This approach has three disadvantages.</p>
+<ul>
+<li>First, it adds implementation complexity, especially with deeply
+nested views.</li>
+<li>Second, it increases compilation time, especially with deeply nested
+views.</li>
+<li>Third, the Standard views generally do not have a public interface
+that exposes all their components. While <code>transform_view</code>
+exposes the underlying view via <code>base()</code>, it does not offer a
+Standard public interface to its function object. Some views don’t even
+have <code>base()</code>, e.g, <code>zip_</code> family. As a result,
+this approach couples the parallel algorithm implementation to the view
+implementation.</li>
+</ul>
 <p>Implementations such as libc++ already accept this coupling in order
 to optimize some algorithms for some iterator or view types. The
 Standard presumes that implementers have complete control over the
@@ -766,7 +773,7 @@ entire implementation and can give any algorithm access to any nonpublic
 component of a view or iterator. In the extreme case, this leads to a
 “fully coupled” implementation, where many parallel algorithms have
 specializations on many different view and iterator types.</p>
-<p>We do not advocate a fully coupled approach for three reasons.</p>
+<p>We do not advocate a fully coupled approach for four reasons.</p>
 <ol type="1">
 <li><p>Software engineering best practice generally prefers minimizing
 coupling between components.</p></li>
@@ -779,6 +786,12 @@ that can be used across different C++ implementations. These necessarily
 live in a different namespace than <code>std</code>, but otherwise aim
 to conform to the Standard. Users would prefer these algorithms to work
 with Standard view and iterator types.</p></li>
+<li><p>Ranges were designed to be composable with any C++ standard
+conformant views, not just the views that are in the standard itself.
+Specializing the algorithms for only standard views would kill that
+composability. Users would likely want to build their ranges pipeline
+with both standard and non-standard views and still be able to pass it
+to C++ algorithms.</p></li>
 </ol>
 <p>Regarding (1), users of accelerators consider it a software defect
 for an accelerator-based implementation not to run operations on the
@@ -789,6 +802,11 @@ ranges as a <code>views::transform</code>.</p>
 algorithms currently must reimplement much of Ranges – a large portion
 of the Standard Library. Users must then opt into this reimplementation,
 rather than using Standard types.</p>
+<p>Regarding (4), if users want to mix both standard and non-standard
+views in their code, it creates a big discrepancy of what can or cannot
+be passed to the C++ algorithms; remember that some (already pre-built)
+views composition may come from the 3rd party library, users don’t have
+control for.</p>
 <p>Minimizing coupling between algorithms and views calls for making it
 possible for algorithms to iterate over views without specializing on
 the view or iterator type. This includes making views bytewise copyable
@@ -1215,20 +1233,19 @@ copyability offers them.</p>
 <h1 data-number="5" id="what-we-do-not-propose"><span class="header-section-number">5</span> What we do NOT propose<a href="#what-we-do-not-propose" class="self-link"></a></h1>
 <p>This section covers alternate solutions that we do NOT propose
 here.</p>
-<h2 data-number="5.1" id="make-lambdas-trivially-copyable-if-their-members-are"><span class="header-section-number">5.1</span> Make lambdas trivially copyable
-if their members are?<a href="#make-lambdas-trivially-copyable-if-their-members-are" class="self-link"></a></h2>
+<h2 data-number="5.1" id="make-lambdas-assignable-if-their-members-are"><span class="header-section-number">5.1</span> Make lambdas assignable if
+their members are?<a href="#make-lambdas-assignable-if-their-members-are" class="self-link"></a></h2>
 <p>Lambdas with capture clauses currently have a defaulted copy
-constructor, but a deleted copy assignment operator. We could make their
-copy assignment operator defaulted as well. This would, in turn, make
-lambdas trivially copyable if their members are. Lambdas’ move
-assignment operator could be either defaulted as well, or deleted.
-Either approach would still make them trivially copyable.</p>
+constructor, but a deleted assignment operators. We could make their
+assignment operators defaulted as well. This would, in turn, make
+lambdas assignable if their members are.</p>
 <p>We like this approach, because it would make lambdas more consistent
 with other objects of class type. However, we think it should be pursued
-as a separate proposal. There are other applications for relaxing
-trivial copyability that do not involve lambdas. A change to lambdas’
-set of special member functions would require compiler changes, while a
-minor relaxation of trivial copyability might not.</p>
+as a separate proposal. This proposal already exists as <a href="https://isocpp.org/files/papers/P3963R0.html">P3963R0</a>.</p>
+<p>There are other applications for relaxing trivial copyability that do
+not involve lambdas. A change to lambdas’ set of special member
+functions would require compiler changes, while a minor relaxation of
+trivial copyability might not.</p>
 <h2 data-number="5.2" id="decree-that-movable-box-is-trivially-copyable-if-its-component-is"><span class="header-section-number">5.2</span> Decree that
 <em><code>movable-box</code></em> is trivially copyable if its component
 is?<a href="#decree-that-movable-box-is-trivially-copyable-if-its-component-is" class="self-link"></a></h2>
@@ -1241,8 +1258,12 @@ syntactic requirement for trivial copyability. We could simply
 copyable if <code>F</code> is. However, this would require adding a
 special case to the core language for a type with no Standard name. Lack
 of a Standard name might hinder use of different Standard Library
-implementations with the same compiler. Thus, we do not favor this
-approach.</p>
+implementations with the same compiler. Furthermore, this approach does
+not scale; users (or libraries) can have non-standard views that are
+implemented with something similar to <em><code>movable-box</code></em>
+but not quite and definitely with the different name, so it would not
+work.</p>
+<p>Thus, we do not favor this approach.</p>
 <h2 data-number="5.3" id="let-types-opt-into-trivial-copyability"><span class="header-section-number">5.3</span> Let types opt into trivial
 copyability?<a href="#let-types-opt-into-trivial-copyability" class="self-link"></a></h2>
 <p>What if a class could “opt into” trivial copyability, even if it has
@@ -1306,11 +1327,11 @@ order to make this work.</p>
 <h2 data-number="6.2" id="type-trait"><span class="header-section-number">6.2</span> Type trait<a href="#type-trait" class="self-link"></a></h2>
 <p>Here is a possible implementation of the new type trait.</p>
 <div class="sourceCode" id="cb7"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span> <span class="op">&lt;</span><span class="kw">typename</span> T<span class="op">&gt;</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="dt">bool</span> </span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="dt">bool</span></span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>is_copy_constructible_from_bytes_v <span class="op">=</span></span>
 <span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  is_copy_constructible_v<span class="op">&lt;</span>T<span class="op">&gt;</span> <span class="op">&amp;&amp;</span> <span class="co">// at least one eligible copy constructor</span></span>
 <span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="co">// if there is an eligible copy contructor, it is trivial</span></span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="op">(</span>std<span class="op">::</span>is_copy_constructible_v<span class="op">&lt;</span>T<span class="op">&gt;</span> <span class="op">==</span> std<span class="op">::</span>is_trivially_copy_constructible_v<span class="op">&lt;</span>T<span class="op">&gt;)</span> <span class="op">&amp;&amp;</span> </span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="op">(</span>std<span class="op">::</span>is_copy_constructible_v<span class="op">&lt;</span>T<span class="op">&gt;</span> <span class="op">==</span> std<span class="op">::</span>is_trivially_copy_constructible_v<span class="op">&lt;</span>T<span class="op">&gt;)</span> <span class="op">&amp;&amp;</span></span>
 <span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="co">// if there is an eligible move contructor, it is trivial</span></span>
 <span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  <span class="op">(</span>std<span class="op">::</span>is_move_constructible_v<span class="op">&lt;</span>T<span class="op">&gt;</span> <span class="op">==</span> std<span class="op">::</span>is_trivially_move_constructible_v<span class="op">&lt;</span>T<span class="op">&gt;)</span> <span class="op">&amp;&amp;</span></span>
 <span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>is_trivially_destructible_v<span class="op">&lt;</span>T<span class="op">&gt;</span>; <span class="co">// is trivially destructible</span></span></code></pre></div>
