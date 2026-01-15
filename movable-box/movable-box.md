@@ -101,7 +101,7 @@ There is also no Standard serialization interface,
 so users would have no portable way to make serialization
 for their types available to implementations.
 
-Algorithms accesses memory both when accessing the elements
+Algorithms access memory both when accessing the elements
 of their input and output ranges,
 and when accessing the views or iterators
 that represent these ranges.
@@ -274,14 +274,15 @@ as long as it has a trivially copyable underlying view and function object.
 This would require specializing the parallel algorithm implementation
 on different view or iterator types.
 
-This approach has two disadvantages.
-First, it adds implementation complexity, especially with deeply nested views.
-Second, the Standard views generally do not have a public interface
-that exposes all their components.
-While `transform_view` exposes the underlying view via `base()`,
-it does not offer a Standard public interface to its function object.
-As a result, this approach couples the parallel algorithm implementation
-to the view implementation.
+This approach has three disadvantages.
+
+- First, it adds implementation complexity, especially with deeply nested views.
+- Second, it increases compilation time, especially with deeply nested views.
+- Third, the Standard views generally do not have a public interface
+  that exposes all their components. While `transform_view` exposes the underlying view via `base()`,
+  it does not offer a Standard public interface to its function object.
+  Some views don't even have `base()`, e.g, `zip_` family. As a result, this approach
+  couples the parallel algorithm implementation to the view implementation.
 
 Implementations such as libc++ already accept this coupling
 in order to optimize some algorithms for some iterator or view types.
@@ -292,7 +293,7 @@ In the extreme case, this leads to a "fully coupled" implementation,
 where many parallel algorithms have specializations
 on many different view and iterator types.
 
-We do not advocate a fully coupled approach for three reasons.
+We do not advocate a fully coupled approach for four reasons.
 
 1. Software engineering best practice generally prefers
     minimizing coupling between components.
@@ -309,6 +310,13 @@ We do not advocate a fully coupled approach for three reasons.
     Users would prefer these algorithms to work
     with Standard view and iterator types.
 
+4. Ranges were designed to be composable with any C++ standard
+   conformant views, not just the views that are in the standard
+   itself. Specializing the algorithms for only standard views
+   would kill that composability. Users would likely want to build
+   their ranges pipeline with both standard and non-standard views
+   and still be able to pass it to C++ algorithms.
+
 Regarding (1), users of accelerators consider it
 a software defect for an accelerator-based implementation
 not to run operations on the accelerator if possible.
@@ -318,8 +326,14 @@ so common in ranges as a `views::transform`.
 
 Regarding (2) and (3), anyone who wants to provide parallel
 algorithms currently must reimplement much of Ranges --
-a large portion of the Standard Library.  Users must then
+a large portion of the Standard Library. Users must then
 opt into this reimplementation, rather than using Standard types.
+
+Regarding (4), if users want to mix both standard and non-standard
+views in their code, it creates a big discrepancy of what can or
+cannot be passed to the C++ algorithms; remember that some (already
+pre-built) views composition may come from the 3rd party library,
+users don't have control for.
 
 Minimizing coupling between algorithms and views
 calls for making it possible for algorithms to iterate over views
@@ -832,18 +846,18 @@ not to take the liberties that trivial copyability offers them.
 
 This section covers alternate solutions that we do NOT propose here.
 
-## Make lambdas trivially copyable if their members are?
+## Make lambdas assignable if their members are?
 
 Lambdas with capture clauses currently have a defaulted copy constructor,
-but a deleted copy assignment operator.
-We could make their copy assignment operator defaulted as well.
-This would, in turn, make lambdas trivially copyable if their members are.
-Lambdas' move assignment operator could be either defaulted as well,
-or deleted.  Either approach would still make them trivially copyable.
+but a deleted assignment operators.
+We could make their assignment operators defaulted as well.
+This would, in turn, make lambdas assignable if their members are.
 
 We like this approach, because it would make lambdas more consistent
 with other objects of class type.
-However, we think it should be pursued as a separate proposal.
+However, we think it should be pursued as a separate proposal, which
+already exists: [@P3963R0].
+
 There are other applications for relaxing trivial copyability
 that do not involve lambdas.
 A change to lambdas' set of special member functions
@@ -862,6 +876,11 @@ However, this would require adding a special case
 to the core language for a type with no Standard name.
 Lack of a Standard name might hinder use of different
 Standard Library implementations with the same compiler.
+Furthermore, this approach does not scale; users (or libraries)
+can have non-standard views that are implemented with something
+similar to _`movable-box`_ but not quite and definitely with the
+different name, so it would not work.
+
 Thus, we do not favor this approach.
 
 ## Let types opt into trivial copyability?
@@ -943,11 +962,11 @@ Here is a possible implementation of the new type trait.
 
 ```c++
 template <typename T>
-constexpr bool 
+constexpr bool
 is_copy_constructible_from_bytes_v =
   is_copy_constructible_v<T> && // at least one eligible copy constructor
   // if there is an eligible copy contructor, it is trivial
-  (std::is_copy_constructible_v<T> == std::is_trivially_copy_constructible_v<T>) && 
+  (std::is_copy_constructible_v<T> == std::is_trivially_copy_constructible_v<T>) &&
   // if there is an eligible move contructor, it is trivial
   (std::is_move_constructible_v<T> == std::is_trivially_move_constructible_v<T>) &&
   std::is_trivially_destructible_v<T>; // is trivially destructible
@@ -1252,3 +1271,14 @@ consteval bool is_standard_layout_type(info type);
   template<class T>
     constexpr bool is_standard_layout_v = is_standard_layout<T>::value;
 ```
+
+---
+references:
+  - id: P3963R0
+    citation-label: P3963R0
+    title: "Assignable lambdas with capture"
+    author:
+      - family: Arutyunyan
+        given: Ruslan
+    URL: https://isocpp.org/files/papers/P3963R0.html
+---
