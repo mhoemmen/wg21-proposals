@@ -1,0 +1,1728 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang xml:lang>
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="mpark/wg21" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="dcterms.date" content="2026-01-15" />
+  <title>Define copy-constructibility-from-bytes</title>
+  <style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+</style>
+  <style>
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ background-color: #f6f8fa; }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span { } 
+code span.al { color: #ff0000; } 
+code span.an { } 
+code span.at { } 
+code span.bn { color: #9f6807; } 
+code span.bu { color: #9f6807; } 
+code span.cf { color: #00607c; } 
+code span.ch { color: #9f6807; } 
+code span.cn { } 
+code span.co { color: #008000; font-style: italic; } 
+code span.cv { color: #008000; font-style: italic; } 
+code span.do { color: #008000; } 
+code span.dt { color: #00607c; } 
+code span.dv { color: #9f6807; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #9f6807; } 
+code span.fu { } 
+code span.im { } 
+code span.in { color: #008000; } 
+code span.kw { color: #00607c; } 
+code span.op { color: #af1915; } 
+code span.ot { } 
+code span.pp { color: #6f4e37; } 
+code span.re { } 
+code span.sc { color: #9f6807; } 
+code span.ss { color: #9f6807; } 
+code span.st { color: #9f6807; } 
+code span.va { } 
+code span.vs { color: #9f6807; } 
+code span.wa { color: #008000; font-weight: bold; } 
+code.diff {color: #898887}
+code.diff span.va {color: #00AA00}
+code.diff span.st {color: #bf0303}
+</style>
+  <style type="text/css">
+body {
+margin: 5em;
+font-family: serif;
+
+hyphens: auto;
+line-height: 1.35;
+}
+div.wrapper {
+max-width: 60em;
+margin: auto;
+}
+ul {
+list-style-type: none;
+padding-left: 2em;
+margin-top: -0.2em;
+margin-bottom: -0.2em;
+}
+a {
+text-decoration: none;
+color: #4183C4;
+}
+a.hidden_link {
+text-decoration: none;
+color: inherit;
+}
+li {
+margin-top: 0.6em;
+margin-bottom: 0.6em;
+}
+h1, h2, h3, h4 {
+position: relative;
+line-height: 1;
+}
+a.self-link {
+position: absolute;
+top: 0;
+left: calc(-1 * (3.5rem - 26px));
+width: calc(3.5rem - 26px);
+height: 2em;
+text-align: center;
+border: none;
+transition: opacity .2s;
+opacity: .5;
+font-family: sans-serif;
+font-weight: normal;
+font-size: 83%;
+}
+a.self-link:hover { opacity: 1; }
+a.self-link::before { content: "§"; }
+ul > li:before {
+content: "\2014";
+position: absolute;
+margin-left: -1.5em;
+}
+:target { background-color: #C9FBC9; }
+:target .codeblock { background-color: #C9FBC9; }
+:target ul { background-color: #C9FBC9; }
+.abbr_ref { float: right; }
+.folded_abbr_ref { float: right; }
+:target .folded_abbr_ref { display: none; }
+:target .unfolded_abbr_ref { float: right; display: inherit; }
+.unfolded_abbr_ref { display: none; }
+.secnum { display: inline-block; min-width: 35pt; }
+.header-section-number { display: inline-block; min-width: 35pt; }
+.annexnum { display: block; }
+div.sourceLinkParent {
+float: right;
+}
+a.sourceLink {
+position: absolute;
+opacity: 0;
+margin-left: 10pt;
+}
+a.sourceLink:hover {
+opacity: 1;
+}
+a.itemDeclLink {
+position: absolute;
+font-size: 75%;
+text-align: right;
+width: 5em;
+opacity: 0;
+}
+a.itemDeclLink:hover { opacity: 1; }
+span.marginalizedparent {
+position: relative;
+left: -5em;
+}
+li span.marginalizedparent { left: -7em; }
+li ul > li span.marginalizedparent { left: -9em; }
+li ul > li ul > li span.marginalizedparent { left: -11em; }
+li ul > li ul > li ul > li span.marginalizedparent { left: -13em; }
+div.footnoteNumberParent {
+position: relative;
+left: -4.7em;
+}
+a.marginalized {
+position: absolute;
+font-size: 75%;
+text-align: right;
+width: 5em;
+}
+a.enumerated_item_num {
+position: relative;
+left: -3.5em;
+display: inline-block;
+margin-right: -3em;
+text-align: right;
+width: 3em;
+}
+div.para { margin-bottom: 0.6em; margin-top: 0.6em; text-align: justify; }
+div.section { text-align: justify; }
+div.sentence { display: inline; }
+span.indexparent {
+display: inline;
+position: relative;
+float: right;
+right: -1em;
+}
+a.index {
+position: absolute;
+display: none;
+}
+a.index:before { content: "⟵"; }
+
+a.index:target {
+display: inline;
+}
+.indexitems {
+margin-left: 2em;
+text-indent: -2em;
+}
+div.itemdescr {
+margin-left: 3em;
+}
+.bnf {
+font-family: serif;
+margin-left: 40pt;
+margin-top: 0.5em;
+margin-bottom: 0.5em;
+}
+.ncbnf {
+font-family: serif;
+margin-top: 0.5em;
+margin-bottom: 0.5em;
+margin-left: 40pt;
+}
+.ncsimplebnf {
+font-family: serif;
+font-style: italic;
+margin-top: 0.5em;
+margin-bottom: 0.5em;
+margin-left: 40pt;
+background: inherit; 
+}
+span.textnormal {
+font-style: normal;
+font-family: serif;
+white-space: normal;
+display: inline-block;
+}
+span.rlap {
+display: inline-block;
+width: 0px;
+}
+span.descr { font-style: normal; font-family: serif; }
+span.grammarterm { font-style: italic; }
+span.term { font-style: italic; }
+span.terminal { font-family: monospace; font-style: normal; }
+span.nonterminal { font-style: italic; }
+span.tcode { font-family: monospace; font-style: normal; }
+span.textbf { font-weight: bold; }
+span.textsc { font-variant: small-caps; }
+a.nontermdef { font-style: italic; font-family: serif; }
+span.emph { font-style: italic; }
+span.techterm { font-style: italic; }
+span.mathit { font-style: italic; }
+span.mathsf { font-family: sans-serif; }
+span.mathrm { font-family: serif; font-style: normal; }
+span.textrm { font-family: serif; }
+span.textsl { font-style: italic; }
+span.mathtt { font-family: monospace; font-style: normal; }
+span.mbox { font-family: serif; font-style: normal; }
+span.ungap { display: inline-block; width: 2pt; }
+span.textit { font-style: italic; }
+span.texttt { font-family: monospace; }
+span.tcode_in_codeblock { font-family: monospace; font-style: normal; }
+span.phantom { color: white; }
+
+span.math { font-style: normal; }
+span.mathblock {
+display: block;
+margin-left: auto;
+margin-right: auto;
+margin-top: 1.2em;
+margin-bottom: 1.2em;
+text-align: center;
+}
+span.mathalpha {
+font-style: italic;
+}
+span.synopsis {
+font-weight: bold;
+margin-top: 0.5em;
+display: block;
+}
+span.definition {
+font-weight: bold;
+display: block;
+}
+.codeblock {
+margin-left: 1.2em;
+line-height: 127%;
+}
+.outputblock {
+margin-left: 1.2em;
+line-height: 127%;
+}
+div.itemdecl {
+margin-top: 2ex;
+}
+code.itemdeclcode {
+white-space: pre;
+display: block;
+}
+span.textsuperscript {
+vertical-align: super;
+font-size: smaller;
+line-height: 0;
+}
+.footnotenum { vertical-align: super; font-size: smaller; line-height: 0; }
+.footnote {
+font-size: small;
+margin-left: 2em;
+margin-right: 2em;
+margin-top: 0.6em;
+margin-bottom: 0.6em;
+}
+div.minipage {
+display: inline-block;
+margin-right: 3em;
+}
+div.numberedTable {
+text-align: center;
+margin: 2em;
+}
+div.figure {
+text-align: center;
+margin: 2em;
+}
+table {
+border: 1px solid black;
+border-collapse: collapse;
+margin-left: auto;
+margin-right: auto;
+margin-top: 0.8em;
+text-align: left;
+hyphens: none; 
+}
+td, th {
+padding-left: 1em;
+padding-right: 1em;
+vertical-align: top;
+}
+td.empty {
+padding: 0px;
+padding-left: 1px;
+}
+td.left {
+text-align: left;
+}
+td.right {
+text-align: right;
+}
+td.center {
+text-align: center;
+}
+td.justify {
+text-align: justify;
+}
+td.border {
+border-left: 1px solid black;
+}
+tr.rowsep, td.cline {
+border-top: 1px solid black;
+}
+tr.even, tr.odd {
+border-bottom: 1px solid black;
+}
+tr.capsep {
+border-top: 3px solid black;
+border-top-style: double;
+}
+tr.header {
+border-bottom: 3px solid black;
+border-bottom-style: double;
+}
+th {
+border-bottom: 1px solid black;
+}
+span.centry {
+font-weight: bold;
+}
+div.table {
+display: block;
+margin-left: auto;
+margin-right: auto;
+text-align: center;
+width: 90%;
+}
+span.indented {
+display: block;
+margin-left: 2em;
+margin-bottom: 1em;
+margin-top: 1em;
+}
+ol.enumeratea { list-style-type: none; background: inherit; }
+ol.enumerate { list-style-type: none; background: inherit; }
+
+code.sourceCode > span { display: inline; }
+
+div#refs p { padding-left: 32px; text-indent: -32px; }
+</style>
+  <link href="data:image/vnd.microsoft.icon;base64,AAABAAIAEBAAAAEAIABoBAAAJgAAACAgAAABACAAqBAAAI4EAAAoAAAAEAAAACAAAAABACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA////AIJEAACCRAAAgkQAAIJEAACCRAAAgkQAVoJEAN6CRADegkQAWIJEAACCRAAAgkQAAIJEAACCRAAA////AP///wCCRAAAgkQAAIJEAACCRAAsgkQAvoJEAP+CRAD/gkQA/4JEAP+CRADAgkQALoJEAACCRAAAgkQAAP///wD///8AgkQAAIJEABSCRACSgkQA/IJEAP99PQD/dzMA/3czAP99PQD/gkQA/4JEAPyCRACUgkQAFIJEAAD///8A////AHw+AFiBQwDqgkQA/4BBAP9/PxP/uZd6/9rJtf/bybX/upd7/39AFP+AQQD/gkQA/4FDAOqAQgBc////AP///wDKklv4jlEa/3o7AP+PWC//8+3o///////////////////////z7un/kFox/35AAP+GRwD/mVYA+v///wD///8A0Zpk+NmibP+0d0T/8evj///////+/fv/1sKz/9bCs//9/fr//////+/m2/+NRwL/nloA/5xYAPj///8A////ANKaZPjRmGH/5cKh////////////k149/3UwAP91MQD/lmQ//86rhv+USg3/m1YA/5hSAP+bVgD4////AP///wDSmmT4zpJY/+/bx///////8+TV/8mLT/+TVx//gkIA/5lVAP+VTAD/x6B//7aEVv/JpH7/s39J+P///wD///8A0ppk+M6SWP/u2sf///////Pj1f/Nj1T/2KFs/8mOUv+eWhD/lEsA/8aee/+0glT/x6F7/7J8Rvj///8A////ANKaZPjRmGH/48Cf///////+/v7/2qt//82PVP/OkFX/37KJ/86siv+USg7/mVQA/5hRAP+bVgD4////AP///wDSmmT40ppk/9CVXP/69O////////7+/v/x4M//8d/P//7+/f//////9u7n/6tnJf+XUgD/nFgA+P///wD///8A0ppk+NKaZP/RmWL/1qNy//r07///////////////////////+vXw/9akdP/Wnmn/y5FY/6JfFvj///8A////ANKaZFTSmmTo0ppk/9GYYv/Ql1//5cWm//Hg0P/x4ND/5cWm/9GXYP/RmGH/0ppk/9KaZOjVnmpY////AP///wDSmmQA0ppkEtKaZI7SmmT60ppk/9CWX//OkVb/zpFW/9CWX//SmmT/0ppk/NKaZJDSmmQS0ppkAP///wD///8A0ppkANKaZADSmmQA0ppkKtKaZLrSmmT/0ppk/9KaZP/SmmT/0ppkvNKaZCrSmmQA0ppkANKaZAD///8A////ANKaZADSmmQA0ppkANKaZADSmmQA0ppkUtKaZNzSmmTc0ppkVNKaZADSmmQA0ppkANKaZADSmmQA////AP5/AAD4HwAA4AcAAMADAACAAQAAgAEAAIABAACAAQAAgAEAAIABAACAAQAAgAEAAMADAADgBwAA+B8AAP5/AAAoAAAAIAAAAEAAAAABACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA////AP///wCCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAAyCRACMgkQA6oJEAOqCRACQgkQAEIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAA////AP///wD///8A////AIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRABigkQA5oJEAP+CRAD/gkQA/4JEAP+CRADqgkQAZoJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAAD///8A////AP///wD///8AgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAA4gkQAwoJEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQAxIJEADyCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAP///wD///8A////AP///wCCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAWgkQAmIJEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAJyCRAAYgkQAAIJEAACCRAAAgkQAAIJEAACCRAAA////AP///wD///8A////AIJEAACCRAAAgkQAAIJEAACCRAAAgkQAdIJEAPCCRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAPSCRAB4gkQAAIJEAACCRAAAgkQAAIJEAAD///8A////AP///wD///8AgkQAAIJEAACCRAAAgkQASoJEANKCRAD/gkQA/4JEAP+CRAD/g0YA/39AAP9zLgD/bSQA/2shAP9rIQD/bSQA/3MuAP9/PwD/g0YA/4JEAP+CRAD/gkQA/4JEAP+CRADUgkQAToJEAACCRAAAgkQAAP///wD///8A////AP///wB+PwAAgkUAIoJEAKiCRAD/gkQA/4JEAP+CRAD/hEcA/4BBAP9sIwD/dTAA/5RfKv+viF7/vp56/76ee/+wiF7/lWAr/3YxAP9sIwD/f0AA/4RHAP+CRAD/gkQA/4JEAP+CRAD/gkQArIJEACaBQwAA////AP///wD///8A////AIBCAEBzNAD6f0EA/4NFAP+CRAD/gkQA/4VIAP92MwD/bSUA/6N1Tv/ezsL/////////////////////////////////38/D/6V3Uv9uJgD/dTEA/4VJAP+CRAD/gkQA/4JEAP+BQwD/fUAA/4FDAEj///8A////AP///wD///8AzJRd5qBlKf91NgD/dDUA/4JEAP+FSQD/cy4A/3YyAP/PuKP//////////////////////////////////////////////////////9K7qP94NQD/ciwA/4VJAP+CRAD/fkEA/35BAP+LSwD/mlYA6v///wD///8A////AP///wDdpnL/4qx3/8KJUv+PUhf/cTMA/3AsAP90LgD/4dK+/////////////////////////////////////////////////////////////////+TYxf91MAD/dTIA/31CAP+GRwD/llQA/6FcAP+gWwD8////AP///wD///8A////ANGZY/LSm2X/4ap3/92mcP+wdT3/byQA/8mwj////////////////////////////////////////////////////////////////////////////+LYxv9zLgP/jUoA/59bAP+hXAD/nFgA/5xYAPL///8A////AP///wD///8A0ppk8tKaZP/RmWL/1p9q/9ubXv/XqXj////////////////////////////7+fD/vZyG/6BxS/+gcUr/vJuE//r37f//////////////////////3MOr/5dQBf+dVQD/nVkA/5xYAP+cWAD/nFgA8v///wD///8A////AP///wDSmmTy0ppk/9KaZP/SmWP/yohJ//jo2P//////////////////////4NTG/4JDFf9lGAD/bSQA/20kAP9kGAD/fz8S/+Xb0f//////5NG9/6txN/+LOgD/m1QA/51aAP+cWAD/m1cA/5xYAP+cWADy////AP///wD///8A////ANKaZPLSmmT/0ppk/8+TWf/Unmv//v37//////////////////////+TWRr/VwsA/35AAP+ERgD/g0UA/4JGAP9lHgD/kFga/8KXX/+TRwD/jT4A/49CAP+VTQD/n10A/5xYAP+OQQD/lk4A/55cAPL///8A////AP///wD///8A0ppk8tKaZP/SmmT/y4tO/92yiP//////////////////////8NnE/8eCQP+rcTT/ez0A/3IyAP98PgD/gEMA/5FSAP+USwD/jj8A/5lUAP+JNwD/yqV2/694Mf+HNQD/jkAA/82rf/+laBj/jT4A8v///wD///8A////AP///wDSmmTy0ppk/9KaZP/LiUr/4byY///////////////////////gupX/0I5P/+Wuev/Lklz/l1sj/308AP+QSwD/ol0A/59aAP+aVQD/k0oA/8yoh///////+fXv/6pwO//Lp3v///////Pr4f+oay7y////AP///wD///8A////ANKaZPLSmmT/0ppk/8uJSv/hvJj//////////////////////+G7l//Jhkb/0ppk/96nc//fqXX/x4xO/6dkFP+QSQD/llEA/5xXAP+USgD/yaOA///////38uv/qG05/8ijdv//////8efb/6ZpLPL///8A////AP///wD///8A0ppk8tKaZP/SmmT/zIxO/9yxh///////////////////////7dbA/8iEQf/Sm2X/0Zlj/9ScZv/eqHf/2KJv/7yAQf+XTgD/iToA/5lSAP+JNgD/yKFv/611LP+HNQD/jT8A/8qmeP+kZRT/jT4A8v///wD///8A////AP///wDSmmTy0ppk/9KaZP/Pk1n/1J5q//78+//////////////////+/fv/1aFv/8iEQv/Tm2b/0ppl/9GZY//Wn2z/1pZc/9eldf/Bl2b/kUcA/4w9AP+OQAD/lUwA/59eAP+cWQD/jT8A/5ZOAP+eXADy////AP///wD///8A////ANKaZPLSmmT/0ppk/9KZY//KiEn/8d/P///////////////////////47+f/05tm/8iCP//KiEj/yohJ/8eCP//RmGH//vfy///////n1sP/rXQ7/4k4AP+TTAD/nVoA/5xYAP+cVwD/nFgA/5xYAPL///8A////AP///wD///8A0ppk8tKaZP/SmmT/0ptl/8uLTf/aq37////////////////////////////+/fz/6c2y/961jv/etY7/6Myx//78+v//////////////////////3MWv/5xXD/+ORAD/mFQA/51ZAP+cWAD/nFgA8v///wD///8A////AP///wDSmmTy0ppk/9KaZP/SmmT/0ppk/8mFRP/s1b//////////////////////////////////////////////////////////////////////////////+PD/0JFU/7NzMv+WUQD/kUsA/5tXAP+dWQDy////AP///wD///8A////ANKaZP/SmmT/0ppk/9KaZP/Sm2X/z5NZ/8yMT//z5NX/////////////////////////////////////////////////////////////////9Ofa/8yNUP/UmGH/36p5/8yTWv+qaSD/kksA/5ROAPz///8A////AP///wD///8A0ppk5NKaZP/SmmT/0ppk/9KaZP/TnGf/zY9T/82OUv/t1sD//////////////////////////////////////////////////////+7Yw//OkFX/zI5R/9OcZ//SmmP/26V0/9ymdf/BhUf/ol8R6P///wD///8A////AP///wDSmmQ80ppk9tKaZP/SmmT/0ppk/9KaZP/TnGj/zpFW/8qJSv/dson/8uHS//////////////////////////////////Lj0//etIv/y4lL/86QVf/TnGj/0ppk/9KaZP/RmWP/05xn/9ymdfjUnWdC////AP///wD///8A////ANKaZADSmmQc0ppkotKaZP/SmmT/0ppk/9KaZP/Tm2b/0Zli/8qJSf/NjlH/16Z3/+G8mP/myKr/5siq/+G8mP/Xp3f/zY5S/8qISf/RmGH/05tm/9KaZP/SmmT/0ppk/9KaZP/SmmSm0pljINWdaQD///8A////AP///wD///8A0ppkANKaZADSmmQA0ppkQtKaZMrSmmT/0ppk/9KaZP/SmmT/0ptl/9GYYf/Nj1P/y4lL/8qISP/KiEj/y4lK/82PU//RmGH/0ptl/9KaZP/SmmT/0ppk/9KaZP/SmmTO0ppkRtKaZADSmmQA0ppkAP///wD///8A////AP///wDSmmQA0ppkANKaZADSmmQA0ppkANKaZGzSmmTu0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmTw0ppkcNKaZADSmmQA0ppkANKaZADSmmQA////AP///wD///8A////ANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZBLSmmSQ0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppklNKaZBTSmmQA0ppkANKaZADSmmQA0ppkANKaZAD///8A////AP///wD///8A0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQy0ppkutKaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppkvtKaZDbSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkAP///wD///8A////AP///wDSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkXNKaZODSmmT/0ppk/9KaZP/SmmT/0ppk5NKaZGDSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA////AP///wD///8A////ANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkBtKaZIbSmmTo0ppk6tKaZIrSmmQK0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZAD///8A////AP/8P///+B///+AH//+AAf//AAD//AAAP/AAAA/gAAAHwAAAA8AAAAPAAAADwAAAA8AAAAPAAAADwAAAA8AAAAPAAAADwAAAA8AAAAPAAAADwAAAA8AAAAPAAAADwAAAA+AAAAfwAAAP/AAAP/8AAP//gAH//+AH///4H////D//" rel="icon" />
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+  
+</head>
+<body>
+<div class="wrapper">
+<header id="title-block-header">
+<h1 class="title" style="text-align:center">Define
+copy-constructibility-from-bytes</h1>
+
+<table style="border:none;float:right">
+  <tr>
+    <td>Document #: </td>
+    <td>P3960R0</td>
+  </tr>
+  <tr>
+    <td>Date: </td>
+    <td>2026-01-15</td>
+  </tr>
+  <tr>
+    <td style="vertical-align:top">Project: </td>
+    <td>Programming Language C++<br>
+      SG1, Evolution, Library Evolution<br>
+    </td>
+  </tr>
+  <tr>
+    <td style="vertical-align:top">Reply-to: </td>
+    <td>
+      Mark Hoemmen<br>&lt;<a href="mailto:mhoemmen@nvidia.com" class="email">mhoemmen@nvidia.com</a>&gt;<br>
+      Ruslan Arutyunyan<br>&lt;<a href="mailto:ruslan.arutyunyan@intel.com" class="email">ruslan.arutyunyan@intel.com</a>&gt;<br>
+    </td>
+  </tr>
+</table>
+
+</header>
+<div style="clear:both">
+<div id="TOC" role="doc-toc">
+<h1 id="toctitle">Contents</h1>
+<ul>
+<li><a href="#authors" id="toc-authors"><span class="toc-section-number">1</span> Authors</a></li>
+<li><a href="#abstract" id="toc-abstract"><span class="toc-section-number">2</span> Abstract</a></li>
+<li><a href="#motivation" id="toc-motivation"><span class="toc-section-number">3</span> Motivation</a>
+<ul>
+<li><a href="#accelerators-launch-parallel-algorithms-by-byte-copying-their-arguments" id="toc-accelerators-launch-parallel-algorithms-by-byte-copying-their-arguments"><span class="toc-section-number">3.1</span> Accelerators launch parallel
+algorithms by byte-copying their arguments</a></li>
+<li><a href="#type-trait-that-models-launching-a-parallel-algorithm-on-an-accelerator" id="toc-type-trait-that-models-launching-a-parallel-algorithm-on-an-accelerator"><span class="toc-section-number">3.2</span> Type trait that models launching a
+parallel algorithm on an accelerator?</a></li>
+<li><a href="#transform_view-may-not-be-trivially-copyable-even-if-its-components-are" id="toc-transform_view-may-not-be-trivially-copyable-even-if-its-components-are"><span class="toc-section-number">3.3</span> <code>transform_view</code> may
+not be trivially copyable, even if its components are</a></li>
+<li><a href="#work-around-couples-algorithm-and-view-implementations" id="toc-work-around-couples-algorithm-and-view-implementations"><span class="toc-section-number">3.4</span> Work-around couples algorithm and
+view implementations</a></li>
+<li><a href="#using-iterators-instead-of-views-doesnt-help" id="toc-using-iterators-instead-of-views-doesnt-help"><span class="toc-section-number">3.5</span> Using iterators instead of views
+doesn’t help</a></li>
+<li><a href="#we-want-to-retain-movable-boxs-copyability" id="toc-we-want-to-retain-movable-boxs-copyability"><span class="toc-section-number">3.6</span> We want to retain
+<em><code>movable-box</code></em>’s copyability</a></li>
+</ul></li>
+<li><a href="#our-solution-copy-constructibility-from-bytes" id="toc-our-solution-copy-constructibility-from-bytes"><span class="toc-section-number">4</span> Our solution:
+“Copy-constructibility-from-bytes”</a>
+<ul>
+<li><a href="#define-copy-constructible-from-bytes-type-property" id="toc-define-copy-constructible-from-bytes-type-property"><span class="toc-section-number">4.1</span> Define
+copy-constructible-from-bytes type property</a></li>
+<li><a href="#copy-constructible-from-bytes-types-are-implicit-lifetime-types" id="toc-copy-constructible-from-bytes-types-are-implicit-lifetime-types"><span class="toc-section-number">4.2</span> Copy-constructible-from-bytes
+types are implicit-lifetime types</a></li>
+<li><a href="#copy-construction-from-bytes" id="toc-copy-construction-from-bytes"><span class="toc-section-number">4.3</span> Copy-construction from
+bytes</a></li>
+<li><a href="#adjust-start_lifetime_as-and-bit_cast-wording-accordingly" id="toc-adjust-start_lifetime_as-and-bit_cast-wording-accordingly"><span class="toc-section-number">4.4</span> Adjust
+<code>start_lifetime_as</code> and <code>bit_cast</code> wording
+accordingly</a></li>
+<li><a href="#proposed-name-avoids-conflict-with-is_trivially_copy_constructible" id="toc-proposed-name-avoids-conflict-with-is_trivially_copy_constructible"><span class="toc-section-number">4.5</span> Proposed name avoids conflict with
+<code>is_trivially_copy_constructible</code></a></li>
+<li><a href="#movable-box-is-already-an-implicit-lifetime-type" id="toc-movable-box-is-already-an-implicit-lifetime-type"><span class="toc-section-number">4.6</span> <em><code>movable-box</code></em>
+is already an implicit-lifetime type</a></li>
+<li><a href="#examples-of-types-that-should-vs.-should-not-be-affected" id="toc-examples-of-types-that-should-vs.-should-not-be-affected"><span class="toc-section-number">4.7</span> Examples of types that should
+vs. should not be affected</a>
+<ul>
+<li><a href="#morally-trivially-copyable-types" id="toc-morally-trivially-copyable-types"><span class="toc-section-number">4.7.1</span> “Morally trivially copyable”
+types</a></li>
+<li><a href="#thankfully-not-trivially-copyable-types" id="toc-thankfully-not-trivially-copyable-types"><span class="toc-section-number">4.7.2</span> “Thankfully not trivially
+copyable” types</a></li>
+<li><a href="#proxy-reference-types" id="toc-proxy-reference-types"><span class="toc-section-number">4.7.3</span> Proxy reference types</a></li>
+<li><a href="#types-with-external-state-affecting-how-they-copy" id="toc-types-with-external-state-affecting-how-they-copy"><span class="toc-section-number">4.7.4</span> Types with external state
+affecting how they copy</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#what-we-do-not-propose" id="toc-what-we-do-not-propose"><span class="toc-section-number">5</span> What we do NOT propose</a>
+<ul>
+<li><a href="#make-lambdas-assignable-if-their-members-are" id="toc-make-lambdas-assignable-if-their-members-are"><span class="toc-section-number">5.1</span> Make lambdas assignable if their
+members are?</a></li>
+<li><a href="#decree-that-movable-box-is-trivially-copyable-if-its-component-is" id="toc-decree-that-movable-box-is-trivially-copyable-if-its-component-is"><span class="toc-section-number">5.2</span> Decree that
+<em><code>movable-box</code></em> is trivially copyable if its component
+is?</a></li>
+<li><a href="#let-types-opt-into-trivial-copyability" id="toc-let-types-opt-into-trivial-copyability"><span class="toc-section-number">5.3</span> Let types opt into trivial
+copyability?</a></li>
+<li><a href="#trivial-move-that-is-trivial-relocation" id="toc-trivial-move-that-is-trivial-relocation"><span class="toc-section-number">5.4</span> “Trivial move” (that is, trivial
+relocation)?</a></li>
+</ul></li>
+<li><a href="#implementation" id="toc-implementation"><span class="toc-section-number">6</span> Implementation</a>
+<ul>
+<li><a href="#compiler-changes-due-to-core-language-relaxation" id="toc-compiler-changes-due-to-core-language-relaxation"><span class="toc-section-number">6.1</span> Compiler changes due to Core
+language relaxation?</a></li>
+<li><a href="#type-trait" id="toc-type-trait"><span class="toc-section-number">6.2</span> Type trait</a></li>
+</ul></li>
+<li><a href="#acknowledgments" id="toc-acknowledgments"><span class="toc-section-number">7</span> Acknowledgments</a></li>
+<li><a href="#references" id="toc-references"><span class="toc-section-number">8</span> References</a></li>
+<li><a href="#proposed-wording" id="toc-proposed-wording"><span class="toc-section-number">9</span> Proposed wording</a>
+<ul>
+<li><a href="#add-__cpp_lib_copy_constructible_from_bytes-feature-test-macro" id="toc-add-__cpp_lib_copy_constructible_from_bytes-feature-test-macro"><span class="toc-section-number">9.1</span> Add
+<code>__cpp_lib_copy_constructible_from_bytes</code> feature test
+macro</a></li>
+<li><a href="#change-beginning-of-class.prop" id="toc-change-beginning-of-class.prop"><span class="toc-section-number">9.2</span> Change beginning of
+[class.prop]</a></li>
+<li><a href="#add-example-to-end-of-class.prop" id="toc-add-example-to-end-of-class.prop"><span class="toc-section-number">9.3</span> Add example to end of
+[class.prop]</a></li>
+<li><a href="#change-beginning-of-basic.types.general" id="toc-change-beginning-of-basic.types.general"><span class="toc-section-number">9.4</span> Change beginning of
+[basic.types.general]</a></li>
+<li><a href="#change-obj.lifetime" id="toc-change-obj.lifetime"><span class="toc-section-number">9.5</span> Change [obj.lifetime]</a></li>
+<li><a href="#change-bit.cast" id="toc-change-bit.cast"><span class="toc-section-number">9.6</span> Change [bit.cast]</a></li>
+<li><a href="#change-meta.unary.prop" id="toc-change-meta.unary.prop"><span class="toc-section-number">9.7</span> Change [meta.unary.prop]</a></li>
+<li><a href="#change-meta.reflection.traits" id="toc-change-meta.reflection.traits"><span class="toc-section-number">9.8</span> Change
+[meta.reflection.traits]</a></li>
+<li><a href="#change-meta.type.synop" id="toc-change-meta.type.synop"><span class="toc-section-number">9.9</span> Change [meta.type.synop]</a></li>
+</ul></li>
+</ul>
+</div>
+<h1 data-number="1" id="authors"><span class="header-section-number">1</span> Authors<a href="#authors" class="self-link"></a></h1>
+<ul>
+<li><p>Mark Hoemmen (NVIDIA)</p></li>
+<li><p>Ruslan Arutyunyan (Intel)</p></li>
+</ul>
+<h1 data-number="2" id="abstract"><span class="header-section-number">2</span> Abstract<a href="#abstract" class="self-link"></a></h1>
+<p>Given an object <code>src</code> of trivially-copyable type
+<code>T</code>, we can copy the object’s value representation to an
+array of bytes, and implicitly create a new <code>T</code> object (e.g.,
+with <code>start_lifetime_as</code>) in the array of bytes. The result
+will hold the same value as <code>src</code>.</p>
+<p>What if <code>T</code> is implicit-lifetime, and meets
+<em>almost</em> all the criteria for a trivially copyable type, but has
+nontrivial copy and move assignment operators? The
+<code>start_lifetime_as</code> function still implicitly creates a
+<code>T</code> object, but the value of this object is unspecified.</p>
+<p>What <em>should</em> happen is unambiguous: <code>T</code> has a
+trivial copy constructor, so nothing should happen to the value
+representation upon implicit object creation. The new object gets a
+valid value representation and so it’s an object that holds the same
+value as <code>src</code>.</p>
+<p>C++ developers want this behavior for many applications that need to
+communicate objects by bytewise copy. Our original motivation is that
+<code>ranges::transform_view</code> and
+<code>ranges::zip_transform_view</code> are not trivially copyable if
+their function object is a lambda that captures an <code>int</code> by
+value. This hinders parallelization of ranges algorithms on accelerators
+with separate memories. Other motivations include fast serialization,
+remote procedure calls, copying C++ objects through code written in
+other languages, and communicating objects over a network.</p>
+<p>We propose making “what should happen” well-defined behavior by
+introducing a narrowing of trivial copyability called
+<em>copy-constructibility-from-bytes</em> that does not require a
+trivial copy or move assignment operator. (We do not call this “trivial
+copy-constructibility” because that would conflict with the existing
+<code>is_trivially_copy_constructible</code> type trait, that has too
+narrow of a meaning for our purpose.)</p>
+<p>Our definition makes all copy-constructible-from-bytes types also
+implicit-lifetime types, so we can use <code>start_lifetime_as</code> to
+start the lifetime of such an object using a copy of an existing
+object’s value representation.</p>
+<h1 data-number="3" id="motivation"><span class="header-section-number">3</span> Motivation<a href="#motivation" class="self-link"></a></h1>
+<h2 data-number="3.1" id="accelerators-launch-parallel-algorithms-by-byte-copying-their-arguments"><span class="header-section-number">3.1</span> Accelerators launch parallel
+algorithms by byte-copying their arguments<a href="#accelerators-launch-parallel-algorithms-by-byte-copying-their-arguments" class="self-link"></a></h2>
+<p>Standard Library users would like parallel algorithms to execute on
+accelerators (such as GPUs) if possible. The parallel algorithm
+generally would be invoked in ordinary C++ code that is executed on a
+“host” CPU thread, but the algorithm would perform its computations on
+the accelerator.</p>
+<p>Many kinds of parallel accelerators have their own memories. Directly
+accessing “host” (ordinary C++) memory from the accelerator, or
+accelerator memory from a host thread, may be either impossible or slow.
+“Impossible” is not Standard C++, but “slow” is. For example, NUMA
+(non-uniform memory access) may result in different memory pages having
+different access latencies to different threads, depending on the
+physical hardware on which the thread runs. To forestall these
+performance or correctness issues, C++ code can first copy data from
+host memory to accelerator memory before executing the algorithm.
+Depending on the accelerator, copying may be required or just a possible
+optimization.</p>
+<p>Copying from host to accelerator memory happens bytewise, using
+<code>memcpy</code> or a non-Standard function that behaves like it. If
+the objects to copy can’t be correctly copied bytewise, then the only
+other option is serialization and deserialization. That is, the
+accelerator would need to run extra code (which users would normally
+write, at least pre-Reflection) to “deserialize” raw data into objects.
+Accelerator users generally don’t want to incur this overhead. There is
+also no Standard serialization interface, so users would have no
+portable way to make serialization for their types available to
+implementations.</p>
+<p>Algorithms access memory both when accessing the elements of their
+input and output ranges, and when accessing the views or iterators that
+represent these ranges. Even if the elements live in accelerator memory,
+the views themselves might not. Implementations generally address that
+by copying the views or iterators into accelerator memory before
+“launching” the parallel operation there. This copying again works
+bytewise, as if by <code>memcpy</code>. Thus, the same concerns about
+bytewise copying apply to views or iterators as to the actual data.</p>
+<p>As a result, if an input view, such as a <code>transform_view</code>
+or <code>zip_transform_view</code>, cannot be copied bytewise to the
+accelerator, then the algorithm’s implementation generally would not
+attempt to run on the accelerator. It would instead fall back to a host
+implementation. That would likely be slower, especially if the data to
+process were already placed in the accelerator’s memory.</p>
+<h2 data-number="3.2" id="type-trait-that-models-launching-a-parallel-algorithm-on-an-accelerator"><span class="header-section-number">3.2</span> Type trait that models
+launching a parallel algorithm on an accelerator?<a href="#type-trait-that-models-launching-a-parallel-algorithm-on-an-accelerator" class="self-link"></a></h2>
+<p>Implementations need a type trait to know whether a parallel
+algorithms’ arguments can be copied bytewise to the accelerator. It
+seems like trivial copyability (<code>is_trivially_copyable</code>) is
+the right trait, but before we accept this, we need to know how
+launching a parallel algorithm on an accelerator works. A parallel
+algorithms’ arguments include ranges or iterators, function objects, and
+possibly “scalars” (e.g., the input value in <code>ranges::fill</code>).
+The ranges or iterators are “metadata” representing actual data –
+generally collections such as arrays, over which we want to iterate. For
+correctness and performance, we would like all arguments, and the data
+to which any metadata refer, in accelerator memory when we launch the
+parallel algorithm. Suppose that the data are already there, but the
+metadata are not.</p>
+<ol type="1">
+<li><p>Allocate (or have allocated) space for the algorithm’s
+arguments</p></li>
+<li><p>Bytewise copy the arguments to accelerator memory</p></li>
+<li><p>Launch the parallel algorithm’s “kernel <code>main</code>”
+function on the accelerator. The body of this function finds its
+arguments with the same values as they had on host, and with their
+lifetimes started as usual.</p></li>
+</ol>
+<p>“Kernel <code>main</code>” refers to an entry point function for the
+accelerator. In CUDA C++, the dialect of C++ for running on NVIDIA’s
+GPUs, these are functions marked with the special keyword
+<code>__global__</code> that return <code>void</code>.</p>
+<p>Step (3) refers to the function’s arguments with two phrases:</p>
+<ol type="a">
+<li><p>“with the same values as they had on host,” and</p></li>
+<li><p>“with their lifetimes started.”</p></li>
+</ol>
+<p>The type trait best matching the first phrase is trivial copyability.
+However, adding the second phrase complicates this. Trivial copyability
+lets us copy bytes between two <em>existing</em> objects, but the
+objects in accelerator memory haven’t started their lifetimes yet. We
+could first default-construct the objects in accelerator memory, but
+that would require that the objects be both default-constructible and
+trivially copyable. Those are excessive requirements. We don’t
+<em>need</em> to default-construct the objects; we just need them to
+exist in accelerator memory with the valid object representations that
+we provide for them. If the objects have nontrivial default
+constructors, then we have to do extra work.</p>
+<p>The phrase “with their lifetimes started” suggests that we should
+require the arguments to be <em>implicit-lifetime types</em>. Such types
+can have their lifetimes started by one of the following:</p>
+<ul>
+<li><p>allocation without explicit construction,</p></li>
+<li><p>the <code>memcpy</code> that brought over their bytes,
+or</p></li>
+<li><p><code>start_lifetime_as</code> or an implementation-specific
+analog.</p></li>
+</ul>
+<h2 data-number="3.3" id="transform_view-may-not-be-trivially-copyable-even-if-its-components-are"><span class="header-section-number">3.3</span> <code>transform_view</code> may
+not be trivially copyable, even if its components are<a href="#transform_view-may-not-be-trivially-copyable-even-if-its-components-are" class="self-link"></a></h2>
+<p>The <code>transform_view</code> class may not be trivially copyable,
+even if their underlying view(s) and function object are. In particular,
+non-<code>mutable</code> lambdas that capture trivially copyable
+variables by value are trivially copyable, but
+<code>transform_view</code> with such a lambda is not. An example
+follows (available on <a href="https://godbolt.org/z/vYnzGd3js">Compiler
+Explorer</a>). The <code>zip_transform_view</code> class has the same
+issue.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;ranges&gt;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;type_traits&gt;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;vector&gt;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co">// Function object type that acts just like f2 below.</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> F3 <span class="op">{</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span> <span class="kw">operator</span><span class="op">()</span> <span class="op">(</span><span class="dt">int</span> x<span class="op">)</span> <span class="kw">const</span> <span class="op">{</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> x <span class="op">+</span> y;</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span> y <span class="op">=</span> <span class="dv">1</span>;</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>vector v<span class="op">{</span><span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span><span class="op">}</span>;</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  <span class="co">// operator= is defaulted; lambda type is trivially copyable</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> f1 <span class="op">=</span> <span class="op">[]</span> <span class="op">(</span><span class="kw">auto</span> x<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> x <span class="op">+</span> <span class="dv">1</span>;</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span>;</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static_assert</span><span class="op">(</span>std<span class="op">::</span>is_trivially_copyable_v<span class="op">&lt;</span><span class="kw">decltype</span><span class="op">(</span>f1<span class="op">)&gt;)</span>;</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Capture means that lambda&#39;s operator= is deleted,</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>  <span class="co">// but lambda type is still trivially copyable</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> f2 <span class="op">=</span> <span class="op">[</span>y <span class="op">=</span> <span class="dv">1</span><span class="op">]</span> <span class="op">(</span><span class="kw">auto</span> x<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> x <span class="op">+</span> y;</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span>;</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static_assert</span><span class="op">(</span>std<span class="op">::</span>is_trivially_copyable_v<span class="op">&lt;</span><span class="kw">decltype</span><span class="op">(</span>f2<span class="op">)&gt;)</span>;</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>  <span class="co">// decltype(view1) is trivially copyable</span></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> view1 <span class="op">=</span> v <span class="op">|</span> std<span class="op">::</span>views<span class="op">::</span>transform<span class="op">(</span>f1<span class="op">)</span>;</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static_assert</span><span class="op">(</span>std<span class="op">::</span>is_trivially_copyable_v<span class="op">&lt;</span><span class="kw">decltype</span><span class="op">(</span>view1<span class="op">)&gt;)</span>;</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>  <span class="co">// decltype(view2) is NOT trivially copyable, even though f2 is</span></span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> view2 <span class="op">=</span> v <span class="op">|</span> std<span class="op">::</span>views<span class="op">::</span>transform<span class="op">(</span>f2<span class="op">)</span>;</span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static_assert</span><span class="op">(!</span>std<span class="op">::</span>is_trivially_copyable_v<span class="op">&lt;</span><span class="kw">decltype</span><span class="op">(</span>view2<span class="op">)&gt;)</span>;</span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>  <span class="co">// view3 is trivally copyable, though it behaves just like view2.</span></span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>  F3 f3<span class="op">{}</span>;</span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> view3 <span class="op">=</span> v <span class="op">|</span> std<span class="op">::</span>views<span class="op">::</span>transform<span class="op">(</span>f3<span class="op">)</span>;</span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static_assert</span><span class="op">(</span>std<span class="op">::</span>is_trivially_copyable_v<span class="op">&lt;</span><span class="kw">decltype</span><span class="op">(</span>view3<span class="op">)&gt;)</span>;</span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="dv">0</span>;</span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Both lambdas <code>f1</code> and <code>f2</code> are trivially
+copyable, but <code>std::views::transform(f2)</code> is <em>not</em>
+trivally copyable. The specification of <code>transform_view</code> and
+<code>zip_transform_view</code> permits this. The wording expresses the
+input function object of type <code>F</code> as stored in an
+exposition-only <em><code>movable-box</code></em><code>&lt;F&gt;</code>
+member. The <code>f2</code> lambda has a capture that gives it a
+<code>=delete</code>d copy assignment operator. Nevertheless,
+<code>f2</code> is still trivially copyable, because each of its default
+copy and move operations is either trivial or deleted, and its
+destructor is trivial and not deleted.</p>
+<p>The problem is <em><code>movable-box</code></em>. As <a href="https://eel.is/c++draft/range.move.wrap#1.3">[range.move.wrap]
+1.3</a> explains, since <code>copyable&lt;decltype(f2)&gt;</code> is not
+modeled,
+<em><code>movable-box</code></em><code>&lt;decltype(f2)&gt;</code>
+provides a nontrivial, not deleted copy assignment operator. This makes
+<em><code>movable-box</code></em><code>&lt;decltype(f2)&gt;</code>, and
+therefore <code>transform_view</code> and
+<code>zip_transform_view</code>, not trivially copyable.</p>
+<p>This doesn’t feel like an essential limitation. The <code>f2</code>
+lambda is effectively a struct with one <code>int</code> member. Why
+can’t I <code>memcpy</code> <code>views::transform(f2)</code> wherever I
+need it to go? Even worse, <code>f3</code> is a struct just like
+<code>f2</code>, yet <code>views::transform(f3)</code> <em>is</em>
+trivially copyable.</p>
+<h2 data-number="3.4" id="work-around-couples-algorithm-and-view-implementations"><span class="header-section-number">3.4</span> Work-around couples algorithm
+and view implementations<a href="#work-around-couples-algorithm-and-view-implementations" class="self-link"></a></h2>
+<p>As we’ve shown above, <code>transform_view</code> or
+<code>zip_transform_view</code> may not be trivially copyable, even if
+their components are. One way to work around this is to take the view
+apart, copy the components separately to accelerator memory, and then
+reassemble a new view of the same type on the accelerator. This would
+let parallel algorithms work with a <code>transform_view</code>, as long
+as it has a trivially copyable underlying view and function object. This
+would require specializing the parallel algorithm implementation on
+different view or iterator types.</p>
+<p>This approach has three disadvantages.</p>
+<ol type="1">
+<li><p>It adds implementation complexity, especially with deeply nested
+views.</p></li>
+<li><p>It may increase compilation time, especially with deeply nested
+views.</p></li>
+<li><p>The Standard views generally do not have a public interface that
+exposes all their components. As a result, this approach couples the
+parallel algorithm implementation to the view implementation.</p></li>
+</ol>
+<p>As examples of (3), <code>transform_view</code> and
+<code>zip_transform_view</code> do not offer a Standard public interface
+to their function object. While <code>transform_view</code> has a
+<code>base()</code> member function that exposes its underlying view,
+<code>zip_transform_view</code> does not.</p>
+<p>Implementations such as libc++ already accept this coupling in order
+to optimize some algorithms for some iterator or view types. The
+Standard presumes that implementers have complete control over the
+entire implementation and can give any algorithm access to any nonpublic
+component of a view or iterator. In the extreme case, this leads to a
+“fully coupled” implementation, where many parallel algorithms have
+specializations on many different view and iterator types.</p>
+<p>We do not advocate a fully coupled approach for four reasons.</p>
+<ol type="1">
+<li><p>Software engineering best practice generally prefers minimizing
+coupling between components.</p></li>
+<li><p><a href="https://wg21.link/p2500">P2500</a> proposes opening up
+the Standard algorithms to customization. In order to be portable,
+customizations would still need to work with Standard view and iterator
+types.</p></li>
+<li><p>Accelerator vendors would like to provide parallel algorithms
+that can be used across different C++ implementations. These necessarily
+live in a different namespace than <code>std</code>, but otherwise aim
+to conform to the Standard. Users would prefer these algorithms to work
+with Standard view and iterator types.</p></li>
+<li><p>Ranges were designed to be composable with any classes that
+conform with the Standard’s requirements on views, not just the views
+that are in the Standard itself. Specializing the algorithms for only
+Standard views would hinder composability. Users would like to build
+their ranges pipelines with both Standard and non-Standard views, pass
+them to Standard parallel algorithms, and have those algorithms run in
+parallel.</p></li>
+</ol>
+<p>Regarding (1), users of accelerators consider it a software defect
+for an accelerator-based implementation not to run operations on the
+accelerator if possible. Thus, we would prefer not to require so much
+coupling just to make acceleration work for something so common in
+ranges as a <code>views::transform</code>.</p>
+<p>Regarding (2) and (3), anyone who wants to provide parallel
+algorithms currently must reimplement much of Ranges – a large portion
+of the Standard Library. Users must then opt into this reimplementation,
+rather than using Standard types.</p>
+<p>Regarding (4), if users mix both Standard and non-Standard views in
+their code, it would create a big discrepancy between what the Standard
+parallel algorithms actually parallelize and what they do not. Some
+composition of views may come from a third-party library that users may
+not be able to control.</p>
+<p>Minimizing coupling between algorithms and views calls for making it
+possible for algorithms to iterate over views without specializing on
+the view or iterator type. This includes making views bytewise copyable
+to accelerators if possible. Doing so would get more parallel algorithms
+running on accelerators right away.</p>
+<h2 data-number="3.5" id="using-iterators-instead-of-views-doesnt-help"><span class="header-section-number">3.5</span> Using iterators instead of
+views doesn’t help<a href="#using-iterators-instead-of-views-doesnt-help" class="self-link"></a></h2>
+<p>The exposition-only members of
+<code>transform_view::</code><em><code>iterator</code></em> and
+<code>transform_view::</code><em><code>sentinel</code></em> suggest that
+we could specify them to be trivially copyable as long as the underlying
+view’s iterator and sentinel are trivially copyable. In particular,
+<code>transform_view::</code><em><code>iterator</code></em> has an
+exposition-only pointer to the <code>transform_view</code>, and pointers
+are trivially copyable. However, that doesn’t solve the problem for us,
+because the pointer still points to a <code>transform_view</code> that
+may live in non-accelerator memory. The algorithm was invoked on host,
+and thus the <code>transform_view</code> and its function were created
+on host. We need a copy of the function, and access to the underlying
+view’s elements, on the accelerator. The easiest way to do that would be
+to copy the whole <code>transform_view</code> from host memory to
+accelerator memory.</p>
+<h2 data-number="3.6" id="we-want-to-retain-movable-boxs-copyability"><span class="header-section-number">3.6</span> We want to retain
+<em><code>movable-box</code></em>’s copyability<a href="#we-want-to-retain-movable-boxs-copyability" class="self-link"></a></h2>
+<p>A <em><code>movable-box</code></em> of a function object with a copy
+constructor but a deleted copy assignment operator is not trivally
+copyable because the <em><code>movable-box</code></em> has a nontrivial
+copy assignment operator. The <em><code>movable-box</code></em>’s copy
+assignment operator ensures that <code>transform_view</code> and
+<code>zip_transform_view</code> both model <code>copyable</code> in as
+many cases as possible. This simplifies both the specification and the
+implementation of ranges algorithms and views. For example, it avoids
+special cases for situations like “copy constructible but not copy
+assignable.” It also makes creation and use of views more forgiving for
+users. These are useful properties that we want to retain.</p>
+<h1 data-number="4" id="our-solution-copy-constructibility-from-bytes"><span class="header-section-number">4</span> Our solution:
+“Copy-constructibility-from-bytes”<a href="#our-solution-copy-constructibility-from-bytes" class="self-link"></a></h1>
+<h2 data-number="4.1" id="define-copy-constructible-from-bytes-type-property"><span class="header-section-number">4.1</span> Define
+copy-constructible-from-bytes type property<a href="#define-copy-constructible-from-bytes-type-property" class="self-link"></a></h2>
+<p>All the things we want to do – run parallel algorithms on an
+accelerator, communicate objects across a network, or serialize objects
+to disk – naturally want to “copy-construct” a new object from bytes
+copied from an existing object’s value representation. We don’t need
+copy assignment, yet we find ourselves blocked by trivial copyability’s
+requirement that copy assignment (if it exists) be trivial. What we
+actually need here is not trivial copyability, but “trivial
+copy-constructibility.” Unfortunately, that name is taken already (see
+discussion in a section below), so we use the term
+“copy-constructible-from-bytes.”</p>
+<p>We define a <em>copy-constructible-from-bytes class</em> (analogously
+to <a href="https://eel.is/c++draft/class.prop#1">[class.prop] 1</a>) to
+be any class</p>
+<ul>
+<li><p>that has at least one eligible copy constructor,</p></li>
+<li><p>where each eligible copy constructor is trivial,</p></li>
+<li><p>where each eligible move constructor, if present, is trivial,
+and</p></li>
+<li><p>that has a trivial, non-deleted destructor.</p></li>
+</ul>
+<p>We define <em>copy-constructible-from-bytes types</em> to be scalar
+types, copy-constructible-from-bytes class types, array of such types,
+or cv-qualified versions of these types. Trivially constructible types
+are also copy-constructible-from-bytes, but not necessarily the other
+way around, as our <em><code>movable-box</code></em> example shows.</p>
+<h2 data-number="4.2" id="copy-constructible-from-bytes-types-are-implicit-lifetime-types"><span class="header-section-number">4.2</span> Copy-constructible-from-bytes
+types are implicit-lifetime types<a href="#copy-constructible-from-bytes-types-are-implicit-lifetime-types" class="self-link"></a></h2>
+<p>It turns out that copy-constructible-from-bytes types are also
+implicit-lifetime types. This means that we can use them with
+<code>start_lifetime_as</code>.</p>
+<h2 data-number="4.3" id="copy-construction-from-bytes"><span class="header-section-number">4.3</span> Copy-construction from bytes<a href="#copy-construction-from-bytes" class="self-link"></a></h2>
+<p>We say that copy-constructible-from-bytes types can be
+<em>copy-constructed from bytes</em>. This means implicitly creating
+objects from a value representation copied from an existing object, as
+in the following example.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span><span class="op">*</span> dst_mem <span class="op">=</span> std<span class="op">::</span>malloc<span class="op">(</span><span class="kw">sizeof</span><span class="op">(</span>T<span class="op">))</span>;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>memcpy<span class="op">(</span>dst_mem, <span class="op">&amp;</span>src, <span class="kw">sizeof</span><span class="op">(</span>T<span class="op">))</span>;</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>T<span class="op">*</span> dst_ptr <span class="op">=</span> std<span class="op">::</span>start_lifetime_as<span class="op">&lt;</span>T<span class="op">&gt;(</span>dst_mem<span class="op">)</span>;</span></code></pre></div>
+<p>Analogously to <a href="https://eel.is/c++draft/basic.types.general#3">[basic.types.general]
+3</a>, given an object <code>src</code> of copy-constructible-from-bytes
+type <code>T</code>, and given correctly aligned storage for an object
+of type <code>T</code> at address <code>dst_mem</code>, copying the
+bytes of <code>src</code> into <code>dst_mem</code> and then implicitly
+creating a <code>T</code> object at address <code>dst_mem</code> would
+ensure that <code>dst_mem</code> points to a valid <code>T</code> object
+that holds the same value as <code>src</code>.</p>
+<p>Implicit object creation via <code>start_lifetime_as</code> expresses
+exactly what we want to express here. Other existing syntax options
+would not. Default initialization with placement <code>new</code> would
+invoke a possibly nontrivial default constructor. We don’t want to use
+the default constructor or even require that types be default
+constructible. None of the <code>uninitialized_*</code> or
+<code>ranges::uninitialized_*</code> algorithms in
+<code>&lt;memory&gt;</code> would accomplish this.</p>
+<h2 data-number="4.4" id="adjust-start_lifetime_as-and-bit_cast-wording-accordingly"><span class="header-section-number">4.4</span> Adjust
+<code>start_lifetime_as</code> and <code>bit_cast</code> wording
+accordingly<a href="#adjust-start_lifetime_as-and-bit_cast-wording-accordingly" class="self-link"></a></h2>
+<p>The <code>start_lifetime_as</code> function implicitly creates an
+object of any complete, implicit-lifetime type. However, the
+<em>value</em> of the created object is only determined for trivially
+copyable types. Otherwise, its value is unspecified and can be
+indeterminate. The current specification of
+<code>start_lifetime_as</code> looks like this.</p>
+<blockquote>
+<p>The value of each created object <span class="math inline"><em>o</em></span> of trivially copyable type (<a href="https://eel.is/c++draft/basic.types.general">[basic.types.general]</a>)
+<code>U</code> is determined in the same manner as for a call to
+<code>bit_cast&lt;U&gt;(E)</code> (<a href="https://eel.is/c++draft/bit.cast">[bit.cast]</a>), where
+<code>E</code> is an lvalue of type <code>U</code> denoting <span class="math inline"><em>o</em></span>, except that the storage is not
+accessed. The value of any other created object is unspecified.</p>
+</blockquote>
+<p>It refers to <code>bit_cast</code>. The <a href="https://eel.is/c++draft/bit.cast#4"><em>Returns</em> clause of
+[bit.cast]</a> has a detailed description of the desired behavior. We
+would like to preserve this, as it would seem to apply even for
+copy-constructible-from-bytes types. All we need to do is relax
+<code>bit_cast</code>’s <em>Constraints</em>, which currently require
+that both the input type <code>To</code> and the return type
+<code>From</code> are trivially copyable.</p>
+<p>This introduces a new question: What if <code>To</code> and
+<code>From</code> differ? We haven’t talked about that case above. The
+<em>Returns</em> clause of [bit.cast] makes this question not matter, as
+long as the result <code>To</code> gets a valid value representation.
+The <code>bit_cast</code> function already permits those type
+conversions and doesn’t protect callers from the consequences of
+<code>To</code> getting an invalid value representation.</p>
+<blockquote>
+<p>For the result and each object created within it, if there is no
+value of the object’s type corresponding to the value representation
+produced, the behavior is undefined.</p>
+</blockquote>
+<p>Thus, we think it is acceptable to relax the Constraints on both
+<code>From</code> and <code>To</code>.</p>
+<p>We propose two changes.</p>
+<ol type="1">
+<li><p>In the <em>Effects</em> clause of <code>start_lifetime_as</code>,
+relax “trivially copyable type” to “copy-constructible-from-bytes
+type”</p></li>
+<li><p>In the <em>Constraints</em> clause of <code>bit_cast</code>,
+relax <code>is_trivially_copyable_v&lt;To&gt;</code> to
+<code>is_copy_constructible_from_bytes_v&lt;To&gt;</code>, and relax
+<code>is_trivially_copyable_v&lt;From&gt;</code> to
+<code>is_copy_constructible_from_bytes_v&lt;From&gt;</code>.</p></li>
+</ol>
+<p>The Standard specifies <code>start_lifetime_as_array</code> using
+<code>start_lifetime_as</code>, so we do not need to change the wording
+of <code>start_lifetime_as_array</code>.</p>
+<h2 data-number="4.5" id="proposed-name-avoids-conflict-with-is_trivially_copy_constructible"><span class="header-section-number">4.5</span> Proposed name avoids conflict
+with <code>is_trivially_copy_constructible</code><a href="#proposed-name-avoids-conflict-with-is_trivially_copy_constructible" class="self-link"></a></h2>
+<p>We would have preferred to call this property “trivial
+copy-constructibility,” as it is a restriction of trivial copyability
+for types that are copy constructible but not copy assignable.
+Unfortunately, this would collide with the existing trait
+<code>is_trivially_copy_constructible</code>, which has a much narrower
+meaning than we need. If
+<code>is_trivially_copy_constructible_v&lt;T&gt;</code> is
+<code>true</code>, then this only means that the copy constructor is
+trivial (<a href="https://eel.is/c++draft/meta.unary.prop">[meta.unary.prop]</a>).
+However, if <code>is_trivially_copyable_v&lt;T&gt;</code> is
+<code>true</code>, then <code>T</code> is trivially copyable, which
+imposes requirements on other special member functions, including the
+destructor. Our new property needs to impose analogous requirements
+beyond those implied by
+<code>is_trivially_copy_constructible_v&lt;T&gt;</code> being
+<code>true</code>.</p>
+<h2 data-number="4.6" id="movable-box-is-already-an-implicit-lifetime-type"><span class="header-section-number">4.6</span>
+<em><code>movable-box</code></em> is already an implicit-lifetime type<a href="#movable-box-is-already-an-implicit-lifetime-type" class="self-link"></a></h2>
+<p>We depend on both the ability to copy algorithm arguments bytewise,
+and on the ability to create those arguments implicitly from their value
+representations. The latter requires that the arguments be
+implicit-lifetime types ([class.prop]).</p>
+<p>The Standard specifies <em><code>movable-box</code></em> as an
+enumerated list of differences from <code>optional&lt;T&gt;</code> (<a href="https://eel.is/c++draft/range.move.wrap">[range.move.wrap]</a>).
+None of these differences include the destructor. The specification of
+<code>optional&lt;T&gt;</code> says that its destructor is trivial if
+<code>is_trivially_destructible_v&lt;T&gt;</code> is <code>true</code>
+(<a href="https://eel.is/c++draft/optional.dtor">[optional.dtor]</a>).
+Thus, the same applies to
+<em><code>movable-box</code></em><code>&lt;F&gt;</code>. This makes
+<em><code>movable-box</code></em><code>&lt;F&gt;</code> an
+implicit-lifetime type as long as <code>F</code> is.</p>
+<p>Lambdas that capture values have a trivial destructor as long as all
+their members are trivially destructible. This means that we don’t need
+to change the specification of <em><code>movable-box</code></em> itself
+in order for our example to work.</p>
+<h2 data-number="4.7" id="examples-of-types-that-should-vs.-should-not-be-affected"><span class="header-section-number">4.7</span> Examples of types that should
+vs. should not be affected<a href="#examples-of-types-that-should-vs.-should-not-be-affected" class="self-link"></a></h2>
+<p>In order to understand the effects of our proposed change, we present
+three categories of types with nontrivial copy assignment operators, and
+discuss whether we would want to permit their copy construction from
+bytes.</p>
+<ol type="1">
+<li><p>“Morally trivially copyable”: Types with a trivial copy
+constructor and a nontrivial copy assignment operator, where the latter
+behaves just like a trivial copy assignment operator would behave. These
+types motivate this proposal; we define copy-constructible-from-bytes to
+include these types.</p></li>
+<li><p>“Thankfully not trivially copyable”: Types that either forbid
+copying altogether, or where both copy construction and copy assignment
+are nontrivial and have desired side effects. Such types would not be
+copy constructible from bytes.</p></li>
+<li><p>Proxy references: Types that are either already trivially
+copyable, or that have a trivial copy constructor and a nontrivial copy
+assignment operator. Copy construction from bytes might cause dangling
+references or pointers, but would introduce no more possibility of
+dangling than a struct holding a reference or pointer (which is already
+trivially copyable). Thus, our proposal would not make their behavior
+worse.</p></li>
+<li><p>Types with external state affecting how they copy: These types
+might already be trivially copyable. Our proposal would not make their
+behavior worse.</p></li>
+</ol>
+<p>We don’t presume that these categories cover all possible types.
+However, this analysis increases our confidence that
+copy-constructibility-from-bytes would not make C++ less safe.</p>
+<h3 data-number="4.7.1" id="morally-trivially-copyable-types"><span class="header-section-number">4.7.1</span> “Morally trivially copyable”
+types<a href="#morally-trivially-copyable-types" class="self-link"></a></h3>
+<div class="sourceCode" id="cb3"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> x <span class="op">=</span> <span class="dv">42</span>;</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><em>movable-box</em> m<span class="op">{[</span>x<span class="op">]</span> <span class="op">(</span><span class="dt">int</span> y<span class="op">)</span> <span class="op">{</span> <span class="cf">return</span> x <span class="op">+</span> y; <span class="op">}}</span>;</span></code></pre></div>
+<p>A <em><code>movable-box</code></em> of a lambda with an
+<code>int</code> value capture is not trivially copy or move assignable,
+but this is purely for syntactic reasons. Its nontrivial copy resp. move
+assignment operators just invoke the stored object’s trivial copy resp.
+move constructor. In this case, though, one could argue that the lambda
+“should” be copy and move assignable, and that the intended meaning of
+copy and move assignment is unambiguous.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> S <span class="op">{</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> <span class="dt">int</span> x;</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> x <span class="op">=</span> <span class="dv">42</span>;</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><em>movable-box</em> m<span class="op">{</span>S<span class="op">{</span>x<span class="op">}}</span>;</span></code></pre></div>
+<p>We might then consider a struct with a <code>const int</code> member.
+This is also not copy assignable, so <em><code>movable-box</code></em>
+of that struct is also not trivially copyable. In this case, the
+<code>const int</code> declares the intent that <code>S</code> (and
+therefore <em><code>movable-box</code></em><code>&lt;S&gt;</code>) is
+not copy assignable. The “nonessential reason” here is again syntactic.
+The intended value of <code>bit_cast&lt;S&gt;(x)</code> is unambiguous,
+even though the current specification makes it unspecified.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> UnfortunateUserChoice <span class="op">{</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  UnfortunateUserChoice<span class="op">(</span><span class="kw">const</span> UnfortunateUserChoice<span class="op">&amp;</span> rhs<span class="op">)</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="op">=</span> <span class="cf">default</span>;</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  UnfortunateUserChoice<span class="op">&amp;</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">operator</span><span class="op">=(</span><span class="kw">const</span> UnfortunateUserChoice<span class="op">&amp;</span> rhs<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span><span class="kw">this</span> <span class="op">!=</span> <span class="op">&amp;</span>rhs<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>      <span class="kw">this</span><span class="op">-&gt;</span>x <span class="op">=</span> rhs<span class="op">.</span>x;</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="op">*</span><span class="kw">this</span>;</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="kw">private</span><span class="op">:</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span> x;</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span></code></pre></div>
+<p>We might then consider a class with a defaulted copy constructor but
+a user-provided copy assignment operator. This class might have come
+about from a C++98 code base that was later upgraded. The copy
+constructor’s <code>=default</code> might have been added at that point,
+but the developer who did that might have forgotten to add
+<code>=default</code> to the copy assignment operator. Like
+<em><code>movable-box</code></em>, copy assignment is “accidentally
+nontrivial.”</p>
+<h3 data-number="4.7.2" id="thankfully-not-trivially-copyable-types"><span class="header-section-number">4.7.2</span> “Thankfully not trivially
+copyable” types<a href="#thankfully-not-trivially-copyable-types" class="self-link"></a></h3>
+<p>It might help to contrast the above examples with some types that
+<em>are</em> not and <em>should</em> not be copy constructible from
+bytes. These types have “essentially nontrivial” copy assignment, move
+assignment, and/or destructors. We can think of at least three
+subcategories.</p>
+<ol type="1">
+<li><p>Containers that use dynamic allocation, like
+<code>std::vector</code></p></li>
+<li><p>Smart pointers that either forbid copying, like
+<code>std::unique_ptr</code>, or that express shared ownership with
+reference counting, like <code>std::shared_ptr</code></p></li>
+<li><p>Scope guards, where the destructor and possibly also the
+constructor have a desired side effect. These types tend to forbid
+copying altogether.</p></li>
+</ol>
+<h3 data-number="4.7.3" id="proxy-reference-types"><span class="header-section-number">4.7.3</span> Proxy reference types<a href="#proxy-reference-types" class="self-link"></a></h3>
+<p>Proxy reference types may have a trivial copy constructor, but their
+copy assignment operator has a desired side effect. For example,
+<code>std::vector&lt;bool&gt;::reference</code> has a defaulted copy
+constructor that could reasonably be made trivial, for example if
+<code>reference</code> stores an address of a byte or word in the
+<code>std::vector</code>’s storage. However, its copy assignment
+operator cannot and should not be trivial, because it copies a bit, not
+the address.</p>
+<p>Copy-construction-from-bytes might be technically correct as long as
+the <code>reference</code>’s <code>std::vector</code> object still
+exists. However, the common applications of copy-construction-from-bytes
+may copy the source’s object representation “far” from the source
+object’s owning scope. The source object might never have existed in
+that program, for example when copying over a network or loading from
+disk.</p>
+<p>Expression templates are a special case of proxy reference types.
+These normally hold references to other objects, which may themselves be
+expressions. The whole tree of expressions gets evaluated in a
+container’s copy assignment operator, or on conversion to an actual
+value. Here is a short example (available at this <a href="https://godbolt.org/z/Pz3ao5von">Compiler Explorer link</a>).</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;cassert&gt;</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;type_traits&gt;</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Left, <span class="kw">class</span> Right<span class="op">&gt;</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> Plus <span class="op">{</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">operator</span> <span class="dt">float</span><span class="op">()</span> <span class="kw">const</span> <span class="op">{</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="dt">float</span><span class="op">(</span>left<span class="op">)</span> <span class="op">*</span> <span class="dt">float</span><span class="op">(</span>right<span class="op">)</span>;</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> Left<span class="op">&amp;</span> left;</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> Right<span class="op">&amp;</span> right;</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Left, <span class="kw">class</span> Right<span class="op">&gt;</span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">auto</span> plus<span class="op">(</span><span class="kw">const</span> Left<span class="op">&amp;</span> left, <span class="kw">const</span> Right<span class="op">&amp;</span> right<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> Plus<span class="op">&lt;</span>Left, Right<span class="op">&gt;(</span>left, right<span class="op">)</span>;</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Left, <span class="kw">class</span> Right<span class="op">&gt;</span></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> Times <span class="op">{</span></span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">operator</span> <span class="dt">float</span><span class="op">()</span> <span class="kw">const</span> <span class="op">{</span></span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="dt">float</span><span class="op">(</span>left<span class="op">)</span> <span class="op">*</span> <span class="dt">float</span><span class="op">(</span>right<span class="op">)</span>;</span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> Left<span class="op">&amp;</span> left;</span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> Right<span class="op">&amp;</span> right;</span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Left, <span class="kw">class</span> Right<span class="op">&gt;</span></span>
+<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">auto</span> times<span class="op">(</span><span class="kw">const</span> Left<span class="op">&amp;</span> left, <span class="kw">const</span> Right<span class="op">&amp;</span> right<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> Times<span class="op">&lt;</span>Left, Right<span class="op">&gt;(</span>left, right<span class="op">)</span>;</span>
+<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb6-33"><a href="#cb6-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-34"><a href="#cb6-34" aria-hidden="true" tabindex="-1"></a><span class="co">// A &quot;container&quot; type, into which we assign</span></span>
+<span id="cb6-35"><a href="#cb6-35" aria-hidden="true" tabindex="-1"></a><span class="co">// the result of the expression.</span></span>
+<span id="cb6-36"><a href="#cb6-36" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> S <span class="op">{</span></span>
+<span id="cb6-37"><a href="#cb6-37" aria-hidden="true" tabindex="-1"></a>  <span class="dt">float</span> value;</span>
+<span id="cb6-38"><a href="#cb6-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-39"><a href="#cb6-39" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">operator</span> <span class="dt">float</span><span class="op">()</span> <span class="kw">const</span> <span class="op">{</span></span>
+<span id="cb6-40"><a href="#cb6-40" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> value;</span>
+<span id="cb6-41"><a href="#cb6-41" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb6-42"><a href="#cb6-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-43"><a href="#cb6-43" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> T<span class="op">&gt;</span></span>
+<span id="cb6-44"><a href="#cb6-44" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> S<span class="op">(</span><span class="kw">const</span> T<span class="op">&amp;</span> t<span class="op">)</span> <span class="op">:</span> value<span class="op">(</span><span class="dt">float</span><span class="op">(</span>t<span class="op">))</span> <span class="op">{}</span></span>
+<span id="cb6-45"><a href="#cb6-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-46"><a href="#cb6-46" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> T<span class="op">&gt;</span></span>
+<span id="cb6-47"><a href="#cb6-47" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="dt">float</span><span class="op">&amp;</span> <span class="kw">operator</span><span class="op">=(</span><span class="kw">const</span> T<span class="op">&amp;</span> t<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb6-48"><a href="#cb6-48" aria-hidden="true" tabindex="-1"></a>    value <span class="op">=</span> <span class="dt">float</span><span class="op">(</span>t<span class="op">)</span>;</span>
+<span id="cb6-49"><a href="#cb6-49" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> value;</span>
+<span id="cb6-50"><a href="#cb6-50" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb6-51"><a href="#cb6-51" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
+<span id="cb6-52"><a href="#cb6-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-53"><a href="#cb6-53" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb6-54"><a href="#cb6-54" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static_assert</span><span class="op">(</span>std<span class="op">::</span>is_trivially_copyable_v<span class="op">&lt;</span>S<span class="op">&gt;)</span>;</span>
+<span id="cb6-55"><a href="#cb6-55" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static_assert</span><span class="op">(</span>std<span class="op">::</span>is_copy_constructible_v<span class="op">&lt;</span>S<span class="op">&gt;)</span>;</span>
+<span id="cb6-56"><a href="#cb6-56" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static_assert</span><span class="op">(</span>std<span class="op">::</span>is_copy_assignable_v<span class="op">&lt;</span>S<span class="op">&gt;)</span>;</span>
+<span id="cb6-57"><a href="#cb6-57" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-58"><a href="#cb6-58" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static_assert</span><span class="op">(</span>std<span class="op">::</span>is_trivially_copyable_v<span class="op">&lt;</span>Plus<span class="op">&lt;</span>S, S<span class="op">&gt;&gt;)</span>;</span>
+<span id="cb6-59"><a href="#cb6-59" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static_assert</span><span class="op">(</span>std<span class="op">::</span>is_copy_constructible_v<span class="op">&lt;</span>Plus<span class="op">&lt;</span>S, S<span class="op">&gt;&gt;)</span>;</span>
+<span id="cb6-60"><a href="#cb6-60" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static_assert</span><span class="op">(!</span> std<span class="op">::</span>is_copy_assignable_v<span class="op">&lt;</span>Plus<span class="op">&lt;</span>S, S<span class="op">&gt;&gt;)</span>;</span>
+<span id="cb6-61"><a href="#cb6-61" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-62"><a href="#cb6-62" aria-hidden="true" tabindex="-1"></a>  S s1<span class="op">{</span><span class="fl">1.0</span><span class="bu">f</span><span class="op">}</span>;</span>
+<span id="cb6-63"><a href="#cb6-63" aria-hidden="true" tabindex="-1"></a>  S s2<span class="op">{</span><span class="fl">2.0</span><span class="bu">f</span><span class="op">}</span>;</span>
+<span id="cb6-64"><a href="#cb6-64" aria-hidden="true" tabindex="-1"></a>  S s3<span class="op">{</span><span class="fl">4.0</span><span class="bu">f</span><span class="op">}</span>;</span>
+<span id="cb6-65"><a href="#cb6-65" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-66"><a href="#cb6-66" aria-hidden="true" tabindex="-1"></a>  S s4 <span class="op">=</span> times<span class="op">(</span>plus<span class="op">(</span>s1, s2<span class="op">)</span>, s3<span class="op">)</span>;</span>
+<span id="cb6-67"><a href="#cb6-67" aria-hidden="true" tabindex="-1"></a>  <span class="ot">assert</span><span class="op">(</span>s4<span class="op">.</span>value <span class="op">==</span> <span class="fl">12.0</span><span class="bu">f</span><span class="op">)</span>;</span>
+<span id="cb6-68"><a href="#cb6-68" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-69"><a href="#cb6-69" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="dv">0</span>;</span>
+<span id="cb6-70"><a href="#cb6-70" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Note that <code>Plus</code> and <code>Times</code> are trivially
+copyable, but not copy assignable. Deleting the copy constructor and
+copy assignment operator of <code>Plus</code> and <code>Times</code>
+makes them not copy constructible, but they remain trivially copyable.
+Thus, C++ already has the issue that these types are trivially copyable,
+even though perhaps they shouldn’t be.</p>
+<p>All these types have in common that they behave like a struct holding
+a reference or a pointer. Such a struct is trivially copyable. Thus,
+introducing copy-constructibility-from-bytes would not introduce any
+more possibility for dangling than these types already have.</p>
+<h3 data-number="4.7.4" id="types-with-external-state-affecting-how-they-copy"><span class="header-section-number">4.7.4</span> Types with external state
+affecting how they copy<a href="#types-with-external-state-affecting-how-they-copy" class="self-link"></a></h3>
+<p>Suppose that a class <code>fp256</code> represents a 256-bit
+floating-point number with 1 sign bit, <span class="math inline"><em>p</em> − 1</span> significand bits, and <span class="math inline"><em>w</em> = 254 − <em>p</em></span> exponent bits.
+The class stores the bits in a
+<code>std::array&lt;uint64_t, 4&gt;</code> and has no other non-static
+member data, so it can perfectly be made trivially copyable. However,
+users can set a global integer to determine the number of significand
+bits. This lets them trade between precision and representable
+range.</p>
+<p>(We came up with this example by recalling the ARPREC library (Bailey
+et al. 2002), though its <code>mp_real</code> class performs dynamic
+allocation and thus could not be trivially copyable.)</p>
+<p>Suppose that one program sets the number of significand bits to 236
+(the number used by IEEE 754’s binary256 type), creates an
+<code>fp256</code> object <code>src</code>, copies its object
+representation, ahd sends the object representation over a network to
+another program. That program had already set the number of significand
+bits to some other value. The receiving program then uses
+<code>bit_cast&lt;fp256&gt;</code> to create an <code>fp256</code>
+object implicitly with the received bytes. The resulting value is a
+valid <code>fp256</code> value, but does not represent the value in the
+sending program.</p>
+<p>Our reading of the <em>Returns</em> clause of [bit.cast] is that this
+falls under the the following case:</p>
+<blockquote>
+<p>If there are multiple such values [corresponding to the value
+representation produced], which value is produced is unspecified.</p>
+</blockquote>
+<p>That is, a single value representation (the 256 bits) can represent
+multiple floating-point values, and which value it represents depends on
+external state (the global number of significand bits).</p>
+<p>We could imagine adding more global state that controls the total
+number of bits used for the representation, and establish an invariant
+that all unused bits must be set to zero. This would fall into the
+following [bit.cast] <em>Returns</em> case.</p>
+<blockquote>
+<p>For the result and each object created within it, if there is no
+value of the object’s type corresponding to the value representation
+produced, the behavior is undefined.</p>
+</blockquote>
+<p>This class is trivially copyable! This proposal would do nothing to
+affect classes like this. They already behave strangely. C++ currently
+has no way to tell users not to take the liberties that trivial
+copyability offers them.</p>
+<h1 data-number="5" id="what-we-do-not-propose"><span class="header-section-number">5</span> What we do NOT propose<a href="#what-we-do-not-propose" class="self-link"></a></h1>
+<p>This section covers alternate solutions that we do NOT propose
+here.</p>
+<h2 data-number="5.1" id="make-lambdas-assignable-if-their-members-are"><span class="header-section-number">5.1</span> Make lambdas assignable if
+their members are?<a href="#make-lambdas-assignable-if-their-members-are" class="self-link"></a></h2>
+<p>Lambdas with capture clauses currently have a defaulted copy
+constructor, but deleted assignment operators. This makes
+<em><code>movable-box</code></em> of such a lambda have nontrivial
+assignment operators, and thus makes it not trivially copyable.</p>
+<p>We could instead make lambdas have defaulted assignment operators.
+This would make lambdas trivially assignable (and thus trivially
+copyable) if their members are.</p>
+<p>We like this approach, because it would make lambdas more consistent
+with other objects of class type. However, we think it should be pursued
+as a separate proposal. This proposal already exists as <a href="https://isocpp.org/files/papers/P3963R0.html">P3963R0</a>.</p>
+<p>There are other applications for relaxing trivial copyability that do
+not involve lambdas. A change to lambdas’ set of special member
+functions would require compiler changes, while a minor relaxation of
+trivial copyability might not.</p>
+<h2 data-number="5.2" id="decree-that-movable-box-is-trivially-copyable-if-its-component-is"><span class="header-section-number">5.2</span> Decree that
+<em><code>movable-box</code></em> is trivially copyable if its component
+is?<a href="#decree-that-movable-box-is-trivially-copyable-if-its-component-is" class="self-link"></a></h2>
+<p>Launching a parallel algorithm with a <code>transform_view</code> on
+an accelerator does not actually require invoking
+<code>transform_view</code>’s copy assignment operator. It’s a purely
+syntactic requirement for trivial copyability. We could simply
+<em>decree</em> that
+<em><code>movable-box</code></em><code>&lt;F&gt;</code> is trivially
+copyable if <code>F</code> is.</p>
+<p>We do not favor this approach, for three reasons.</p>
+<ol type="1">
+<li><p>It would require adding a special case to the core
+language.</p></li>
+<li><p>The special case would be for an exposition-only type with no
+Standard name.</p>
+<ol type="a">
+<li><p>This would hinder use of different Standard Library
+implementations with the same compiler.</p></li>
+<li><p>Users or accelerator vendors would not be able to use this type
+in portable implementations of their non-Standard views.</p></li>
+</ol></li>
+<li><p>The benefit of this change would not scale. Users or accelerator
+vendors whose non-Standard views use an implementation mechanism similar
+to <em><code>movable-box</code></em> would not be able to take advantage
+of the special case.</p></li>
+</ol>
+<h2 data-number="5.3" id="let-types-opt-into-trivial-copyability"><span class="header-section-number">5.3</span> Let types opt into trivial
+copyability?<a href="#let-types-opt-into-trivial-copyability" class="self-link"></a></h2>
+<p>What if a class could “opt into” trivial copyability, even if it has
+a nontrivial copy assignment operator? The class <code>C</code> would
+use some syntax to promise the compiler that any nontrivial special
+members behave as if they are trivial. In return,
+<code>is_trivially_copyable_v&lt;C&gt;</code> would be
+<code>true</code>, and both the compiler and users would have permission
+to make any code transformations that they is allowed to make for
+trivially copyable types, including the permissions expressed in <a href="https://eel.is/c++draft/basic.types.general#2">[basic.types.general]
+2-3</a>.</p>
+<p>The syntax might look like the special identifier
+<code>trivially_relocatable_if_eligible</code> that was part of C++26’s
+trivial relocation proposal <a href="https://wg21.link/p2786r13">P2786R13</a>. One could imagine an
+analogous <code>trivially_copyable_if_eligible</code> keyword that would
+let a class opt into the privileges of trivial copyability. Other prior
+art includes <a href="https://clang.llvm.org/docs/AttributeReference.html#trivial-abi">Clang’s
+<code>trivial_abi</code> attribute</a>.</p>
+<p>We do not propose this approach here, because trivial copyability is
+more coarse-grained than what our applications actually need. We do not
+need to copy bytes between existing objects, so we do not need to bypass
+a nontrivial copy assignment operator. While we could imagine narrowing
+his approach to specific member functions (“I promise that this copy
+assignment operator behaves as if it is trivial”), we could not come up
+with use cases to justify the risk of letting users make these kinds of
+promises.</p>
+<h2 data-number="5.4" id="trivial-move-that-is-trivial-relocation"><span class="header-section-number">5.4</span> “Trivial move” (that is,
+trivial relocation)?<a href="#trivial-move-that-is-trivial-relocation" class="self-link"></a></h2>
+<p>Suppose that we could “trivially move” a <code>transform_view</code>
+from host to accelerator memory, instead of trivially copying it. By
+“trivially move,” we mean</p>
+<ol type="1">
+<li><p>ending the lifetime of the <code>transform_view</code> object in
+host memory while retaining its storage;</p></li>
+<li><p>copying the storage bytes from host to accelerator memory, after
+which point the host storage is no longer needed and can be freed;
+and</p></li>
+<li><p>implicitly creating a new <code>transform_view</code> object in
+accelerator memory using the bytes copied in (2).</p></li>
+</ol>
+<p>Another way to say “trivial move” is “trivial relocation.” The
+Standard doesn’t currently have a way to express this. C++26’s trivial
+relocation proposal <a href="https://wg21.link/p2786">P2786</a> did not
+survive National Body comment challenges and was removed at the Kona
+meeting in November 2025.</p>
+<p>We do not favor this approach for two reasons.</p>
+<ol type="1">
+<li><p>It would not solve our <em><code>movable-box</code></em> problem
+without further changes, because <em><code>movable-box</code></em> of a
+lambda with captures also has a nontrivial move assignment
+operator.</p></li>
+<li><p>We want to copy objects, not move them. We don’t need or
+necessarily even want to end the lifetime of the source
+objects.</p></li>
+</ol>
+<h1 data-number="6" id="implementation"><span class="header-section-number">6</span> Implementation<a href="#implementation" class="self-link"></a></h1>
+<h2 data-number="6.1" id="compiler-changes-due-to-core-language-relaxation"><span class="header-section-number">6.1</span> Compiler changes due to Core
+language relaxation?<a href="#compiler-changes-due-to-core-language-relaxation" class="self-link"></a></h2>
+<p>It’s not clear what in the compiler would <em>need</em> to change in
+order to make this work.</p>
+<h2 data-number="6.2" id="type-trait"><span class="header-section-number">6.2</span> Type trait<a href="#type-trait" class="self-link"></a></h2>
+<p>Here is a possible implementation of the new type trait.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span> <span class="op">&lt;</span><span class="kw">typename</span> T<span class="op">&gt;</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="dt">bool</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>is_copy_constructible_from_bytes_v <span class="op">=</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  is_copy_constructible_v<span class="op">&lt;</span>T<span class="op">&gt;</span> <span class="op">&amp;&amp;</span> <span class="co">// at least one eligible copy constructor</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="co">// if there is an eligible copy contructor, it is trivial</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="op">(</span>std<span class="op">::</span>is_copy_constructible_v<span class="op">&lt;</span>T<span class="op">&gt;</span> <span class="op">==</span> std<span class="op">::</span>is_trivially_copy_constructible_v<span class="op">&lt;</span>T<span class="op">&gt;)</span> <span class="op">&amp;&amp;</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="co">// if there is an eligible move contructor, it is trivial</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  <span class="op">(</span>std<span class="op">::</span>is_move_constructible_v<span class="op">&lt;</span>T<span class="op">&gt;</span> <span class="op">==</span> std<span class="op">::</span>is_trivially_move_constructible_v<span class="op">&lt;</span>T<span class="op">&gt;)</span> <span class="op">&amp;&amp;</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>is_trivially_destructible_v<span class="op">&lt;</span>T<span class="op">&gt;</span>; <span class="co">// is trivially destructible</span></span></code></pre></div>
+<h1 data-number="7" id="acknowledgments"><span class="header-section-number">7</span> Acknowledgments<a href="#acknowledgments" class="self-link"></a></h1>
+<p>Author Mark Hoemmen thanks his NVIDIA colleagues Ilya Burylov,
+Christof Meerwald, and Gonzalo Brito for reviewing this paper and
+suggesting wording changes!</p>
+<h1 data-number="8" id="references"><span class="header-section-number">8</span> References<a href="#references" class="self-link"></a></h1>
+<ul>
+<li>David H. Bailey, Yozo Hida, Xiaoye S. Li, and Brandon Thompson.
+“ARPREC: An Arbitrary Precision Computational Package,” Lawrence
+Berkeley National Laboratory technical report, 2002-10-14. <a href="https://www.davidhbailey.com/dhbpapers/arprec.pdf">Available
+online</a> (last viewed 2025-12-11). Please see also <a href="https://www.davidhbailey.com/dhbsoftware/">David H. Bailey’s web
+page</a> and the <a href="https://github.com/BL-highprecision/ARPREC">ARPREC GitHub
+page</a>.</li>
+</ul>
+<h1 data-number="9" id="proposed-wording"><span class="header-section-number">9</span> Proposed wording<a href="#proposed-wording" class="self-link"></a></h1>
+<blockquote>
+<p>Text in blockquotes is not proposed wording, but rather instructions
+for generating proposed wording.</p>
+</blockquote>
+<h2 data-number="9.1" id="add-__cpp_lib_copy_constructible_from_bytes-feature-test-macro"><span class="header-section-number">9.1</span> Add
+<code>__cpp_lib_copy_constructible_from_bytes</code> feature test
+macro<a href="#add-__cpp_lib_copy_constructible_from_bytes-feature-test-macro" class="self-link"></a></h2>
+<p>In [version.syn], add the
+<code>__cpp_lib_copy_constructible_from_bytes</code> macro by replacing
+YYYMML below with the integer literal encoding the appropriate year
+(YYYY) and month (MM).</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>#define __cpp_lib_transparent_operators 201510L // <em>freestanding, also in</em> &lt;memory&gt;, &lt;functional&gt;</span></code></pre></div>
+<div class="add" style="color: #00AA00">
+
+<div class="sourceCode" id="cb9"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>#define __cpp_lib_copy_constructible_from_bytes YYYYMML // <em>freestanding, also in</em> &lt;memory&gt;, &lt;type_traits&gt;</span></code></pre></div>
+
+</div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>#define __cpp_lib_tuple_element_t 201402L // @_freestanding, also in_2 &lt;tuple&gt;</span></code></pre></div>
+<h2 data-number="9.2" id="change-beginning-of-class.prop"><span class="header-section-number">9.2</span> Change beginning of
+[class.prop]<a href="#change-beginning-of-class.prop" class="self-link"></a></h2>
+<blockquote>
+<p>Change the beginning of [class.prop] (“Properties of classes”) as
+follows.</p>
+</blockquote>
+<div class="add" style="color: #00AA00">
+<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
+A <em>copy-constructible-from-bytes class</em> is a class:</p>
+<ul>
+<li><p><span class="marginalizedparent"><a class="marginalized">(1.1)</a></span> that
+has at least one eligible copy constructor ([special],
+[class.copy.ctor]),</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(1.2)</a></span>
+where each eligible copy constructor is trivial,</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(1.3)</a></span>
+where each eligible move constructor, if present, is trivial,
+and</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(1.4)</a></span> that
+has a trivial, non-deleted destructor ([class.dtor]).</p></li>
+</ul>
+
+</div>
+<p><span class="ednote" style="color: #0000ff">[ Editor&#39;s note: We say
+“at least one eligible copy constructor” because a class <code>X</code>
+could have multiple copy constructors <code>X(const X&amp;)</code> and
+<code>X(X&amp;, int=1)</code>, for example, per [class.copy.ctor] 1.
+These are not “of the same kind” per [special] 5, and thus both of them
+could be eligible, if invoked with a nonconst <code>X</code> object.
+]</span></p>
+<p><span class="marginalizedparent"><a class="marginalized">2</a></span>
+A <em>trivially copyable class</em> is a class:</p>
+<ul>
+<li><p><span class="marginalizedparent"><a class="marginalized">(2.1)</a></span> that
+has at least one eligible copy constructor, move constructor, copy
+assignment operator, or move assignment operator ([special],
+[class.copy.ctor], [class.copy.assign]),</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span>
+where each eligible copy constructor, move constructor, copy assignment
+operator, and move assignment operator is trivial, and</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(2.3)</a></span> that
+has a trivial, non-deleted destructor ([class.dtor]).</p></li>
+</ul>
+<p><span class="marginalizedparent"><a class="marginalized">3</a></span>
+A class S is a <em>standard-layout class</em> if it:</p>
+<h2 data-number="9.3" id="add-example-to-end-of-class.prop"><span class="header-section-number">9.3</span> Add example to end of
+[class.prop]<a href="#add-example-to-end-of-class.prop" class="self-link"></a></h2>
+<blockquote>
+<p>Add an example to the end of [class.prop] (“Properties of classes”)
+as follows.</p>
+</blockquote>
+<p>[<em>Note 3</em>: Aggregates of class type are described in
+[dcl.init.aggr]. — <em>end note</em>]</p>
+<p><span class="marginalizedparent"><a class="marginalized">16</a></span> A class
+<code>S</code> is an <em>implicit-lifetime class</em> if</p>
+<ul>
+<li><p><span class="marginalizedparent"><a class="marginalized">(16.1)</a></span> it
+is an aggregate whose destructor is not user-provided or</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(16.2)</a></span> it
+has at least one trivial eligible constructor and a trivial, non-deleted
+destructor.</p></li>
+</ul>
+<div class="add" style="color: #00AA00">
+<p>[<em>Note 4</em>: A copy-constructible-from-bytes class
+<code>S</code> is also an implicit-lifetime class. — <em>end
+note</em>]</p>
+<p>[<em>Example 3</em>: If <code>S</code> is a
+copy-constructible-from-bytes class and <code>src</code> is an object of
+type <code>S</code>, then the following starts the lifetime of an
+<code>S</code> object at <code>dst_ptr</code> with the same object
+representation as that of <code>src</code>.</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>auto* dst_mem = static_cast&lt;std::byte*&gt;(</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  std::aligned_alloc(alignof(S), sizeof(S)));</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>std::memcpy(dst_mem, &amp;src, sizeof(S));</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>S* dst_ptr = std::start_lifetime_as&lt;S&gt;(dst_mem);</span></code></pre></div>
+<p>— <em>end example</em>]</p>
+</div>
+<h2 data-number="9.4" id="change-beginning-of-basic.types.general"><span class="header-section-number">9.4</span> Change beginning of
+[basic.types.general]<a href="#change-beginning-of-basic.types.general" class="self-link"></a></h2>
+<blockquote>
+<p>Change the beginning of [basic.types.general] as follows.</p>
+</blockquote>
+<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
+[<em>Note 1</em>: [basic.types] and the subclauses thereof impose
+requirements on implementations regarding the representation of types.
+There are two kinds of types: fundamental types and compound types.
+Types describe objects, references, or functions. — <em>end
+note</em>]</p>
+<div class="add" style="color: #00AA00">
+<p><span class="marginalizedparent"><a class="marginalized">2</a></span>
+For any object <code>src</code> (other than a potentially-overlapping
+subobject) of copy-constructible-from-bytes type <code>T</code>
+([class.prop]), the underlying bytes ([intro.memory]) making up
+<code>src</code> can be copied into an array of
+<code>unsigned char</code> or <code>std::byte</code> ([cstddef.syn]). If
+the start of the array has alignment at least to <code>alignof(T)</code>
+and an object <code>dst</code> of type <code>T</code> is implicitly
+created within the region of storage occupied by the array
+([intro.object]), then <code>dst</code> shall subsequently hold the same
+value as <code>src</code>.</p>
+<p>[<em>Example 1</em>: At the end of this example, <code>dst_ptr</code>
+points to a valid <code>T</code> object that holds the same value as
+<code>src</code>.</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>T src(valid_T_object());</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>auto* dst_mem = static_cast&lt;std::byte*&gt;(</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  std::aligned_alloc(alignof(T), sizeof(T)));</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>std::memcpy(dst_mem, &amp;src, sizeof(T));</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>T* dst_ptr = std::start_lifetime_as&lt;T&gt;(dst_mem);</span></code></pre></div>
+<p>— <em>end example</em>]</p>
+</div>
+<p><span class="ednote" style="color: #0000ff">[ Editor&#39;s note: Adoption
+of the proposed resolution of <a href="https://cplusplus.github.io/CWG/issues/2489.html">CWG 2489</a> at
+the February 2023 meeting removed <code>char</code> from the list of
+types in <a href="https://eel.is/c++draft/intro.object#3">[intro.object]
+3</a>. This is why the list of copy destination types for
+copy-constructible-from-bytes types differs from the list for trivially
+copyable types in the following paragraph. ]</span></p>
+<p><span class="marginalizedparent"><a class="marginalized">3</a></span>
+For any object (other than a potentially-overlapping subobject) of
+trivially copyable type T, whether or not the object holds a valid value
+of type <code>T</code>, the underlying bytes ([intro.memory]) making up
+the object can be copied into an array of <code>char</code>,
+<code>unsigned char</code>, or <code>std​::​byte</code> ([cstddef.syn]).
+<span class="ednote" style="color: #0000ff">[ Editor&#39;s note: We omit the
+existing footnote link because we do not know how to format it. ]</span>
+If the content of that array is copied back into the object, the object
+shall subsequently hold its original value.</p>
+<p>[<em>Example 2</em>:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>constexpr std::size_t N = sizeof(T);</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>char buf[N];</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>T obj;                          // obj initialized to its original value</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>std::memcpy(buf, &amp;obj, N);      // between these two calls to std​::​memcpy, obj might be modified</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>std::memcpy(&amp;obj, buf, N);      // at this point, each subobject of obj of scalar type holds its original value</span></code></pre></div>
+<p>— <em>end example</em>]</p>
+<h2 data-number="9.5" id="change-obj.lifetime"><span class="header-section-number">9.5</span> Change [obj.lifetime]<a href="#change-obj.lifetime" class="self-link"></a></h2>
+<blockquote>
+<p>Change [obj.lifetime] (“Explicit lifetime management”) as
+follows.</p>
+</blockquote>
+<div class="sourceCode" id="cb14"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>template&lt;class T&gt;</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  T* start_lifetime_as(void* p) noexcept;</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>template&lt;class T&gt;</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  const T* start_lifetime_as(const void* p) noexcept;</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>template&lt;class T&gt;</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>  volatile T* start_lifetime_as(volatile void* p) noexcept;</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>template&lt;class T&gt;</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>  const volatile T* start_lifetime_as(const volatile void* p) noexcept;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
+<em>Mandates</em>: T is an implicit-lifetime type
+([basic.types.general]) and not an incomplete type
+([basic.types.general]).</p>
+<p><span class="marginalizedparent"><a class="marginalized">2</a></span>
+<em>Preconditions</em>: <span class="math inline">[</span><code>p</code>,
+<code>(char*)p + sizeof(T)</code><span class="math inline">)</span>
+denotes a region of allocated storage that is a subset of the region of
+storage reachable through ([basic.compound]) <code>p</code> and suitably
+aligned for the type <code>T</code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">3</a></span>
+<em>Effects</em>: Implicitly creates objects ([intro.object]) within the
+denoted region consisting of an object <span class="math inline"><em>a</em></span> of type <code>T</code> whose
+address is <code>p</code>, and objects nested within <span class="math inline"><em>a</em></span>, as follows: The object
+representation of <span class="math inline"><em>a</em></span> is the
+contents of the storage prior to the call to
+<code>start_lifetime_as</code>. The value of each created object <span class="math inline"><em>o</em></span> of <span class="rm" style="color: #bf0303"><del>trivially copyable</del></span><span class="add" style="color: #00AA00"><ins>copy-constructible-from-bytes</ins></span>
+type ([basic.types.general]) <code>U</code> is determined in the same
+manner as for a call to <code>bit_cast&lt;U&gt;(E)</code> ([bit.cast]),
+where <code>E</code> is an lvalue of type <code>U</code> denoting <span class="math inline"><em>o</em></span>, except that the storage is not
+accessed. The value of any other created object is unspecified.</p>
+<p>[<em>Note 1</em>: The unspecified value can be indeterminate. —
+<em>end note</em>]</p>
+<p><span class="marginalizedparent"><a class="marginalized">4</a></span>
+<em>Returns</em>: A pointer to the <span class="math inline"><em>a</em></span> defined in the <em>Effects</em>
+paragraph.</p>
+<p><span class="ednote" style="color: #0000ff">[ Editor&#39;s note: We do
+not need to change <code>start_lifetime_as_array</code>, since the
+Standard specifies it in terms of <code>start_lifetime_as</code>.
+]</span></p>
+<h2 data-number="9.6" id="change-bit.cast"><span class="header-section-number">9.6</span> Change [bit.cast]<a href="#change-bit.cast" class="self-link"></a></h2>
+<blockquote>
+<p>Change [bit.cast] (“Function template <code>bit_cast</code>”) as
+follows.</p>
+</blockquote>
+<div class="sourceCode" id="cb15"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>template&lt;class To, class From&gt;</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  constexpr To bit_cast(const From&amp; from) noexcept;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
+<em>Constraints</em>:</p>
+<ul>
+<li><p><span class="marginalizedparent"><a class="marginalized">(1.1)</a></span>
+<code>sizeof(To) == sizeof(From)</code> is <code>true</code>;</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(1.2)</a></span>
+<span class="rm" style="color: #bf0303"><del><span><code>is_trivially_copyable_v</code></span></del></span><span class="add" style="color: #00AA00"><ins><span><code>is_copy_constructible_from_bytes_v</code></span></ins></span><code>&lt;To&gt;</code>
+is <code>true</code>.</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(1.3)</a></span>
+<span class="rm" style="color: #bf0303"><del><span><code>is_trivially_copyable_v</code></span></del></span><span class="add" style="color: #00AA00"><ins><span><code>is_copy_constructible_from_bytes_v</code></span></ins></span><code>&lt;From&gt;</code>
+is <code>true</code>.</p></li>
+</ul>
+<h2 data-number="9.7" id="change-meta.unary.prop"><span class="header-section-number">9.7</span> Change [meta.unary.prop]<a href="#change-meta.unary.prop" class="self-link"></a></h2>
+<blockquote>
+<p>Change [meta.unary.prop] (“Type properties”) as follows.</p>
+</blockquote>
+<table>
+<tr>
+<th>
+<strong>Template</strong>
+</th>
+<th>
+<strong>Condition</strong>
+</th>
+<th>
+<strong>Preconditions</strong>
+</th>
+</tr>
+<tr>
+<td>
+…
+</td>
+<td>
+…
+</td>
+<td>
+…
+</td>
+</tr>
+<tr>
+<td>
+<code>template&lt;class T&gt; struct is_const;</code>
+</td>
+<td>
+<code>T</code> is const-qualified ([basic.type.qualifier])
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>template&lt;class T&gt; struct is_volatile;</code>
+</td>
+<td>
+<code>T</code> is volatile-qualified ([basic.type.qualifier])
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<span class="add" style="color: #00AA00"><ins><span><code>template&lt;class T&gt; struct is_copy_constructible_from_bytes;</code></span></ins></span>
+</td>
+<td>
+<span class="add" style="color: #00AA00"><ins><span><code>T</code></span> is a
+copy-constructible-from-bytes type ([basic.types.general])</ins></span>
+</td>
+<td>
+<span class="add" style="color: #00AA00"><ins><span><code>remove_all_extents_t&lt;T&gt;</code></span>
+shall be a complete type or <em>cv</em>
+<span><code>void</code></span>.</ins></span>
+</td>
+</tr>
+<tr>
+<td>
+<code>template&lt;class T&gt; struct is_trivially_copyable;</code>
+</td>
+<td>
+<code>T</code> is a trivially copyable type ([basic.types.general])
+</td>
+<td>
+<code>remove_all_extents_t&lt;T&gt;</code> shall be a complete type or
+<em>cv</em> <code>void</code>.
+</td>
+</tr>
+<tr>
+<td>
+<code>template&lt;class T&gt; struct is_standard_layout;</code>
+</td>
+<td>
+<code>T</code> is a standard-layout type ([basic.types.general])
+</td>
+<td>
+<code>remove_all_extents_t&lt;T&gt;</code> shall be a complete type or
+<em>cv</em> <code>void</code>.
+</td>
+</tr>
+<tr>
+<td>
+…
+</td>
+<td>
+…
+</td>
+<td>
+…
+</td>
+</tr>
+</table>
+<h2 data-number="9.8" id="change-meta.reflection.traits"><span class="header-section-number">9.8</span> Change
+[meta.reflection.traits]<a href="#change-meta.reflection.traits" class="self-link"></a></h2>
+<blockquote>
+<p>Change [meta.reflection.traits] (“Reflection type traits”) as
+follows.</p>
+</blockquote>
+<div class="sourceCode" id="cb16"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>// associated with [meta.unary.prop], type properties</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>consteval bool is_const_type(info type);</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>consteval bool is_volatile_type(info type);</span></code></pre></div>
+<div class="add" style="color: #00AA00">
+
+<div class="sourceCode" id="cb17"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>consteval bool is_copy_constructible_from_bytes_type(info type);</span></code></pre></div>
+
+</div>
+<div class="sourceCode" id="cb18"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>consteval bool is_trivially_copyable_type(info type);</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>consteval bool is_standard_layout_type(info type);</span></code></pre></div>
+<h2 data-number="9.9" id="change-meta.type.synop"><span class="header-section-number">9.9</span> Change [meta.type.synop]<a href="#change-meta.type.synop" class="self-link"></a></h2>
+<blockquote>
+<p>Change [meta.type.synop] (“Header <code>&lt;type_traits&gt;</code>
+synopsis”) as follows.</p>
+</blockquote>
+<div class="sourceCode" id="cb19"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>  // [meta.unary.prop], type properties</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>  template&lt;class T&gt; struct is_const;</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  template&lt;class T&gt; struct is_volatile;</span></code></pre></div>
+<div class="add" style="color: #00AA00">
+
+<div class="sourceCode" id="cb20"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>  template&lt;class T&gt; struct is_copy_constructible_from_bytes;</span></code></pre></div>
+
+</div>
+<div class="sourceCode" id="cb21"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>  template&lt;class T&gt; struct is_trivially_copyable;</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>  template&lt;class T&gt; struct is_standard_layout;</span></code></pre></div>
+<p><span class="ednote" style="color: #0000ff">[ Editor&#39;s note: Please
+skip down to the <code>*_v</code> declarations. ]</span></p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>  // [meta.unary.prop], type properties</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  template&lt;class T&gt;</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>    constexpr bool is_const_v = is_const&lt;T&gt;::value;</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>  template&lt;class T&gt;</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>    constexpr bool is_volatile_v = is_volatile&lt;T&gt;::value;</span></code></pre></div>
+<div class="add" style="color: #00AA00">
+
+<div class="sourceCode" id="cb23"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>  template&lt;class T&gt;</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>    constexpr bool is_copy_constructible_from_bytes_v = is_copy_constructible_from_bytes&lt;T&gt;::value;</span></code></pre></div>
+
+</div>
+<div class="sourceCode" id="cb24"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>  template&lt;class T&gt;</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>    constexpr bool is_trivially_copyable_v = is_trivially_copyable&lt;T&gt;::value;</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  template&lt;class T&gt;</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>    constexpr bool is_standard_layout_v = is_standard_layout&lt;T&gt;::value;</span></code></pre></div>
+</div>
+</div>
+</body>
+</html>
