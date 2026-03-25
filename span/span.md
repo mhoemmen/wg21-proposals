@@ -1,5 +1,5 @@
 ---
-title: "Breaking change in `std::span`'s new `initializer_list` constructor"
+title: "Remove `span`'s `initializer_list` constructor for C++26"
 document: P4144R0
 date: today
 audience: LEWG
