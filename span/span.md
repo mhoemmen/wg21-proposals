@@ -60,7 +60,7 @@ int main() {
 
 In C++23, constructor `span(element_type*, size_t)` is called.  
 
-Adoption of [P2447R6](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p2447r6.html) for C++26 means that constructor `span(initializer_list<value_type>)` is selected instead.  It takes the conversion sequence from `bool*` to `bool` and `size_t` to `bool`.
+WG21 adopted [P2447R6](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p2447r6.html) for C++26 at the March 2024 Tokyo meeting.  This change means that constructor `span(initializer_list<value_type>)` is selected instead.  It takes the conversion sequence from `bool*` to `bool` and `size_t` to `bool`.
 
 P2447 authors understood that adoption of their proposal would be a breaking change.
 The paper adds to Annex C some examples of code that this breaks.
@@ -75,7 +75,7 @@ any b[10];
 int y = span<const any>{b, b+10}.size();
 ```
 
-The use case in [LWG4520](https://cplusplus.github.io/LWG/issue4520)
+The use case in [LWG 4520](https://cplusplus.github.io/LWG/issue4520)
 is most like the `span<const any>` break above,
 in that both `ElementType*` and `size_t` are convertible to the `span`'s `value_type`.
 
@@ -84,12 +84,11 @@ Creating a `span<const bool>` is likely more common, especially in generic code.
 That means LEWG might not have realized the significance of the change.
 
 Note that `span<bool>` does not have this issue.
-Using `{}` with `mdspan` works just fine.
-(Historically, `mdspan` came first.)
+Using `{}` with `mdspan` (the source of design inspiration for `span`) works as expected.
 
 # It's not "silent," but implementations diverge
 
-This is actually ill-formed code; it's a narrowing conversion from pointer to `bool`.  GCC trunk compiles this but emits narrowing warnings.  Clang stops with an error.
+The example is actually ill-formed code; it's a narrowing conversion from pointer to `bool`.  GCC trunk compiles this but emits narrowing warnings.  Clang stops with an error.
 
 Per [[intro.compliance.general] 2.3](https://eel.is/c++draft/intro.compliance.general), both implementations are conforming, as they emit a "diagnostic."  GCC implements a conforming "extension" per [[intro.compliance.general] 11](https://eel.is/c++draft/intro#compliance.general-11.sentence-2), in that it attempts to give meaning (by compiling) to invalid code.
 
@@ -116,12 +115,12 @@ would have hindered adoption of C++11 enormously.
 
 # P2447 introduced wording bugs, later fixed
 
-Adoption of P2447 led to bugs in the Standard wording that later had to be fixed.  GCC [Bug 120997](https://gcc.gnu.org/bugzilla/show_bug.cgi?id=120997) led to filing of [LWG 4293](https://cplusplus.github.io/LWG/issue4293).  The Standard was specified to use curly braces for the return values of some `span` member functions, such as `submdspan`.  Adoption of LWG 4293's Proposed Fix fixed that.
+Adoption of P2447 led to bugs in the Standard wording that later had to be fixed.  GCC [Bug 120997](https://gcc.gnu.org/bugzilla/show_bug.cgi?id=120997) led to filing of [LWG 4293](https://cplusplus.github.io/LWG/issue4293).  The Standard was specified to use curly braces for the return values of some `span` member functions, such as `submdspan`.  Adoption of LWG 4293's Proposed Fix corrected that.
 
 # Original (pre-LEWG-review) proposed fix
 
 This is the fix that the original version of this paper proposed.
-LEWG reviewed this and polled to select a different fix.
+LEWG reviewed this on 2026-03-25 and polled to select a different fix.
 
 ## Ansatz: Constrain the initializer list constructor
 
@@ -186,81 +185,38 @@ For example, this would permit the common case of initializing `bool` values fro
 std::span<const bool> span_from_bool{1, 0, 1};
 ```
 
-However, I'm not sure how to specify this.
+However, we're not sure how to specify this.
 Merely replacing the `is_same_v<InitListType, bool>` constraint with `is_integral_v<InitListType>` does *not* work.
 Doing that results in `span<const bool>{0, 1, 0}` selecting the `initializer_list<value_type>` constructor,
 which fails with a hard error,
 because it attempts to initialize the `const bool*` pointer
 with a `const int*` from the input `initializer_list<int>::const_iterator`.
 
-## Originally proposed wording change (not the actual wording change)
-
-> Text in blockquotes is not proposed wording,
-> but rather instructions for generating proposed wording.
-
-### Increment `__cpp_lib_span` feature test macro
-
-In [version.syn], increase the value of the `__cpp_lib_span` macro
-by replacing YYYMML below with the integer literal
-encoding the appropriate year (YYYY) and month (MM).
-
-```
-#define __cpp_lib_span @_[YYYYMML]{.add}_@ // freestanding, also in <span>
-```
-
-### Change [span.cons]
-
-> Change the `initializer_list<value_type>` constructor of `span` in [span.cons] 21 as follows.
-
-```
-constexpr explicit(extent != dynamic_extent)
-  span(std::initializer_list<value_type> il);
-```
-
-[21]{.pnum} *Constraints*: `is_const_v<element_type>` [`&& (! is_same_v<value_type, bool>)`]{.add} [is]{.rm}[are]{.add} `true`.
-
-[22]{.pnum} *Hardened preconditions*: If `extent` is not equal to `dynamic_extent`, then `il.size() == extent` is `true`.
-
-[23]{.pnum} *Effects*: Initializes `data_` with `il.data()` and `size_` with `il.size()`.
-
-::: add
-```
-template<typename InitListType>
-  constexpr explicit(extent != dynamic_extent)
-    span(std::initializer_list<InitListType> il);
-```
-
-[24]{.pnum} *Constraints*:
-
-* [24.1]{.pnum} `is_const_v<element_type>` is `true`,
-
-* [24.2]{.pnum} `is_same_v<value_type, bool>` is `true`, and
-
-* [24.3]{.pnum} `is_same_v<InitListType, bool>` is `true`.
-
-[25]{.pnum} *Hardened preconditions*: If `extent` is not equal to `dynamic_extent`, then `il.size() == extent` is `true`.
-
-[26]{.pnum} *Effects*: Initializes `data_` with `il.data()` and `size_` with `il.size()`.
-:::
-
-```
-constexpr span(const span& other) noexcept = default;
-```
-
-# Proposed fix: Remove `initializer_list` constructor
+# What we now propose: Remove `initializer_list` constructor
 
 On 2026-03-25, LEWG polled 16/14/2/0/0 to remove the `initializer_list` constructor from `span` entirely for C++26.
 LEWG asked this paper to be revised to include that solution.
+
+As far as we know, this should only affect wording of the `span` specification itself.
+Adoption of the proposed fix for [LWG 4293](https://cplusplus.github.io/LWG/issue4293)
+changed the wording to stop using the `initializer_list` constructor
+where doing so was not intended.
 
 # Alternatives
 
 1. File a GCC bug to make GCC emit an error here.
 
-2. Try to constrain `span<T>`'s constructor generically (for all `T`) so that it refuses to convert a pointer to `value_type`.
+2. Try to constrain `span<T>`'s constructor generically (for all `T`)
+    so that it refuses to convert a pointer to `value_type`.
 
-Regarding Option (1), GCC has made a principled choice here to emit warnings in some cases.  Discussion during LEWG review suggests that they might be willing to consider emitting errors for more targeted situations.
+Regarding Option (1), GCC has made a principled choice here to emit warnings in some cases.
+Discussion during LEWG review suggests that they might be
+willing to consider emitting errors for more targeted situations.
 
-Given that LEWG has asked us to remove the `initializer_list` constructor entirely, we can always consider Option (2) for later C++ versions.  The `span` class template has many constructors with intricate constraints, so this will need to be done carefully.
+Given that LEWG has asked us to remove the `initializer_list` constructor entirely,
+we can always consider Option (2) for later C++ versions.
+The `span` class template has many constructors with intricate constraints,
+so this will need to be done carefully.
 
 # Proposed wording
 
