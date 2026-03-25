@@ -649,8 +649,7 @@ feature test macro definition. ]</span></p>
 <code>initializer_list</code> include from [span.syn]<a href="#remove-initializer_list-include-from-span.syn" class="self-link"></a></h2>
 <p><span class="ednote" style="color: #0000ff">[ Editor&#39;s note: Remove
 <code>#include &lt;initializer_list&gt;</code> from [span.syn] (“Header
-<code>&lt;span&gt;</code> synopsis”) as shown below. Please only remove
-the include if no other C++26 changes depend on it. ]</span></p>
+<code>&lt;span&gt;</code> synopsis”) as shown below. ]</span></p>
 <div class="rm" style="color: #bf0303">
 
 <div class="sourceCode" id="cb8"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>#include &lt;initializer_list&gt;     // see [initializer.list.syn]</span></code></pre></div>
@@ -690,11 +689,10 @@ below. ]</span></p>
 <h2 data-number="8.4" id="remove-initializer_list-constructor-from-spans-description"><span class="header-section-number">8.4</span> Remove
 <code>initializer_list</code> constructor from <code>span</code>’s
 description<a href="#remove-initializer_list-constructor-from-spans-description" class="self-link"></a></h2>
-<blockquote>
-<p>Remove <code>span(initializer_list&lt;value_type&gt;)</code>
-constructor description from [span.cons] (paragraphs 21-23), as shown
-below.</p>
-</blockquote>
+<p><span class="ednote" style="color: #0000ff">[ Editor&#39;s note: Remove
+<code>span(initializer_list&lt;value_type&gt;)</code> constructor
+description from [span.cons] (paragraphs 21-23), as shown below.
+]</span></p>
 <p><span class="marginalizedparent"><a class="marginalized">19</a></span>
 <em>Effects</em>: Initializes <code>data_</code> with
 <code>ranges​::​data(r)</code> and <code>size_</code> with

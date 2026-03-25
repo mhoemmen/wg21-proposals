@@ -157,8 +157,7 @@ so this will need to be done carefully.
 
 ## Remove `initializer_list` include from [span.syn]
 
-[Remove `#include <initializer_list>` from [span.syn] ("Header `<span>` synopsis") as
-shown below.  Please only remove the include if no other C++26 changes depend on it.]{.ednote}
+[Remove `#include <initializer_list>` from [span.syn] ("Header `<span>` synopsis") as shown below.]{.ednote}
 
 ::: rm
 ```
@@ -204,8 +203,7 @@ namespace std {
 
 ## Remove `initializer_list` constructor from `span`'s description
 
-> Remove `span(initializer_list<value_type>)` constructor description
-> from [span.cons] (paragraphs 21-23), as shown below.
+[Remove `span(initializer_list<value_type>)` constructor description from [span.cons] (paragraphs 21-23), as shown below.]{.ednote}
 
 [19]{.pnum} *Effects*: Initializes `data_` with `ranges​::​data(r)` and `size_` with `ranges​::​size(r)`.
 
