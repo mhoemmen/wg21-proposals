@@ -5,17 +5,27 @@ date: today
 audience: LEWG
 author:
   - name: Mark Hoemmen
-    email: <mhoemmen@nvidia.com>
+  - name: Tomasz Kamiński
+  - name: Tim Song 
+  - name: Jonathan Wakely 
 toc: true
 ---
 
-# Author
+# Authors
 
-* Mark Hoemmen (mhoemmen@nvidia.com) (NVIDIA)
+* Mark Hoemmen
+
+* Tomasz Kamiński
+ 
+* Tim Song
+
+* Jonathan Wakely
 
 # Revision history
 
-* Revision 0 submitted 2026-03-25
+Paper with original title "Breaking change in `std::span`'s new `initializer_list` constructor" was reviewed by LEWG on 2026-03-25.  That version of the paper proposed a fix just for `span<const bool>`.  It was submitted into the `isocpp.org` paper system as R0 immediately before LEWG review; it had not reached an official mailing.  On 2026-03-25, LEWG polled 16/14/2/0/0 instead to remove the `initializer_list` constructor from `span` entirely for C++26, and asked the paper to be revised.  Tomasz Kamiński, Tim Song, and Jonathan Wakely joined the author list.
+
+Given that the paper has not yet reached the official meeting, there's no straightforward way to make the revision an R1.  We will make the pre-LEWG-review design vs. the post-LEWG-review design clear in the text below.
 
 # Problem: "Silent" change in `span`'s behavior
 
@@ -83,11 +93,35 @@ This is actually ill-formed code; it's a narrowing conversion from pointer to `b
 
 Per [[intro.compliance.general] 2.3](https://eel.is/c++draft/intro.compliance.general), both implementations are conforming, as they emit a "diagnostic."  GCC implements a conforming "extension" per [[intro.compliance.general] 11](https://eel.is/c++draft/intro#compliance.general-11.sentence-2), in that it attempts to give meaning (by compiling) to invalid code.
 
+In general, GCC treats narrowing with constant expressions as an error,
+but for non-constant expressions only issues a warning,
+on the basis that the existing, working code doing it is probably correct.
+GCC made this choice consciously, as a way to promote adoption of C++11.  
+For example, GCC makes the following an error,
+
+```c++
+char str[] = { 300, 400, '\0' };
+```
+
+but only issues a warning for the following.
+
+```c++
+char str[] = { tolower(ch1), tolower(ch2), '\0' };
+```
+
+This is a narrowing conversion and therefore ill-formed because `tolower` returns `int` not `char`.
+However, in practice, it's never lossy; the `tolower` value always fits in `char`.
+Rejecting code like this because of the C++11 narrowing rules
+would have hindered adoption of C++11 enormously.
+
 # P2447 introduced wording bugs, later fixed
 
 Adoption of P2447 led to bugs in the Standard wording that later had to be fixed.  GCC [Bug 120997](https://gcc.gnu.org/bugzilla/show_bug.cgi?id=120997) led to filing of [LWG 4293](https://cplusplus.github.io/LWG/issue4293).  The Standard was specified to use curly braces for the return values of some `span` member functions, such as `submdspan`.  Adoption of LWG 4293's Proposed Fix fixed that.
 
-# Proposed fix
+# Original (pre-LEWG-review) proposed fix
+
+This is the fix that the original version of this paper proposed.
+LEWG reviewed this and polled to select a different fix.
 
 ## Ansatz: Constrain the initializer list constructor
 
@@ -159,22 +193,12 @@ which fails with a hard error,
 because it attempts to initialize the `const bool*` pointer
 with a `const int*` from the input `initializer_list<int>::const_iterator`.
 
-# Alternatives
-
-1. File a GCC bug to make GCC emit an error here.
-
-2. Try to constrain `span<T>`'s constructor generically (for all `T`) so that it refuses to convert a pointer to `value_type`.
-
-Regarding Option (1), Mattermost discussion during the meeting suggests that GCC is unlikely to change its current behavior.
-
-Option (2) is higher risk because `span` has many constructors.
-
-# Wording change
+## Originally proposed wording change (not the actual wording change)
 
 > Text in blockquotes is not proposed wording,
 > but rather instructions for generating proposed wording.
 
-## Increment `__cpp_lib_span` feature test macro
+### Increment `__cpp_lib_span` feature test macro
 
 In [version.syn], increase the value of the `__cpp_lib_span` macro
 by replacing YYYMML below with the integer literal
@@ -184,7 +208,7 @@ encoding the appropriate year (YYYY) and month (MM).
 #define __cpp_lib_mdspan YYYYMML // also in <mdspan>
 ```
 
-## Change [span.cons]
+### Change [span.cons]
 
 > Change the `initializer_list<value_type>` constructor of `span` in [span.cons] 21 as follows.
 
@@ -222,3 +246,41 @@ template<typename InitListType>
 ```
 constexpr span(const span& other) noexcept = default;
 ```
+
+# Proposed fix (selected by LEWG)
+
+On 2026-03-25, LEWG polled 16/14/2/0/0 to remove the `initializer_list` constructor from `span` entirely for C++26.
+LEWG asked this paper to be revised to include that solution.
+
+# Alternatives
+
+1. File a GCC bug to make GCC emit an error here.
+
+2. Try to constrain `span<T>`'s constructor generically (for all `T`) so that it refuses to convert a pointer to `value_type`.
+
+Regarding Option (1), Mattermost discussion during the meeting suggests that GCC is unlikely to change its current behavior.
+
+Option (2) is higher risk because `span` has many constructors.
+
+# Wording change
+
+> Text in blockquotes is not proposed wording,
+> but rather instructions for generating proposed wording.
+
+## Increment `__cpp_lib_span` feature test macro
+
+In [version.syn], increase the value of the `__cpp_lib_span` macro
+by replacing YYYMML below with the integer literal
+encoding the appropriate year (YYYY) and month (MM).
+
+```c++
+#define __cpp_lib_mdspan YYYYMML // also in <mdspan>
+```
+
+## Remove `initializer_list` constructor from `span`'s synopsis
+
+TODO
+
+## Remove `initializer_list` constructor from `span`'s description
+
+TODO

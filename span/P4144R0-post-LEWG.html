@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang xml:lang>
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="mpark/wg21" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="dcterms.date" content="2026-03-25" />
+  <title>Breaking change in std::span’s new initializer_list constructor</title>
+  <style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+</style>
+  <style>
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ background-color: #f6f8fa; }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span { } 
+code span.al { color: #ff0000; } 
+code span.an { } 
+code span.at { } 
+code span.bn { color: #9f6807; } 
+code span.bu { color: #9f6807; } 
+code span.cf { color: #00607c; } 
+code span.ch { color: #9f6807; } 
+code span.cn { } 
+code span.co { color: #008000; font-style: italic; } 
+code span.cv { color: #008000; font-style: italic; } 
+code span.do { color: #008000; } 
+code span.dt { color: #00607c; } 
+code span.dv { color: #9f6807; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #9f6807; } 
+code span.fu { } 
+code span.im { } 
+code span.in { color: #008000; } 
+code span.kw { color: #00607c; } 
+code span.op { color: #af1915; } 
+code span.ot { } 
+code span.pp { color: #6f4e37; } 
+code span.re { } 
+code span.sc { color: #9f6807; } 
+code span.ss { color: #9f6807; } 
+code span.st { color: #9f6807; } 
+code span.va { } 
+code span.vs { color: #9f6807; } 
+code span.wa { color: #008000; font-weight: bold; } 
+code.diff {color: #898887}
+code.diff span.va {color: #00AA00}
+code.diff span.st {color: #bf0303}
+</style>
+  <style type="text/css">
+body {
+margin: 5em;
+font-family: serif;
+
+hyphens: auto;
+line-height: 1.35;
+}
+div.wrapper {
+max-width: 60em;
+margin: auto;
+}
+ul {
+list-style-type: none;
+padding-left: 2em;
+margin-top: -0.2em;
+margin-bottom: -0.2em;
+}
+a {
+text-decoration: none;
+color: #4183C4;
+}
+a.hidden_link {
+text-decoration: none;
+color: inherit;
+}
+li {
+margin-top: 0.6em;
+margin-bottom: 0.6em;
+}
+h1, h2, h3, h4 {
+position: relative;
+line-height: 1;
+}
+a.self-link {
+position: absolute;
+top: 0;
+left: calc(-1 * (3.5rem - 26px));
+width: calc(3.5rem - 26px);
+height: 2em;
+text-align: center;
+border: none;
+transition: opacity .2s;
+opacity: .5;
+font-family: sans-serif;
+font-weight: normal;
+font-size: 83%;
+}
+a.self-link:hover { opacity: 1; }
+a.self-link::before { content: "§"; }
+ul > li:before {
+content: "\2014";
+position: absolute;
+margin-left: -1.5em;
+}
+:target { background-color: #C9FBC9; }
+:target .codeblock { background-color: #C9FBC9; }
+:target ul { background-color: #C9FBC9; }
+.abbr_ref { float: right; }
+.folded_abbr_ref { float: right; }
+:target .folded_abbr_ref { display: none; }
+:target .unfolded_abbr_ref { float: right; display: inherit; }
+.unfolded_abbr_ref { display: none; }
+.secnum { display: inline-block; min-width: 35pt; }
+.header-section-number { display: inline-block; min-width: 35pt; }
+.annexnum { display: block; }
+div.sourceLinkParent {
+float: right;
+}
+a.sourceLink {
+position: absolute;
+opacity: 0;
+margin-left: 10pt;
+}
+a.sourceLink:hover {
+opacity: 1;
+}
+a.itemDeclLink {
+position: absolute;
+font-size: 75%;
+text-align: right;
+width: 5em;
+opacity: 0;
+}
+a.itemDeclLink:hover { opacity: 1; }
+span.marginalizedparent {
+position: relative;
+left: -5em;
+}
+li span.marginalizedparent { left: -7em; }
+li ul > li span.marginalizedparent { left: -9em; }
+li ul > li ul > li span.marginalizedparent { left: -11em; }
+li ul > li ul > li ul > li span.marginalizedparent { left: -13em; }
+div.footnoteNumberParent {
+position: relative;
+left: -4.7em;
+}
+a.marginalized {
+position: absolute;
+font-size: 75%;
+text-align: right;
+width: 5em;
+}
+a.enumerated_item_num {
+position: relative;
+left: -3.5em;
+display: inline-block;
+margin-right: -3em;
+text-align: right;
+width: 3em;
+}
+div.para { margin-bottom: 0.6em; margin-top: 0.6em; text-align: justify; }
+div.section { text-align: justify; }
+div.sentence { display: inline; }
+span.indexparent {
+display: inline;
+position: relative;
+float: right;
+right: -1em;
+}
+a.index {
+position: absolute;
+display: none;
+}
+a.index:before { content: "⟵"; }
+
+a.index:target {
+display: inline;
+}
+.indexitems {
+margin-left: 2em;
+text-indent: -2em;
+}
+div.itemdescr {
+margin-left: 3em;
+}
+.bnf {
+font-family: serif;
+margin-left: 40pt;
+margin-top: 0.5em;
+margin-bottom: 0.5em;
+}
+.ncbnf {
+font-family: serif;
+margin-top: 0.5em;
+margin-bottom: 0.5em;
+margin-left: 40pt;
+}
+.ncsimplebnf {
+font-family: serif;
+font-style: italic;
+margin-top: 0.5em;
+margin-bottom: 0.5em;
+margin-left: 40pt;
+background: inherit; 
+}
+span.textnormal {
+font-style: normal;
+font-family: serif;
+white-space: normal;
+display: inline-block;
+}
+span.rlap {
+display: inline-block;
+width: 0px;
+}
+span.descr { font-style: normal; font-family: serif; }
+span.grammarterm { font-style: italic; }
+span.term { font-style: italic; }
+span.terminal { font-family: monospace; font-style: normal; }
+span.nonterminal { font-style: italic; }
+span.tcode { font-family: monospace; font-style: normal; }
+span.textbf { font-weight: bold; }
+span.textsc { font-variant: small-caps; }
+a.nontermdef { font-style: italic; font-family: serif; }
+span.emph { font-style: italic; }
+span.techterm { font-style: italic; }
+span.mathit { font-style: italic; }
+span.mathsf { font-family: sans-serif; }
+span.mathrm { font-family: serif; font-style: normal; }
+span.textrm { font-family: serif; }
+span.textsl { font-style: italic; }
+span.mathtt { font-family: monospace; font-style: normal; }
+span.mbox { font-family: serif; font-style: normal; }
+span.ungap { display: inline-block; width: 2pt; }
+span.textit { font-style: italic; }
+span.texttt { font-family: monospace; }
+span.tcode_in_codeblock { font-family: monospace; font-style: normal; }
+span.phantom { color: white; }
+
+span.math { font-style: normal; }
+span.mathblock {
+display: block;
+margin-left: auto;
+margin-right: auto;
+margin-top: 1.2em;
+margin-bottom: 1.2em;
+text-align: center;
+}
+span.mathalpha {
+font-style: italic;
+}
+span.synopsis {
+font-weight: bold;
+margin-top: 0.5em;
+display: block;
+}
+span.definition {
+font-weight: bold;
+display: block;
+}
+.codeblock {
+margin-left: 1.2em;
+line-height: 127%;
+}
+.outputblock {
+margin-left: 1.2em;
+line-height: 127%;
+}
+div.itemdecl {
+margin-top: 2ex;
+}
+code.itemdeclcode {
+white-space: pre;
+display: block;
+}
+span.textsuperscript {
+vertical-align: super;
+font-size: smaller;
+line-height: 0;
+}
+.footnotenum { vertical-align: super; font-size: smaller; line-height: 0; }
+.footnote {
+font-size: small;
+margin-left: 2em;
+margin-right: 2em;
+margin-top: 0.6em;
+margin-bottom: 0.6em;
+}
+div.minipage {
+display: inline-block;
+margin-right: 3em;
+}
+div.numberedTable {
+text-align: center;
+margin: 2em;
+}
+div.figure {
+text-align: center;
+margin: 2em;
+}
+table {
+border: 1px solid black;
+border-collapse: collapse;
+margin-left: auto;
+margin-right: auto;
+margin-top: 0.8em;
+text-align: left;
+hyphens: none; 
+}
+td, th {
+padding-left: 1em;
+padding-right: 1em;
+vertical-align: top;
+}
+td.empty {
+padding: 0px;
+padding-left: 1px;
+}
+td.left {
+text-align: left;
+}
+td.right {
+text-align: right;
+}
+td.center {
+text-align: center;
+}
+td.justify {
+text-align: justify;
+}
+td.border {
+border-left: 1px solid black;
+}
+tr.rowsep, td.cline {
+border-top: 1px solid black;
+}
+tr.even, tr.odd {
+border-bottom: 1px solid black;
+}
+tr.capsep {
+border-top: 3px solid black;
+border-top-style: double;
+}
+tr.header {
+border-bottom: 3px solid black;
+border-bottom-style: double;
+}
+th {
+border-bottom: 1px solid black;
+}
+span.centry {
+font-weight: bold;
+}
+div.table {
+display: block;
+margin-left: auto;
+margin-right: auto;
+text-align: center;
+width: 90%;
+}
+span.indented {
+display: block;
+margin-left: 2em;
+margin-bottom: 1em;
+margin-top: 1em;
+}
+ol.enumeratea { list-style-type: none; background: inherit; }
+ol.enumerate { list-style-type: none; background: inherit; }
+
+code.sourceCode > span { display: inline; }
+
+div#refs p { padding-left: 32px; text-indent: -32px; }
+</style>
+  <link href="data:image/vnd.microsoft.icon;base64,AAABAAIAEBAAAAEAIABoBAAAJgAAACAgAAABACAAqBAAAI4EAAAoAAAAEAAAACAAAAABACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA////AIJEAACCRAAAgkQAAIJEAACCRAAAgkQAVoJEAN6CRADegkQAWIJEAACCRAAAgkQAAIJEAACCRAAA////AP///wCCRAAAgkQAAIJEAACCRAAsgkQAvoJEAP+CRAD/gkQA/4JEAP+CRADAgkQALoJEAACCRAAAgkQAAP///wD///8AgkQAAIJEABSCRACSgkQA/IJEAP99PQD/dzMA/3czAP99PQD/gkQA/4JEAPyCRACUgkQAFIJEAAD///8A////AHw+AFiBQwDqgkQA/4BBAP9/PxP/uZd6/9rJtf/bybX/upd7/39AFP+AQQD/gkQA/4FDAOqAQgBc////AP///wDKklv4jlEa/3o7AP+PWC//8+3o///////////////////////z7un/kFox/35AAP+GRwD/mVYA+v///wD///8A0Zpk+NmibP+0d0T/8evj///////+/fv/1sKz/9bCs//9/fr//////+/m2/+NRwL/nloA/5xYAPj///8A////ANKaZPjRmGH/5cKh////////////k149/3UwAP91MQD/lmQ//86rhv+USg3/m1YA/5hSAP+bVgD4////AP///wDSmmT4zpJY/+/bx///////8+TV/8mLT/+TVx//gkIA/5lVAP+VTAD/x6B//7aEVv/JpH7/s39J+P///wD///8A0ppk+M6SWP/u2sf///////Pj1f/Nj1T/2KFs/8mOUv+eWhD/lEsA/8aee/+0glT/x6F7/7J8Rvj///8A////ANKaZPjRmGH/48Cf///////+/v7/2qt//82PVP/OkFX/37KJ/86siv+USg7/mVQA/5hRAP+bVgD4////AP///wDSmmT40ppk/9CVXP/69O////////7+/v/x4M//8d/P//7+/f//////9u7n/6tnJf+XUgD/nFgA+P///wD///8A0ppk+NKaZP/RmWL/1qNy//r07///////////////////////+vXw/9akdP/Wnmn/y5FY/6JfFvj///8A////ANKaZFTSmmTo0ppk/9GYYv/Ql1//5cWm//Hg0P/x4ND/5cWm/9GXYP/RmGH/0ppk/9KaZOjVnmpY////AP///wDSmmQA0ppkEtKaZI7SmmT60ppk/9CWX//OkVb/zpFW/9CWX//SmmT/0ppk/NKaZJDSmmQS0ppkAP///wD///8A0ppkANKaZADSmmQA0ppkKtKaZLrSmmT/0ppk/9KaZP/SmmT/0ppkvNKaZCrSmmQA0ppkANKaZAD///8A////ANKaZADSmmQA0ppkANKaZADSmmQA0ppkUtKaZNzSmmTc0ppkVNKaZADSmmQA0ppkANKaZADSmmQA////AP5/AAD4HwAA4AcAAMADAACAAQAAgAEAAIABAACAAQAAgAEAAIABAACAAQAAgAEAAMADAADgBwAA+B8AAP5/AAAoAAAAIAAAAEAAAAABACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA////AP///wCCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAAyCRACMgkQA6oJEAOqCRACQgkQAEIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAA////AP///wD///8A////AIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRABigkQA5oJEAP+CRAD/gkQA/4JEAP+CRADqgkQAZoJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAAD///8A////AP///wD///8AgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAA4gkQAwoJEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQAxIJEADyCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAP///wD///8A////AP///wCCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAWgkQAmIJEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAJyCRAAYgkQAAIJEAACCRAAAgkQAAIJEAACCRAAA////AP///wD///8A////AIJEAACCRAAAgkQAAIJEAACCRAAAgkQAdIJEAPCCRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAPSCRAB4gkQAAIJEAACCRAAAgkQAAIJEAAD///8A////AP///wD///8AgkQAAIJEAACCRAAAgkQASoJEANKCRAD/gkQA/4JEAP+CRAD/g0YA/39AAP9zLgD/bSQA/2shAP9rIQD/bSQA/3MuAP9/PwD/g0YA/4JEAP+CRAD/gkQA/4JEAP+CRADUgkQAToJEAACCRAAAgkQAAP///wD///8A////AP///wB+PwAAgkUAIoJEAKiCRAD/gkQA/4JEAP+CRAD/hEcA/4BBAP9sIwD/dTAA/5RfKv+viF7/vp56/76ee/+wiF7/lWAr/3YxAP9sIwD/f0AA/4RHAP+CRAD/gkQA/4JEAP+CRAD/gkQArIJEACaBQwAA////AP///wD///8A////AIBCAEBzNAD6f0EA/4NFAP+CRAD/gkQA/4VIAP92MwD/bSUA/6N1Tv/ezsL/////////////////////////////////38/D/6V3Uv9uJgD/dTEA/4VJAP+CRAD/gkQA/4JEAP+BQwD/fUAA/4FDAEj///8A////AP///wD///8AzJRd5qBlKf91NgD/dDUA/4JEAP+FSQD/cy4A/3YyAP/PuKP//////////////////////////////////////////////////////9K7qP94NQD/ciwA/4VJAP+CRAD/fkEA/35BAP+LSwD/mlYA6v///wD///8A////AP///wDdpnL/4qx3/8KJUv+PUhf/cTMA/3AsAP90LgD/4dK+/////////////////////////////////////////////////////////////////+TYxf91MAD/dTIA/31CAP+GRwD/llQA/6FcAP+gWwD8////AP///wD///8A////ANGZY/LSm2X/4ap3/92mcP+wdT3/byQA/8mwj////////////////////////////////////////////////////////////////////////////+LYxv9zLgP/jUoA/59bAP+hXAD/nFgA/5xYAPL///8A////AP///wD///8A0ppk8tKaZP/RmWL/1p9q/9ubXv/XqXj////////////////////////////7+fD/vZyG/6BxS/+gcUr/vJuE//r37f//////////////////////3MOr/5dQBf+dVQD/nVkA/5xYAP+cWAD/nFgA8v///wD///8A////AP///wDSmmTy0ppk/9KaZP/SmWP/yohJ//jo2P//////////////////////4NTG/4JDFf9lGAD/bSQA/20kAP9kGAD/fz8S/+Xb0f//////5NG9/6txN/+LOgD/m1QA/51aAP+cWAD/m1cA/5xYAP+cWADy////AP///wD///8A////ANKaZPLSmmT/0ppk/8+TWf/Unmv//v37//////////////////////+TWRr/VwsA/35AAP+ERgD/g0UA/4JGAP9lHgD/kFga/8KXX/+TRwD/jT4A/49CAP+VTQD/n10A/5xYAP+OQQD/lk4A/55cAPL///8A////AP///wD///8A0ppk8tKaZP/SmmT/y4tO/92yiP//////////////////////8NnE/8eCQP+rcTT/ez0A/3IyAP98PgD/gEMA/5FSAP+USwD/jj8A/5lUAP+JNwD/yqV2/694Mf+HNQD/jkAA/82rf/+laBj/jT4A8v///wD///8A////AP///wDSmmTy0ppk/9KaZP/LiUr/4byY///////////////////////gupX/0I5P/+Wuev/Lklz/l1sj/308AP+QSwD/ol0A/59aAP+aVQD/k0oA/8yoh///////+fXv/6pwO//Lp3v///////Pr4f+oay7y////AP///wD///8A////ANKaZPLSmmT/0ppk/8uJSv/hvJj//////////////////////+G7l//Jhkb/0ppk/96nc//fqXX/x4xO/6dkFP+QSQD/llEA/5xXAP+USgD/yaOA///////38uv/qG05/8ijdv//////8efb/6ZpLPL///8A////AP///wD///8A0ppk8tKaZP/SmmT/zIxO/9yxh///////////////////////7dbA/8iEQf/Sm2X/0Zlj/9ScZv/eqHf/2KJv/7yAQf+XTgD/iToA/5lSAP+JNgD/yKFv/611LP+HNQD/jT8A/8qmeP+kZRT/jT4A8v///wD///8A////AP///wDSmmTy0ppk/9KaZP/Pk1n/1J5q//78+//////////////////+/fv/1aFv/8iEQv/Tm2b/0ppl/9GZY//Wn2z/1pZc/9eldf/Bl2b/kUcA/4w9AP+OQAD/lUwA/59eAP+cWQD/jT8A/5ZOAP+eXADy////AP///wD///8A////ANKaZPLSmmT/0ppk/9KZY//KiEn/8d/P///////////////////////47+f/05tm/8iCP//KiEj/yohJ/8eCP//RmGH//vfy///////n1sP/rXQ7/4k4AP+TTAD/nVoA/5xYAP+cVwD/nFgA/5xYAPL///8A////AP///wD///8A0ppk8tKaZP/SmmT/0ptl/8uLTf/aq37////////////////////////////+/fz/6c2y/961jv/etY7/6Myx//78+v//////////////////////3MWv/5xXD/+ORAD/mFQA/51ZAP+cWAD/nFgA8v///wD///8A////AP///wDSmmTy0ppk/9KaZP/SmmT/0ppk/8mFRP/s1b//////////////////////////////////////////////////////////////////////////////+PD/0JFU/7NzMv+WUQD/kUsA/5tXAP+dWQDy////AP///wD///8A////ANKaZP/SmmT/0ppk/9KaZP/Sm2X/z5NZ/8yMT//z5NX/////////////////////////////////////////////////////////////////9Ofa/8yNUP/UmGH/36p5/8yTWv+qaSD/kksA/5ROAPz///8A////AP///wD///8A0ppk5NKaZP/SmmT/0ppk/9KaZP/TnGf/zY9T/82OUv/t1sD//////////////////////////////////////////////////////+7Yw//OkFX/zI5R/9OcZ//SmmP/26V0/9ymdf/BhUf/ol8R6P///wD///8A////AP///wDSmmQ80ppk9tKaZP/SmmT/0ppk/9KaZP/TnGj/zpFW/8qJSv/dson/8uHS//////////////////////////////////Lj0//etIv/y4lL/86QVf/TnGj/0ppk/9KaZP/RmWP/05xn/9ymdfjUnWdC////AP///wD///8A////ANKaZADSmmQc0ppkotKaZP/SmmT/0ppk/9KaZP/Tm2b/0Zli/8qJSf/NjlH/16Z3/+G8mP/myKr/5siq/+G8mP/Xp3f/zY5S/8qISf/RmGH/05tm/9KaZP/SmmT/0ppk/9KaZP/SmmSm0pljINWdaQD///8A////AP///wD///8A0ppkANKaZADSmmQA0ppkQtKaZMrSmmT/0ppk/9KaZP/SmmT/0ptl/9GYYf/Nj1P/y4lL/8qISP/KiEj/y4lK/82PU//RmGH/0ptl/9KaZP/SmmT/0ppk/9KaZP/SmmTO0ppkRtKaZADSmmQA0ppkAP///wD///8A////AP///wDSmmQA0ppkANKaZADSmmQA0ppkANKaZGzSmmTu0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmTw0ppkcNKaZADSmmQA0ppkANKaZADSmmQA////AP///wD///8A////ANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZBLSmmSQ0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppklNKaZBTSmmQA0ppkANKaZADSmmQA0ppkANKaZAD///8A////AP///wD///8A0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQy0ppkutKaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppkvtKaZDbSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkAP///wD///8A////AP///wDSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkXNKaZODSmmT/0ppk/9KaZP/SmmT/0ppk5NKaZGDSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA////AP///wD///8A////ANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkBtKaZIbSmmTo0ppk6tKaZIrSmmQK0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZAD///8A////AP/8P///+B///+AH//+AAf//AAD//AAAP/AAAA/gAAAHwAAAA8AAAAPAAAADwAAAA8AAAAPAAAADwAAAA8AAAAPAAAADwAAAA8AAAAPAAAADwAAAA8AAAAPAAAADwAAAA+AAAAfwAAAP/AAAP/8AAP//gAH//+AH///4H////D//" rel="icon" />
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+  
+</head>
+<body>
+<div class="wrapper">
+<header id="title-block-header">
+<h1 class="title" style="text-align:center">Breaking change in
+<code>std::span</code>’s new <code>initializer_list</code>
+constructor</h1>
+
+<table style="border:none;float:right">
+  <tr>
+    <td>Document #: </td>
+    <td>P4144R0</td>
+  </tr>
+  <tr>
+    <td>Date: </td>
+    <td>2026-03-25</td>
+  </tr>
+  <tr>
+    <td style="vertical-align:top">Project: </td>
+    <td>Programming Language C++<br>
+      LEWG<br>
+    </td>
+  </tr>
+  <tr>
+    <td style="vertical-align:top">Reply-to: </td>
+    <td>
+      Mark Hoemmen<br>&lt;&gt;<br>
+      Tomasz Kamiński<br>&lt;&gt;<br>
+      Tim Song<br>&lt;&gt;<br>
+      Jonathan Wakely<br>&lt;&gt;<br>
+    </td>
+  </tr>
+</table>
+
+</header>
+<div style="clear:both">
+<div id="TOC" role="doc-toc">
+<h1 id="toctitle">Contents</h1>
+<ul>
+<li><a href="#authors" id="toc-authors"><span class="toc-section-number">1</span> Authors</a></li>
+<li><a href="#revision-history" id="toc-revision-history"><span class="toc-section-number">2</span> Revision history</a></li>
+<li><a href="#problem-silent-change-in-spans-behavior" id="toc-problem-silent-change-in-spans-behavior"><span class="toc-section-number">3</span> Problem: “Silent” change in
+<code>span</code>’s behavior</a>
+<ul>
+<li><a href="#summary" id="toc-summary"><span class="toc-section-number">3.1</span> Summary</a></li>
+<li><a href="#cause" id="toc-cause"><span class="toc-section-number">3.2</span> Cause</a></li>
+</ul></li>
+<li><a href="#its-not-silent-but-implementations-diverge" id="toc-its-not-silent-but-implementations-diverge"><span class="toc-section-number">4</span> It’s not “silent,” but
+implementations diverge</a></li>
+<li><a href="#p2447-introduced-wording-bugs-later-fixed" id="toc-p2447-introduced-wording-bugs-later-fixed"><span class="toc-section-number">5</span> P2447 introduced wording bugs, later
+fixed</a></li>
+<li><a href="#original-pre-lewg-review-proposed-fix" id="toc-original-pre-lewg-review-proposed-fix"><span class="toc-section-number">6</span> Original (pre-LEWG-review) proposed
+fix</a>
+<ul>
+<li><a href="#ansatz-constrain-the-initializer-list-constructor" id="toc-ansatz-constrain-the-initializer-list-constructor"><span class="toc-section-number">6.1</span> Ansatz: Constrain the initializer
+list constructor</a></li>
+<li><a href="#fix-initializer-list-construction-from-actual-bool-values" id="toc-fix-initializer-list-construction-from-actual-bool-values"><span class="toc-section-number">6.2</span> Fix initializer list construction
+from actual bool values</a></li>
+<li><a href="#fix-initializer-list-construction-from-any-non-pointer-type-convertible-to-bool" id="toc-fix-initializer-list-construction-from-any-non-pointer-type-convertible-to-bool"><span class="toc-section-number">6.3</span> Fix initializer list construction
+from any non-pointer type convertible to bool?</a></li>
+<li><a href="#originally-proposed-wording-change-not-the-actual-wording-change" id="toc-originally-proposed-wording-change-not-the-actual-wording-change"><span class="toc-section-number">6.4</span> Originally proposed wording change
+(not the actual wording change)</a>
+<ul>
+<li><a href="#increment-__cpp_lib_span-feature-test-macro" id="toc-increment-__cpp_lib_span-feature-test-macro"><span class="toc-section-number">6.4.1</span> Increment
+<code>__cpp_lib_span</code> feature test macro</a></li>
+<li><a href="#change-span.cons" id="toc-change-span.cons"><span class="toc-section-number">6.4.2</span> Change [span.cons]</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#proposed-fix-selected-by-lewg" id="toc-proposed-fix-selected-by-lewg"><span class="toc-section-number">7</span> Proposed fix (selected by
+LEWG)</a></li>
+<li><a href="#alternatives" id="toc-alternatives"><span class="toc-section-number">8</span> Alternatives</a></li>
+<li><a href="#wording-change" id="toc-wording-change"><span class="toc-section-number">9</span> Wording change</a>
+<ul>
+<li><a href="#increment-__cpp_lib_span-feature-test-macro-1" id="toc-increment-__cpp_lib_span-feature-test-macro-1"><span class="toc-section-number">9.1</span> Increment
+<code>__cpp_lib_span</code> feature test macro</a></li>
+<li><a href="#remove-initializer_list-constructor-from-spans-synopsis" id="toc-remove-initializer_list-constructor-from-spans-synopsis"><span class="toc-section-number">9.2</span> Remove
+<code>initializer_list</code> constructor from <code>span</code>’s
+synopsis</a></li>
+<li><a href="#remove-initializer_list-constructor-from-spans-description" id="toc-remove-initializer_list-constructor-from-spans-description"><span class="toc-section-number">9.3</span> Remove
+<code>initializer_list</code> constructor from <code>span</code>’s
+description</a></li>
+</ul></li>
+</ul>
+</div>
+<h1 data-number="1" id="authors"><span class="header-section-number">1</span> Authors<a href="#authors" class="self-link"></a></h1>
+<ul>
+<li><p>Mark Hoemmen</p></li>
+<li><p>Tomasz Kamiński</p></li>
+<li><p>Tim Song</p></li>
+<li><p>Jonathan Wakely</p></li>
+</ul>
+<h1 data-number="2" id="revision-history"><span class="header-section-number">2</span> Revision history<a href="#revision-history" class="self-link"></a></h1>
+<p>Paper with original title “Breaking change in
+<code>std::span</code>’s new <code>initializer_list</code> constructor”
+was reviewed by LEWG on 2026-03-25. That version of the paper proposed a
+fix just for <code>span&lt;const bool&gt;</code>. It was submitted into
+the <code>isocpp.org</code> paper system as R0 immediately before LEWG
+review; it had not reached an official mailing. On 2026-03-25, LEWG
+polled 16/14/2/0/0 instead to remove the <code>initializer_list</code>
+constructor from <code>span</code> entirely for C++26, and asked the
+paper to be revised. Tomasz Kamiński, Tim Song, and Jonathan Wakely
+joined the author list.</p>
+<p>Given that the paper has not yet reached the official meeting,
+there’s no straightforward way to make the revision an R1. We will make
+the pre-LEWG-review design vs. the post-LEWG-review design clear in the
+text below.</p>
+<h1 data-number="3" id="problem-silent-change-in-spans-behavior"><span class="header-section-number">3</span> Problem: “Silent” change in
+<code>span</code>’s behavior<a href="#problem-silent-change-in-spans-behavior" class="self-link"></a></h1>
+<h2 data-number="3.1" id="summary"><span class="header-section-number">3.1</span> Summary<a href="#summary" class="self-link"></a></h2>
+<p>This paper expresses <a href="https://cplusplus.github.io/LWG/issue4520">LWG4520</a> and
+proposes a fix.</p>
+<p>LWG 4520 came from <a href="https://github.com/NVIDIA/cccl/issues/7619">an issue</a> filed on
+NVIDIA’s Standard Library’s (libcu++) implementation of
+<code>span</code>.</p>
+<p>We’ve written a demo (also with partial implementation of proposed
+fix) <a href="https://godbolt.org/z/7T9Eof9ba">here</a>. Here is a short
+illustration of the change in behavior between C++23 and C++26.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;span&gt;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">bool</span> data<span class="op">[</span><span class="dv">4</span><span class="op">]</span> <span class="op">=</span> <span class="op">{</span><span class="kw">true</span>, <span class="kw">false</span>, <span class="kw">true</span>, <span class="kw">false</span><span class="op">}</span>;</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">bool</span><span class="op">*</span> ptr <span class="op">=</span> data;</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">size_t</span> size <span class="op">=</span> <span class="dv">4</span>;</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>span<span class="op">&lt;</span><span class="dt">bool</span><span class="op">&gt;</span> span_nc<span class="op">{</span>ptr, size<span class="op">}</span>;</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="co">// OK in both C++23 and C++26</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  <span class="ot">assert</span><span class="op">(</span>span_nc<span class="op">.</span>size<span class="op">()</span> <span class="op">==</span> size<span class="op">)</span>;</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>span<span class="op">&lt;</span><span class="kw">const</span> <span class="dt">bool</span><span class="op">&gt;</span> bad_span<span class="op">{</span>ptr, size<span class="op">}</span>;</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  <span class="co">// OK in C++23, but FAILS in C++26</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>  <span class="ot">assert</span><span class="op">(</span>bad_span<span class="op">.</span>size<span class="op">()</span> <span class="op">==</span> size<span class="op">)</span>;</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="dv">0</span>;</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h2 data-number="3.2" id="cause"><span class="header-section-number">3.2</span> Cause<a href="#cause" class="self-link"></a></h2>
+<p>In C++23, constructor <code>span(element_type*, size_t)</code> is
+called.</p>
+<p>Adoption of <a href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p2447r6.html">P2447R6</a>
+for C++26 means that constructor
+<code>span(initializer_list&lt;value_type&gt;)</code> is selected
+instead. It takes the conversion sequence from <code>bool*</code> to
+<code>bool</code> and <code>size_t</code> to <code>bool</code>.</p>
+<p>P2447 authors understood that adoption of their proposal would be a
+breaking change. The paper adds to Annex C some examples of code that
+this breaks. This includes “silent” semantic changes to code, such as
+the following.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> <span class="op">*</span>a<span class="op">[</span><span class="dv">10</span><span class="op">]</span>;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co">// x is 2; previously 0</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> x <span class="op">=</span> span<span class="op">&lt;</span><span class="dt">void</span><span class="op">*</span> <span class="kw">const</span><span class="op">&gt;{</span>a, <span class="dv">0</span><span class="op">}.</span>size<span class="op">()</span>;</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>any b<span class="op">[</span><span class="dv">10</span><span class="op">]</span>;</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co">// y is 2; previously 10</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> y <span class="op">=</span> span<span class="op">&lt;</span><span class="kw">const</span> any<span class="op">&gt;{</span>b, b<span class="op">+</span><span class="dv">10</span><span class="op">}.</span>size<span class="op">()</span>;</span></code></pre></div>
+<p>The use case in <a href="https://cplusplus.github.io/LWG/issue4520">LWG4520</a> is most
+like the <code>span&lt;const any&gt;</code> break above, in that both
+<code>ElementType*</code> and <code>size_t</code> are convertible to the
+<code>span</code>’s <code>value_type</code>.</p>
+<p>However, <code>span&lt;const any&gt;</code> is a less common use
+case. Creating a <code>span&lt;const bool&gt;</code> is likely more
+common, especially in generic code. That means LEWG might not have
+realized the significance of the change.</p>
+<p>Note that <code>span&lt;bool&gt;</code> does not have this issue.
+Using <code>{}</code> with <code>mdspan</code> works just fine.
+(Historically, <code>mdspan</code> came first.)</p>
+<h1 data-number="4" id="its-not-silent-but-implementations-diverge"><span class="header-section-number">4</span> It’s not “silent,” but
+implementations diverge<a href="#its-not-silent-but-implementations-diverge" class="self-link"></a></h1>
+<p>This is actually ill-formed code; it’s a narrowing conversion from
+pointer to <code>bool</code>. GCC trunk compiles this but emits
+narrowing warnings. Clang stops with an error.</p>
+<p>Per <a href="https://eel.is/c++draft/intro.compliance.general">[intro.compliance.general]
+2.3</a>, both implementations are conforming, as they emit a
+“diagnostic.” GCC implements a conforming “extension” per <a href="https://eel.is/c++draft/intro#compliance.general-11.sentence-2">[intro.compliance.general]
+11</a>, in that it attempts to give meaning (by compiling) to invalid
+code.</p>
+<p>In general, GCC treats narrowing with constant expressions as an
+error, but for non-constant expressions only issues a warning, on the
+basis that the existing, working code doing it is probably correct. GCC
+made this choice consciously, as a way to promote adoption of
+C++11.<br />
+For example, GCC makes the following an error,</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="dt">char</span> str<span class="op">[]</span> <span class="op">=</span> <span class="op">{</span> <span class="dv">300</span>, <span class="dv">400</span>, <span class="ch">&#39;</span><span class="sc">\0</span><span class="ch">&#39;</span> <span class="op">}</span>;</span></code></pre></div>
+<p>but only issues a warning for the following.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="dt">char</span> str<span class="op">[]</span> <span class="op">=</span> <span class="op">{</span> tolower<span class="op">(</span>ch1<span class="op">)</span>, tolower<span class="op">(</span>ch2<span class="op">)</span>, <span class="ch">&#39;</span><span class="sc">\0</span><span class="ch">&#39;</span> <span class="op">}</span>;</span></code></pre></div>
+<p>This is a narrowing conversion and therefore ill-formed because
+<code>tolower</code> returns <code>int</code> not <code>char</code>.
+However, in practice, it’s never lossy; the <code>tolower</code> value
+always fits in <code>char</code>. Rejecting code like this because of
+the C++11 narrowing rules would have hindered adoption of C++11
+enormously.</p>
+<h1 data-number="5" id="p2447-introduced-wording-bugs-later-fixed"><span class="header-section-number">5</span> P2447 introduced wording bugs,
+later fixed<a href="#p2447-introduced-wording-bugs-later-fixed" class="self-link"></a></h1>
+<p>Adoption of P2447 led to bugs in the Standard wording that later had
+to be fixed. GCC <a href="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=120997">Bug
+120997</a> led to filing of <a href="https://cplusplus.github.io/LWG/issue4293">LWG 4293</a>. The
+Standard was specified to use curly braces for the return values of some
+<code>span</code> member functions, such as <code>submdspan</code>.
+Adoption of LWG 4293’s Proposed Fix fixed that.</p>
+<h1 data-number="6" id="original-pre-lewg-review-proposed-fix"><span class="header-section-number">6</span> Original (pre-LEWG-review)
+proposed fix<a href="#original-pre-lewg-review-proposed-fix" class="self-link"></a></h1>
+<p>This is the fix that the original version of this paper proposed.
+LEWG reviewed this and polled to select a different fix.</p>
+<h2 data-number="6.1" id="ansatz-constrain-the-initializer-list-constructor"><span class="header-section-number">6.1</span> Ansatz: Constrain the
+initializer list constructor<a href="#ansatz-constrain-the-initializer-list-constructor" class="self-link"></a></h2>
+<p>Constrain <code>span(initializer_list&lt;value_type&gt;)</code>
+constructor so that <code>value_type</code> is not
+<code>bool</code>.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="kw">explicit</span><span class="op">(</span>extent <span class="op">!=</span> dynamic_extent<span class="op">)</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>span<span class="op">(</span>initializer_list<span class="op">&lt;</span>value_type<span class="op">&gt;)</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="kw">requires</span><span class="op">(</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  is_const_v<span class="op">&lt;</span>ElementType <span class="op">&amp;&amp;</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="op">(!</span> is_same_v<span class="op">&lt;</span>value_type, <span class="dt">bool</span><span class="op">&gt;)</span> <span class="co">// ADD</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="op">)</span>;</span></code></pre></div>
+<p>That would have the advantage that everything else works fine still,
+but we can avoid the breakage of valid user code, so only
+<code>span&lt;const bool&gt;</code> is affected.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Works in current C++26 draft;</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="co">// fails to compile with the above change</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>span<span class="op">&lt;</span><span class="kw">const</span> <span class="dt">bool</span><span class="op">&gt;</span> span_from_bool<span class="op">{</span><span class="kw">true</span>, <span class="kw">false</span>, <span class="kw">true</span><span class="op">}</span>;</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="co">// Work-around: Enclose initializer_list in ()</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>span<span class="op">&lt;</span><span class="kw">const</span> <span class="dt">bool</span><span class="op">&gt;</span> span_from_bool2<span class="op">({</span><span class="kw">true</span>, <span class="kw">false</span>, <span class="kw">true</span><span class="op">})</span>;</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="ot">assert</span><span class="op">(</span>span_from_bool2<span class="op">.</span>size<span class="op">()</span> <span class="op">==</span> <span class="dv">3</span><span class="bu">u</span><span class="op">)</span>;</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="co">// Work-around: Enclose initializer_list in {}</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>span<span class="op">&lt;</span><span class="kw">const</span> <span class="dt">bool</span><span class="op">&gt;</span> span_from_bool3<span class="op">{{</span><span class="kw">true</span>, <span class="kw">false</span>, <span class="kw">true</span><span class="op">}}</span>;</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a><span class="ot">assert</span><span class="op">(</span>span_from_bool3<span class="op">.</span>size<span class="op">()</span> <span class="op">==</span> <span class="dv">3</span><span class="bu">u</span><span class="op">)</span>;</span></code></pre></div>
+<h2 data-number="6.2" id="fix-initializer-list-construction-from-actual-bool-values"><span class="header-section-number">6.2</span> Fix initializer list
+construction from actual bool values<a href="#fix-initializer-list-construction-from-actual-bool-values" class="self-link"></a></h2>
+<p>The above change would break existing code, specifically by making
+the following fail to compile.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>span<span class="op">&lt;</span><span class="kw">const</span> <span class="dt">bool</span><span class="op">&gt;</span> span_from_bool<span class="op">{</span><span class="kw">true</span>, <span class="kw">false</span>, <span class="kw">true</span><span class="op">}</span>;</span></code></pre></div>
+<p>We can fix this by adding a new <code>initializer_list</code>
+constructor overload specifically for <code>bool</code> input
+values.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">// NEW CONSTRUCTOR</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">typename</span> InitListType<span class="op">&gt;</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="kw">explicit</span><span class="op">(</span>extent <span class="op">!=</span> dynamic_extent<span class="op">)</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>my_span<span class="op">(</span>initializer_list<span class="op">&lt;</span>InitListType<span class="op">&gt;</span> il<span class="op">)</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="kw">requires</span> <span class="op">(</span>is_const_v<span class="op">&lt;</span>ElementType<span class="op">&gt;</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  <span class="op">&amp;&amp;</span> <span class="op">(</span>is_same_v<span class="op">&lt;</span>value_type, <span class="dt">bool</span><span class="op">&gt;)</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>  <span class="op">&amp;&amp;</span> <span class="op">(</span>is_same_v<span class="op">&lt;</span>InitListType, <span class="dt">bool</span><span class="op">&gt;)</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="op">)</span>;</span></code></pre></div>
+<p>Here is an <a href="https://gcc.godbolt.org/z/Esa1nc1jY">implementation</a> (thanks to
+Giuseppe D’Angelo! who suggests that this constructor could be a C++29
+feature, since it’s an extension, as code would move from breaking to
+non-breaking).</p>
+<h2 data-number="6.3" id="fix-initializer-list-construction-from-any-non-pointer-type-convertible-to-bool"><span class="header-section-number">6.3</span> Fix initializer list
+construction from any non-pointer type convertible to bool?<a href="#fix-initializer-list-construction-from-any-non-pointer-type-convertible-to-bool" class="self-link"></a></h2>
+<p>It would be excellent to permit non-pointer types that are
+convertible to <code>bool</code>. For example, this would permit the
+common case of initializing <code>bool</code> values from 0 and 1
+<code>int</code> literals.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>span<span class="op">&lt;</span><span class="kw">const</span> <span class="dt">bool</span><span class="op">&gt;</span> span_from_bool<span class="op">{</span><span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">1</span><span class="op">}</span>;</span></code></pre></div>
+<p>However, I’m not sure how to specify this. Merely replacing the
+<code>is_same_v&lt;InitListType, bool&gt;</code> constraint with
+<code>is_integral_v&lt;InitListType&gt;</code> does <em>not</em> work.
+Doing that results in <code>span&lt;const bool&gt;{0, 1, 0}</code>
+selecting the <code>initializer_list&lt;value_type&gt;</code>
+constructor, which fails with a hard error, because it attempts to
+initialize the <code>const bool*</code> pointer with a
+<code>const int*</code> from the input
+<code>initializer_list&lt;int&gt;::const_iterator</code>.</p>
+<h2 data-number="6.4" id="originally-proposed-wording-change-not-the-actual-wording-change"><span class="header-section-number">6.4</span> Originally proposed wording
+change (not the actual wording change)<a href="#originally-proposed-wording-change-not-the-actual-wording-change" class="self-link"></a></h2>
+<blockquote>
+<p>Text in blockquotes is not proposed wording, but rather instructions
+for generating proposed wording.</p>
+</blockquote>
+<h3 data-number="6.4.1" id="increment-__cpp_lib_span-feature-test-macro"><span class="header-section-number">6.4.1</span> Increment
+<code>__cpp_lib_span</code> feature test macro<a href="#increment-__cpp_lib_span-feature-test-macro" class="self-link"></a></h3>
+<p>In [version.syn], increase the value of the
+<code>__cpp_lib_span</code> macro by replacing YYYMML below with the
+integer literal encoding the appropriate year (YYYY) and month (MM).</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define __cpp_lib_mdspan </span>YYYYMML<span class="pp"> </span><span class="co">// also in &lt;mdspan&gt;</span></span></code></pre></div>
+<h3 data-number="6.4.2" id="change-span.cons"><span class="header-section-number">6.4.2</span> Change [span.cons]<a href="#change-span.cons" class="self-link"></a></h3>
+<blockquote>
+<p>Change the <code>initializer_list&lt;value_type&gt;</code>
+constructor of <code>span</code> in [span.cons] 21 as follows.</p>
+</blockquote>
+<div class="sourceCode" id="cb11"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>constexpr explicit(extent != dynamic_extent)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  span(std::initializer_list&lt;value_type&gt; il);</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">21</a></span>
+<em>Constraints</em>: <code>is_const_v&lt;element_type&gt;</code> <span class="add" style="color: #00AA00"><ins><span><code>&amp;&amp; (! is_same_v&lt;value_type, bool&gt;)</code></span></ins></span>
+<span class="rm" style="color: #bf0303"><del>is</del></span><span class="add" style="color: #00AA00"><ins>are</ins></span>
+<code>true</code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">22</a></span>
+<em>Hardened preconditions</em>: If <code>extent</code> is not equal to
+<code>dynamic_extent</code>, then <code>il.size() == extent</code> is
+<code>true</code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">23</a></span>
+<em>Effects</em>: Initializes <code>data_</code> with
+<code>il.data()</code> and <code>size_</code> with
+<code>il.size()</code>.</p>
+<div class="add" style="color: #00AA00">
+
+<div class="sourceCode" id="cb12"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>template&lt;typename InitListType&gt;</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  constexpr explicit(extent != dynamic_extent)</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>    span(std::initializer_list&lt;InitListType&gt; il);</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">24</a></span>
+<em>Constraints</em>:</p>
+<ul>
+<li><p><span class="marginalizedparent"><a class="marginalized">(24.1)</a></span>
+<code>is_const_v&lt;element_type&gt;</code> is
+<code>true</code>,</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(24.2)</a></span>
+<code>is_same_v&lt;value_type, bool&gt;</code> is <code>true</code>,
+and</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(24.3)</a></span>
+<code>is_same_v&lt;InitListType, bool&gt;</code> is
+<code>true</code>.</p></li>
+</ul>
+<p><span class="marginalizedparent"><a class="marginalized">25</a></span>
+<em>Hardened preconditions</em>: If <code>extent</code> is not equal to
+<code>dynamic_extent</code>, then <code>il.size() == extent</code> is
+<code>true</code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">26</a></span>
+<em>Effects</em>: Initializes <code>data_</code> with
+<code>il.data()</code> and <code>size_</code> with
+<code>il.size()</code>.</p>
+</div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>constexpr span(const span&amp; other) noexcept = default;</span></code></pre></div>
+<h1 data-number="7" id="proposed-fix-selected-by-lewg"><span class="header-section-number">7</span> Proposed fix (selected by LEWG)<a href="#proposed-fix-selected-by-lewg" class="self-link"></a></h1>
+<p>On 2026-03-25, LEWG polled 16/14/2/0/0 to remove the
+<code>initializer_list</code> constructor from <code>span</code>
+entirely for C++26. LEWG asked this paper to be revised to include that
+solution.</p>
+<h1 data-number="8" id="alternatives"><span class="header-section-number">8</span> Alternatives<a href="#alternatives" class="self-link"></a></h1>
+<ol type="1">
+<li><p>File a GCC bug to make GCC emit an error here.</p></li>
+<li><p>Try to constrain <code>span&lt;T&gt;</code>’s constructor
+generically (for all <code>T</code>) so that it refuses to convert a
+pointer to <code>value_type</code>.</p></li>
+</ol>
+<p>Regarding Option (1), Mattermost discussion during the meeting
+suggests that GCC is unlikely to change its current behavior.</p>
+<p>Option (2) is higher risk because <code>span</code> has many
+constructors.</p>
+<h1 data-number="9" id="wording-change"><span class="header-section-number">9</span> Wording change<a href="#wording-change" class="self-link"></a></h1>
+<blockquote>
+<p>Text in blockquotes is not proposed wording, but rather instructions
+for generating proposed wording.</p>
+</blockquote>
+<h2 data-number="9.1" id="increment-__cpp_lib_span-feature-test-macro-1"><span class="header-section-number">9.1</span> Increment
+<code>__cpp_lib_span</code> feature test macro<a href="#increment-__cpp_lib_span-feature-test-macro-1" class="self-link"></a></h2>
+<p>In [version.syn], increase the value of the
+<code>__cpp_lib_span</code> macro by replacing YYYMML below with the
+integer literal encoding the appropriate year (YYYY) and month (MM).</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define __cpp_lib_mdspan </span>YYYYMML<span class="pp"> </span><span class="co">// also in &lt;mdspan&gt;</span></span></code></pre></div>
+<h2 data-number="9.2" id="remove-initializer_list-constructor-from-spans-synopsis"><span class="header-section-number">9.2</span> Remove
+<code>initializer_list</code> constructor from <code>span</code>’s
+synopsis<a href="#remove-initializer_list-constructor-from-spans-synopsis" class="self-link"></a></h2>
+<p>TODO</p>
+<h2 data-number="9.3" id="remove-initializer_list-constructor-from-spans-description"><span class="header-section-number">9.3</span> Remove
+<code>initializer_list</code> constructor from <code>span</code>’s
+description<a href="#remove-initializer_list-constructor-from-spans-description" class="self-link"></a></h2>
+<p>TODO</p>
+</div>
+</div>
+</body>
+</html>
