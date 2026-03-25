@@ -227,6 +227,35 @@ constexpr span(const span& other) noexcept = default;
 
 [24]{.pnum} *Postconditions*: `other.size() == size() && other.data() == data()`.
 
+## Remove the entire [diff.cpp23.containers] section
+
+[Remove the entire [diff.cpp23.containers] section, as shown below.]{.ednote}
+
+::: rm
+[1]{.pnum} Affected subclause: [span.overview]
+
+**Change**: `span<const T>` is constructible from `initializer_list<T>`.
+
+**Rationale**: Permit passing a braced initializer list to a function taking `span`.
+
+**Effect on original feature**: Valid C++ 2023 code that relies on the lack of this constructor may refuse to compile, or change behavior in this revision of C++.
+
+[*Example 1*:
+```
+void one(pair<int, int>);       // @_#1_@
+void one(span<const int>);      // @_#2_@
+void t1() { one({1, 2}); }      // @_ambiguous between #1 and #2; previously called #1_@
+
+void two(span<const int, 2>);
+void t2() { two({{1, 2}}); }    // @_ill-formed; previously well-formed_@
+
+void *a[10];
+int x = span<void* const>{a, 0}.size();     // x @_is_@ 2; @_previously_@ 0
+any b[10];
+int y = span<const any>{b, b + 10}.size();  // y @_is_@ 2; @_previously_@ 10
+```
+— *end example*]
+:::
 
 # Appendix A: Original (pre-LEWG-review) proposed fix
 
