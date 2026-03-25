@@ -461,34 +461,35 @@ div#refs p { padding-left: 32px; text-indent: -32px; }
 </ul></li>
 <li><a href="#its-not-silent-but-implementations-diverge" id="toc-its-not-silent-but-implementations-diverge"><span class="toc-section-number">4</span> It’s not “silent,” but
 implementations diverge</a></li>
-<li><a href="#p2447-introduced-wording-bugs-later-fixed" id="toc-p2447-introduced-wording-bugs-later-fixed"><span class="toc-section-number">5</span> P2447 introduced wording bugs, later
-fixed</a></li>
+<li><a href="#p2447-introduced-standard-library-and-wording-bugs-later-fixed" id="toc-p2447-introduced-standard-library-and-wording-bugs-later-fixed"><span class="toc-section-number">5</span> P2447 introduced Standard Library
+and wording bugs, later fixed</a></li>
 <li><a href="#proposed-fix-remove-initializer_list-constructor" id="toc-proposed-fix-remove-initializer_list-constructor"><span class="toc-section-number">6</span> Proposed fix: Remove
 <code>initializer_list</code> constructor</a></li>
 <li><a href="#alternatives" id="toc-alternatives"><span class="toc-section-number">7</span> Alternatives</a></li>
-<li><a href="#proposed-wording" id="toc-proposed-wording"><span class="toc-section-number">8</span> Proposed wording</a>
+<li><a href="#dissenting-opinion" id="toc-dissenting-opinion"><span class="toc-section-number">8</span> Dissenting opinion</a></li>
+<li><a href="#proposed-wording" id="toc-proposed-wording"><span class="toc-section-number">9</span> Proposed wording</a>
 <ul>
-<li><a href="#remove-__cpp_lib_span_initializer_list-macro" id="toc-remove-__cpp_lib_span_initializer_list-macro"><span class="toc-section-number">8.1</span> Remove
+<li><a href="#remove-__cpp_lib_span_initializer_list-macro" id="toc-remove-__cpp_lib_span_initializer_list-macro"><span class="toc-section-number">9.1</span> Remove
 <code>__cpp_lib_span_initializer_list</code> macro</a></li>
-<li><a href="#remove-initializer_list-include-from-span.syn" id="toc-remove-initializer_list-include-from-span.syn"><span class="toc-section-number">8.2</span> Remove
+<li><a href="#remove-initializer_list-include-from-span.syn" id="toc-remove-initializer_list-include-from-span.syn"><span class="toc-section-number">9.2</span> Remove
 <code>initializer_list</code> include from [span.syn]</a></li>
-<li><a href="#remove-initializer_list-constructor-from-spans-class-declaration" id="toc-remove-initializer_list-constructor-from-spans-class-declaration"><span class="toc-section-number">8.3</span> Remove
+<li><a href="#remove-initializer_list-constructor-from-spans-class-declaration" id="toc-remove-initializer_list-constructor-from-spans-class-declaration"><span class="toc-section-number">9.3</span> Remove
 <code>initializer_list</code> constructor from <code>span</code>’s class
 declaration</a></li>
-<li><a href="#remove-initializer_list-constructor-from-spans-description" id="toc-remove-initializer_list-constructor-from-spans-description"><span class="toc-section-number">8.4</span> Remove
+<li><a href="#remove-initializer_list-constructor-from-spans-description" id="toc-remove-initializer_list-constructor-from-spans-description"><span class="toc-section-number">9.4</span> Remove
 <code>initializer_list</code> constructor from <code>span</code>’s
 description</a></li>
-<li><a href="#remove-the-entire-diff.cpp23.containers-section" id="toc-remove-the-entire-diff.cpp23.containers-section"><span class="toc-section-number">8.5</span> Remove the entire
+<li><a href="#remove-the-entire-diff.cpp23.containers-section" id="toc-remove-the-entire-diff.cpp23.containers-section"><span class="toc-section-number">9.5</span> Remove the entire
 [diff.cpp23.containers] section</a></li>
 </ul></li>
-<li><a href="#appendix-a-original-pre-lewg-review-proposed-fix" id="toc-appendix-a-original-pre-lewg-review-proposed-fix"><span class="toc-section-number">9</span> Appendix A: Original
+<li><a href="#appendix-a-original-pre-lewg-review-proposed-fix" id="toc-appendix-a-original-pre-lewg-review-proposed-fix"><span class="toc-section-number">10</span> Appendix A: Original
 (pre-LEWG-review) proposed fix</a>
 <ul>
-<li><a href="#ansatz-constrain-the-initializer-list-constructor" id="toc-ansatz-constrain-the-initializer-list-constructor"><span class="toc-section-number">9.1</span> Ansatz: Constrain the initializer
+<li><a href="#ansatz-constrain-the-initializer-list-constructor" id="toc-ansatz-constrain-the-initializer-list-constructor"><span class="toc-section-number">10.1</span> Ansatz: Constrain the initializer
 list constructor</a></li>
-<li><a href="#fix-initializer-list-construction-from-actual-bool-values" id="toc-fix-initializer-list-construction-from-actual-bool-values"><span class="toc-section-number">9.2</span> Fix initializer list construction
+<li><a href="#fix-initializer-list-construction-from-actual-bool-values" id="toc-fix-initializer-list-construction-from-actual-bool-values"><span class="toc-section-number">10.2</span> Fix initializer list construction
 from actual bool values</a></li>
-<li><a href="#fix-initializer-list-construction-from-any-non-pointer-type-convertible-to-bool" id="toc-fix-initializer-list-construction-from-any-non-pointer-type-convertible-to-bool"><span class="toc-section-number">9.3</span> Fix initializer list construction
+<li><a href="#fix-initializer-list-construction-from-any-non-pointer-type-convertible-to-bool" id="toc-fix-initializer-list-construction-from-any-non-pointer-type-convertible-to-bool"><span class="toc-section-number">10.3</span> Fix initializer list construction
 from any non-pointer type convertible to bool?</a></li>
 </ul></li>
 </ul>
@@ -599,10 +600,11 @@ However, in practice, it’s never lossy; the <code>tolower</code> value
 always fits in <code>char</code>. Rejecting code like this because of
 the C++11 narrowing rules would have hindered adoption of C++11
 enormously.</p>
-<h1 data-number="5" id="p2447-introduced-wording-bugs-later-fixed"><span class="header-section-number">5</span> P2447 introduced wording bugs,
-later fixed<a href="#p2447-introduced-wording-bugs-later-fixed" class="self-link"></a></h1>
-<p>Adoption of P2447 led to bugs in the Standard wording that later had
-to be fixed. GCC <a href="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=120997">Bug
+<h1 data-number="5" id="p2447-introduced-standard-library-and-wording-bugs-later-fixed"><span class="header-section-number">5</span> P2447 introduced Standard Library
+and wording bugs, later fixed<a href="#p2447-introduced-standard-library-and-wording-bugs-later-fixed" class="self-link"></a></h1>
+<p>Adoption of P2447 led to bugs in both Standard Library
+implementations and the Standard wording that later had to be fixed. We
+already mentioned the libcu++ bug above. The libstdc++ <a href="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=120997">Bug
 120997</a> led to filing of <a href="https://cplusplus.github.io/LWG/issue4293">LWG 4293</a>. The
 Standard was specified to use curly braces for the return values of some
 <code>span</code> member functions, such as <code>submdspan</code>.
@@ -634,8 +636,16 @@ situations.</p>
 consider Option (2) for later C++ versions. The <code>span</code> class
 template has many constructors with intricate constraints, so this will
 need to be done carefully.</p>
-<h1 data-number="8" id="proposed-wording"><span class="header-section-number">8</span> Proposed wording<a href="#proposed-wording" class="self-link"></a></h1>
-<h2 data-number="8.1" id="remove-__cpp_lib_span_initializer_list-macro"><span class="header-section-number">8.1</span> Remove
+<h1 data-number="8" id="dissenting-opinion"><span class="header-section-number">8</span> Dissenting opinion<a href="#dissenting-opinion" class="self-link"></a></h1>
+<p>One of P2447’s authors, Arthur O’Dwyer, contacted Tomasz Kamiński and
+myself to ask us to link to <a href="https://quuxplusone.github.io/blog/2026/03/19/p2447-success-story/">this
+blog post</a> about successful use of the
+<code>span(initializer_list&lt;value_type&gt;)</code> constructor in
+Chromium.</p>
+<p>This could be relevant for discussion of restoring the removed
+feature in future C++ versions.</p>
+<h1 data-number="9" id="proposed-wording"><span class="header-section-number">9</span> Proposed wording<a href="#proposed-wording" class="self-link"></a></h1>
+<h2 data-number="9.1" id="remove-__cpp_lib_span_initializer_list-macro"><span class="header-section-number">9.1</span> Remove
 <code>__cpp_lib_span_initializer_list</code> macro<a href="#remove-__cpp_lib_span_initializer_list-macro" class="self-link"></a></h2>
 <p><span class="ednote" style="color: #0000ff">[ Editor&#39;s note: In
 [version.syn], remove the <code>__cpp_lib_span_initializer_list</code>
@@ -647,7 +657,7 @@ feature test macro definition. ]</span></p>
 
 </div>
 <div class="sourceCode" id="cb7"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>#define __cpp_lib_spanstream                        202106L // also in &lt;iosfwd&gt;, &lt;spanstream&gt;</span></code></pre></div>
-<h2 data-number="8.2" id="remove-initializer_list-include-from-span.syn"><span class="header-section-number">8.2</span> Remove
+<h2 data-number="9.2" id="remove-initializer_list-include-from-span.syn"><span class="header-section-number">9.2</span> Remove
 <code>initializer_list</code> include from [span.syn]<a href="#remove-initializer_list-include-from-span.syn" class="self-link"></a></h2>
 <p><span class="ednote" style="color: #0000ff">[ Editor&#39;s note: Remove
 <code>#include &lt;initializer_list&gt;</code> from [span.syn] (“Header
@@ -659,7 +669,7 @@ feature test macro definition. ]</span></p>
 </div>
 <div class="sourceCode" id="cb9"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>// mostly freestanding</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>namespace std {</span></code></pre></div>
-<h2 data-number="8.3" id="remove-initializer_list-constructor-from-spans-class-declaration"><span class="header-section-number">8.3</span> Remove
+<h2 data-number="9.3" id="remove-initializer_list-constructor-from-spans-class-declaration"><span class="header-section-number">9.3</span> Remove
 <code>initializer_list</code> constructor from <code>span</code>’s class
 declaration<a href="#remove-initializer_list-constructor-from-spans-class-declaration" class="self-link"></a></h2>
 <p><span class="ednote" style="color: #0000ff">[ Editor&#39;s note: Remove
@@ -688,7 +698,7 @@ below. ]</span></p>
 <div class="sourceCode" id="cb12"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>    constexpr span(const span&amp; other) noexcept = default;</span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>    template&lt;class OtherElementType, size_t OtherExtent&gt;</span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>      constexpr explicit(see below) span(const span&lt;OtherElementType, OtherExtent&gt;&amp; s) noexcept;</span></code></pre></div>
-<h2 data-number="8.4" id="remove-initializer_list-constructor-from-spans-description"><span class="header-section-number">8.4</span> Remove
+<h2 data-number="9.4" id="remove-initializer_list-constructor-from-spans-description"><span class="header-section-number">9.4</span> Remove
 <code>initializer_list</code> constructor from <code>span</code>’s
 description<a href="#remove-initializer_list-constructor-from-spans-description" class="self-link"></a></h2>
 <p><span class="ednote" style="color: #0000ff">[ Editor&#39;s note: Remove
@@ -720,7 +730,7 @@ description from [span.cons] (paragraphs 21-23), as shown below.
 <p><span class="marginalizedparent"><a class="marginalized">24</a></span>
 <em>Postconditions</em>:
 <code>other.size() == size() &amp;&amp; other.data() == data()</code>.</p>
-<h2 data-number="8.5" id="remove-the-entire-diff.cpp23.containers-section"><span class="header-section-number">8.5</span> Remove the entire
+<h2 data-number="9.5" id="remove-the-entire-diff.cpp23.containers-section"><span class="header-section-number">9.5</span> Remove the entire
 [diff.cpp23.containers] section<a href="#remove-the-entire-diff.cpp23.containers-section" class="self-link"></a></h2>
 <p><span class="ednote" style="color: #0000ff">[ Editor&#39;s note: Remove
 the entire [diff.cpp23.containers] section, as shown below. ]</span></p>
@@ -748,12 +758,12 @@ behavior in this revision of C++.</p>
 <span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>int y = span&lt;const any&gt;{b, b + 10}.size();  // y <em>is</em> 2; <em>previously</em> 10</span></code></pre></div>
 <p>— <em>end example</em>]</p>
 </div>
-<h1 data-number="9" id="appendix-a-original-pre-lewg-review-proposed-fix"><span class="header-section-number">9</span> Appendix A: Original
+<h1 data-number="10" id="appendix-a-original-pre-lewg-review-proposed-fix"><span class="header-section-number">10</span> Appendix A: Original
 (pre-LEWG-review) proposed fix<a href="#appendix-a-original-pre-lewg-review-proposed-fix" class="self-link"></a></h1>
 <p>This is the fix that the original version of this paper proposed.
 LEWG reviewed this on 2026-03-25 and polled to select a different
 fix.</p>
-<h2 data-number="9.1" id="ansatz-constrain-the-initializer-list-constructor"><span class="header-section-number">9.1</span> Ansatz: Constrain the
+<h2 data-number="10.1" id="ansatz-constrain-the-initializer-list-constructor"><span class="header-section-number">10.1</span> Ansatz: Constrain the
 initializer list constructor<a href="#ansatz-constrain-the-initializer-list-constructor" class="self-link"></a></h2>
 <p>Constrain <code>span(initializer_list&lt;value_type&gt;)</code>
 constructor so that <code>value_type</code> is not
@@ -779,7 +789,7 @@ but we can avoid the breakage of valid user code, so only
 <span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a><span class="co">// Work-around: Enclose initializer_list in {}</span></span>
 <span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>span<span class="op">&lt;</span><span class="kw">const</span> <span class="dt">bool</span><span class="op">&gt;</span> span_from_bool3<span class="op">{{</span><span class="kw">true</span>, <span class="kw">false</span>, <span class="kw">true</span><span class="op">}}</span>;</span>
 <span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a><span class="ot">assert</span><span class="op">(</span>span_from_bool3<span class="op">.</span>size<span class="op">()</span> <span class="op">==</span> <span class="dv">3</span><span class="bu">u</span><span class="op">)</span>;</span></code></pre></div>
-<h2 data-number="9.2" id="fix-initializer-list-construction-from-actual-bool-values"><span class="header-section-number">9.2</span> Fix initializer list
+<h2 data-number="10.2" id="fix-initializer-list-construction-from-actual-bool-values"><span class="header-section-number">10.2</span> Fix initializer list
 construction from actual bool values<a href="#fix-initializer-list-construction-from-actual-bool-values" class="self-link"></a></h2>
 <p>The above change would break existing code, specifically by making
 the following fail to compile.</p>
@@ -800,7 +810,7 @@ values.</p>
 Giuseppe D’Angelo! who suggests that this constructor could be a C++29
 feature, since it’s an extension, as code would move from breaking to
 non-breaking).</p>
-<h2 data-number="9.3" id="fix-initializer-list-construction-from-any-non-pointer-type-convertible-to-bool"><span class="header-section-number">9.3</span> Fix initializer list
+<h2 data-number="10.3" id="fix-initializer-list-construction-from-any-non-pointer-type-convertible-to-bool"><span class="header-section-number">10.3</span> Fix initializer list
 construction from any non-pointer type convertible to bool?<a href="#fix-initializer-list-construction-from-any-non-pointer-type-convertible-to-bool" class="self-link"></a></h2>
 <p>It would be excellent to permit non-pointer types that are
 convertible to <code>bool</code>. For example, this would permit the

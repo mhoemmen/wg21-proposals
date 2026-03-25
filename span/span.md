@@ -110,9 +110,9 @@ However, in practice, it's never lossy; the `tolower` value always fits in `char
 Rejecting code like this because of the C++11 narrowing rules
 would have hindered adoption of C++11 enormously.
 
-# P2447 introduced wording bugs, later fixed
+# P2447 introduced Standard Library and wording bugs, later fixed
 
-Adoption of P2447 led to bugs in the Standard wording that later had to be fixed.  GCC [Bug 120997](https://gcc.gnu.org/bugzilla/show_bug.cgi?id=120997) led to filing of [LWG 4293](https://cplusplus.github.io/LWG/issue4293).  The Standard was specified to use curly braces for the return values of some `span` member functions, such as `submdspan`.  Adoption of LWG 4293's Proposed Fix corrected that.
+Adoption of P2447 led to bugs in both Standard Library implementations and the Standard wording that later had to be fixed.  We already mentioned the libcu++ bug above.  The libstdc++ [Bug 120997](https://gcc.gnu.org/bugzilla/show_bug.cgi?id=120997) led to filing of [LWG 4293](https://cplusplus.github.io/LWG/issue4293).  The Standard was specified to use curly braces for the return values of some `span` member functions, such as `submdspan`.  Adoption of LWG 4293's Proposed Fix corrected that.
 
 # Proposed fix: Remove `initializer_list` constructor
 
@@ -136,6 +136,12 @@ Given that LEWG has asked us to remove the `initializer_list` constructor entire
 we can always consider Option (2) for later C++ versions.
 The `span` class template has many constructors with intricate constraints,
 so this will need to be done carefully.
+
+# Dissenting opinion
+
+One of P2447's authors, Arthur O'Dwyer, contacted Tomasz Kamiński and myself to ask us to link to [this blog post](https://quuxplusone.github.io/blog/2026/03/19/p2447-success-story/) about successful use of the `span(initializer_list<value_type>)` constructor in Chromium.
+
+This could be relevant for discussion of restoring the removed feature in future C++ versions.
 
 # Proposed wording
 
