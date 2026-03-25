@@ -480,17 +480,19 @@ from any non-pointer type convertible to bool?</a></li>
 <li><a href="#change-span.cons" id="toc-change-span.cons"><span class="toc-section-number">6.4.2</span> Change [span.cons]</a></li>
 </ul></li>
 </ul></li>
-<li><a href="#proposed-fix-selected-by-lewg" id="toc-proposed-fix-selected-by-lewg"><span class="toc-section-number">7</span> Proposed fix (selected by
-LEWG)</a></li>
+<li><a href="#proposed-fix-remove-initializer_list-constructor" id="toc-proposed-fix-remove-initializer_list-constructor"><span class="toc-section-number">7</span> Proposed fix: Remove
+<code>initializer_list</code> constructor</a></li>
 <li><a href="#alternatives" id="toc-alternatives"><span class="toc-section-number">8</span> Alternatives</a></li>
-<li><a href="#wording-change" id="toc-wording-change"><span class="toc-section-number">9</span> Wording change</a>
+<li><a href="#proposed-wording" id="toc-proposed-wording"><span class="toc-section-number">9</span> Proposed wording</a>
 <ul>
 <li><a href="#increment-__cpp_lib_span-feature-test-macro-1" id="toc-increment-__cpp_lib_span-feature-test-macro-1"><span class="toc-section-number">9.1</span> Increment
 <code>__cpp_lib_span</code> feature test macro</a></li>
-<li><a href="#remove-initializer_list-constructor-from-spans-synopsis" id="toc-remove-initializer_list-constructor-from-spans-synopsis"><span class="toc-section-number">9.2</span> Remove
-<code>initializer_list</code> constructor from <code>span</code>’s
-synopsis</a></li>
-<li><a href="#remove-initializer_list-constructor-from-spans-description" id="toc-remove-initializer_list-constructor-from-spans-description"><span class="toc-section-number">9.3</span> Remove
+<li><a href="#remove-initializer_list-include-from-span.syn" id="toc-remove-initializer_list-include-from-span.syn"><span class="toc-section-number">9.2</span> Remove
+<code>initializer_list</code> include from [span.syn]</a></li>
+<li><a href="#remove-initializer_list-constructor-from-spans-class-declaration" id="toc-remove-initializer_list-constructor-from-spans-class-declaration"><span class="toc-section-number">9.3</span> Remove
+<code>initializer_list</code> constructor from <code>span</code>’s class
+declaration</a></li>
+<li><a href="#remove-initializer_list-constructor-from-spans-description" id="toc-remove-initializer_list-constructor-from-spans-description"><span class="toc-section-number">9.4</span> Remove
 <code>initializer_list</code> constructor from <code>span</code>’s
 description</a></li>
 </ul></li>
@@ -685,7 +687,7 @@ for generating proposed wording.</p>
 <p>In [version.syn], increase the value of the
 <code>__cpp_lib_span</code> macro by replacing YYYMML below with the
 integer literal encoding the appropriate year (YYYY) and month (MM).</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define __cpp_lib_mdspan </span>YYYYMML<span class="pp"> </span><span class="co">// also in &lt;mdspan&gt;</span></span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>#define __cpp_lib_span <em><span class="add" style="color: #00AA00"><ins>YYYYMML</ins></span></em> // freestanding, also in &lt;span&gt;</span></code></pre></div>
 <h3 data-number="6.4.2" id="change-span.cons"><span class="header-section-number">6.4.2</span> Change [span.cons]<a href="#change-span.cons" class="self-link"></a></h3>
 <blockquote>
 <p>Change the <code>initializer_list&lt;value_type&gt;</code>
@@ -733,7 +735,8 @@ and</p></li>
 <code>il.size()</code>.</p>
 </div>
 <div class="sourceCode" id="cb13"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>constexpr span(const span&amp; other) noexcept = default;</span></code></pre></div>
-<h1 data-number="7" id="proposed-fix-selected-by-lewg"><span class="header-section-number">7</span> Proposed fix (selected by LEWG)<a href="#proposed-fix-selected-by-lewg" class="self-link"></a></h1>
+<h1 data-number="7" id="proposed-fix-remove-initializer_list-constructor"><span class="header-section-number">7</span> Proposed fix: Remove
+<code>initializer_list</code> constructor<a href="#proposed-fix-remove-initializer_list-constructor" class="self-link"></a></h1>
 <p>On 2026-03-25, LEWG polled 16/14/2/0/0 to remove the
 <code>initializer_list</code> constructor from <code>span</code>
 entirely for C++26. LEWG asked this paper to be revised to include that
@@ -745,29 +748,98 @@ solution.</p>
 generically (for all <code>T</code>) so that it refuses to convert a
 pointer to <code>value_type</code>.</p></li>
 </ol>
-<p>Regarding Option (1), Mattermost discussion during the meeting
-suggests that GCC is unlikely to change its current behavior.</p>
-<p>Option (2) is higher risk because <code>span</code> has many
-constructors.</p>
-<h1 data-number="9" id="wording-change"><span class="header-section-number">9</span> Wording change<a href="#wording-change" class="self-link"></a></h1>
-<blockquote>
-<p>Text in blockquotes is not proposed wording, but rather instructions
-for generating proposed wording.</p>
-</blockquote>
+<p>Regarding Option (1), GCC has made a principled choice here to emit
+warnings in some cases. Discussion during LEWG review suggests that they
+might be willing to consider emitting errors for more targeted
+situations.</p>
+<p>Given that LEWG has asked us to remove the
+<code>initializer_list</code> constructor entirely, we can always
+consider Option (2) for later C++ versions. The <code>span</code> class
+template has many constructors with intricate constraints, so this will
+need to be done carefully.</p>
+<h1 data-number="9" id="proposed-wording"><span class="header-section-number">9</span> Proposed wording<a href="#proposed-wording" class="self-link"></a></h1>
 <h2 data-number="9.1" id="increment-__cpp_lib_span-feature-test-macro-1"><span class="header-section-number">9.1</span> Increment
 <code>__cpp_lib_span</code> feature test macro<a href="#increment-__cpp_lib_span-feature-test-macro-1" class="self-link"></a></h2>
-<p>In [version.syn], increase the value of the
-<code>__cpp_lib_span</code> macro by replacing YYYMML below with the
-integer literal encoding the appropriate year (YYYY) and month (MM).</p>
-<div class="sourceCode" id="cb14"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define __cpp_lib_mdspan </span>YYYYMML<span class="pp"> </span><span class="co">// also in &lt;mdspan&gt;</span></span></code></pre></div>
-<h2 data-number="9.2" id="remove-initializer_list-constructor-from-spans-synopsis"><span class="header-section-number">9.2</span> Remove
-<code>initializer_list</code> constructor from <code>span</code>’s
-synopsis<a href="#remove-initializer_list-constructor-from-spans-synopsis" class="self-link"></a></h2>
-<p>TODO</p>
-<h2 data-number="9.3" id="remove-initializer_list-constructor-from-spans-description"><span class="header-section-number">9.3</span> Remove
+<p><span class="ednote" style="color: #0000ff">[ Editor&#39;s note: In
+[version.syn], increase the value of the <code>__cpp_lib_span</code>
+macro by replacing YYYMML below with the integer literal encoding the
+appropriate year (YYYY) and month (MM). ]</span></p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>#define __cpp_lib_span <em><span class="add" style="color: #00AA00"><ins>YYYYMML</ins></span></em> // freestanding, also in &lt;span&gt;</span></code></pre></div>
+<h2 data-number="9.2" id="remove-initializer_list-include-from-span.syn"><span class="header-section-number">9.2</span> Remove
+<code>initializer_list</code> include from [span.syn]<a href="#remove-initializer_list-include-from-span.syn" class="self-link"></a></h2>
+<p><span class="ednote" style="color: #0000ff">[ Editor&#39;s note: Remove
+<code>#include &lt;initializer_list&gt;</code> from [span.syn] (“Header
+<code>&lt;span&gt;</code> synopsis”) as shown below. Please only remove
+the include if no other C++26 changes depend on it. ]</span></p>
+<div class="rm" style="color: #bf0303">
+
+<div class="sourceCode" id="cb15"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>#include &lt;initializer_list&gt;     // see [initializer.list.syn]</span></code></pre></div>
+
+</div>
+<div class="sourceCode" id="cb16"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>// mostly freestanding</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>namespace std {</span></code></pre></div>
+<h2 data-number="9.3" id="remove-initializer_list-constructor-from-spans-class-declaration"><span class="header-section-number">9.3</span> Remove
+<code>initializer_list</code> constructor from <code>span</code>’s class
+declaration<a href="#remove-initializer_list-constructor-from-spans-class-declaration" class="self-link"></a></h2>
+<p><span class="ednote" style="color: #0000ff">[ Editor&#39;s note: Remove
+<code>span(initializer_list&lt;value_type&gt;)</code> constructor from
+<code>span</code>’s class declaration in [span.overview], as shown
+below. ]</span></p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>    // [span.cons], constructors, copy, and assignment</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>    constexpr span() noexcept;</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>    template&lt;class It&gt;</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>      constexpr explicit(extent != dynamic_extent) span(It first, size_type count);</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>    template&lt;class It, class End&gt;</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>      constexpr explicit(extent != dynamic_extent) span(It first, End last);</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>    template&lt;size_t N&gt;</span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>      constexpr span(type_identity_t&lt;element_type&gt; (&amp;arr)[N]) noexcept;</span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>    template&lt;class T, size_t N&gt;</span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>      constexpr span(array&lt;T, N&gt;&amp; arr) noexcept;</span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>    template&lt;class T, size_t N&gt;</span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>      constexpr span(const array&lt;T, N&gt;&amp; arr) noexcept;</span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a>    template&lt;class R&gt;</span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a>      constexpr explicit(extent != dynamic_extent) span(R&amp;&amp; r);</span></code></pre></div>
+<div class="rm" style="color: #bf0303">
+
+<div class="sourceCode" id="cb18"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>    constexpr explicit(extent != dynamic_extent) span(std::initializer_list&lt;value_type&gt; il);</span></code></pre></div>
+
+</div>
+<div class="sourceCode" id="cb19"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>    constexpr span(const span&amp; other) noexcept = default;</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>    template&lt;class OtherElementType, size_t OtherExtent&gt;</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>      constexpr explicit(see below) span(const span&lt;OtherElementType, OtherExtent&gt;&amp; s) noexcept;</span></code></pre></div>
+<h2 data-number="9.4" id="remove-initializer_list-constructor-from-spans-description"><span class="header-section-number">9.4</span> Remove
 <code>initializer_list</code> constructor from <code>span</code>’s
 description<a href="#remove-initializer_list-constructor-from-spans-description" class="self-link"></a></h2>
-<p>TODO</p>
+<blockquote>
+<p>Remove <code>span(initializer_list&lt;value_type&gt;)</code>
+constructor description from [span.cons] (paragraphs 21-23), as shown
+below.</p>
+</blockquote>
+<p><span class="marginalizedparent"><a class="marginalized">19</a></span>
+<em>Effects</em>: Initializes <code>data_</code> with
+<code>ranges​::​data(r)</code> and <code>size_</code> with
+<code>ranges​::​size(r)</code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">20</a></span>
+<em>Throws</em>: What and when <code>ranges​::​data(r)</code> and
+<code>ranges​::​size(r)</code> throw.</p>
+<div class="rm" style="color: #bf0303">
+
+<div class="sourceCode" id="cb20"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>constexpr explicit(extent != dynamic_extent) span(std::initializer_list&lt;value_type&gt; il);</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">21</a></span>
+<em>Constraints</em>: <code>is_const_v&lt;element_type&gt;</code> is
+<code>true</code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">22</a></span>
+<em>Hardened preconditions</em>: If <code>extent</code> is not equal to
+<code>dynamic_extent</code>, then <code>il.size() == extent</code> is
+<code>true</code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">23</a></span>
+<em>Effects</em>: Initializes <code>data_</code> with
+<code>il.data()</code> and <code>size_ with il.size()</code>.</p>
+</div>
+<div class="sourceCode" id="cb21"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>constexpr span(const span&amp; other) noexcept = default;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">24</a></span>
+<em>Postconditions</em>:
+<code>other.size() == size() &amp;&amp; other.data() == data()</code>.</p>
 </div>
 </div>
 </body>

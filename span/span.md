@@ -204,8 +204,8 @@ In [version.syn], increase the value of the `__cpp_lib_span` macro
 by replacing YYYMML below with the integer literal
 encoding the appropriate year (YYYY) and month (MM).
 
-```c++
-#define __cpp_lib_mdspan YYYYMML // also in <mdspan>
+```
+#define __cpp_lib_span @_[YYYYMML]{.add}_@ // freestanding, also in <span>
 ```
 
 ### Change [span.cons]
@@ -247,7 +247,7 @@ template<typename InitListType>
 constexpr span(const span& other) noexcept = default;
 ```
 
-# Proposed fix (selected by LEWG)
+# Proposed fix: Remove `initializer_list` constructor
 
 On 2026-03-25, LEWG polled 16/14/2/0/0 to remove the `initializer_list` constructor from `span` entirely for C++26.
 LEWG asked this paper to be revised to include that solution.
@@ -258,29 +258,92 @@ LEWG asked this paper to be revised to include that solution.
 
 2. Try to constrain `span<T>`'s constructor generically (for all `T`) so that it refuses to convert a pointer to `value_type`.
 
-Regarding Option (1), Mattermost discussion during the meeting suggests that GCC is unlikely to change its current behavior.
+Regarding Option (1), GCC has made a principled choice here to emit warnings in some cases.  Discussion during LEWG review suggests that they might be willing to consider emitting errors for more targeted situations.
 
-Option (2) is higher risk because `span` has many constructors.
+Given that LEWG has asked us to remove the `initializer_list` constructor entirely, we can always consider Option (2) for later C++ versions.  The `span` class template has many constructors with intricate constraints, so this will need to be done carefully.
 
-# Wording change
-
-> Text in blockquotes is not proposed wording,
-> but rather instructions for generating proposed wording.
+# Proposed wording
 
 ## Increment `__cpp_lib_span` feature test macro
 
-In [version.syn], increase the value of the `__cpp_lib_span` macro
+[In [version.syn], increase the value of the `__cpp_lib_span` macro
 by replacing YYYMML below with the integer literal
-encoding the appropriate year (YYYY) and month (MM).
+encoding the appropriate year (YYYY) and month (MM).]{.ednote}
 
-```c++
-#define __cpp_lib_mdspan YYYYMML // also in <mdspan>
+```
+#define __cpp_lib_span @_[YYYYMML]{.add}_@ // freestanding, also in <span>
 ```
 
-## Remove `initializer_list` constructor from `span`'s synopsis
+## Remove `initializer_list` include from [span.syn]
 
-TODO
+[Remove `#include <initializer_list>` from [span.syn] ("Header `<span>` synopsis") as
+shown below.  Please only remove the include if no other C++26 changes depend on it.]{.ednote}
+
+::: rm
+```
+#include <initializer_list>     // see [initializer.list.syn]
+```
+:::
+```
+// mostly freestanding
+namespace std {
+```
+
+## Remove `initializer_list` constructor from `span`'s class declaration
+
+[Remove `span(initializer_list<value_type>)` constructor from
+`span`'s class declaration in [span.overview], as shown below.]{.ednote}
+
+```
+    // [span.cons], constructors, copy, and assignment
+    constexpr span() noexcept;
+    template<class It>
+      constexpr explicit(extent != dynamic_extent) span(It first, size_type count);
+    template<class It, class End>
+      constexpr explicit(extent != dynamic_extent) span(It first, End last);
+    template<size_t N>
+      constexpr span(type_identity_t<element_type> (&arr)[N]) noexcept;
+    template<class T, size_t N>
+      constexpr span(array<T, N>& arr) noexcept;
+    template<class T, size_t N>
+      constexpr span(const array<T, N>& arr) noexcept;
+    template<class R>
+      constexpr explicit(extent != dynamic_extent) span(R&& r);
+```
+::: rm
+```
+    constexpr explicit(extent != dynamic_extent) span(std::initializer_list<value_type> il);
+```
+:::
+```
+    constexpr span(const span& other) noexcept = default;
+    template<class OtherElementType, size_t OtherExtent>
+      constexpr explicit(see below) span(const span<OtherElementType, OtherExtent>& s) noexcept;
+```
 
 ## Remove `initializer_list` constructor from `span`'s description
 
-TODO
+> Remove `span(initializer_list<value_type>)` constructor description
+> from [span.cons] (paragraphs 21-23), as shown below.
+
+[19]{.pnum} *Effects*: Initializes `data_` with `ranges​::​data(r)` and `size_` with `ranges​::​size(r)`.
+
+[20]{.pnum} *Throws*: What and when `ranges​::​data(r)` and `ranges​::​size(r)` throw.
+
+::: rm
+```
+constexpr explicit(extent != dynamic_extent) span(std::initializer_list<value_type> il);
+```
+
+[21]{.pnum} *Constraints*: `is_const_v<element_type>` is `true`.
+
+[22]{.pnum} *Hardened preconditions*: If `extent` is not equal to `dynamic_extent`, then `il.size() == extent` is `true`.
+
+[23]{.pnum} *Effects*: Initializes `data_` with `il.data()` and `size_ with il.size()`.
+:::
+
+```
+constexpr span(const span& other) noexcept = default;
+```
+
+[24]{.pnum} *Postconditions*: `other.size() == size() && other.data() == data()`.
