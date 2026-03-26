@@ -1,6 +1,6 @@
 ---
 title: "Remove `span`'s `initializer_list` constructor for C++26"
-document: P4144R0
+document: P4144R1
 date: today
 audience: LEWG
 author:
@@ -18,9 +18,9 @@ toc: true
 
 # Revision history
 
-Paper with original title "Breaking change in `std::span`'s new `initializer_list` constructor" was reviewed by LEWG on 2026-03-25.  That version of the paper proposed a fix just for `span<const bool>`.  It was submitted into the `isocpp.org` paper system as R0 immediately before LEWG review; it had not reached an official mailing.  On 2026-03-25, LEWG polled 16/14/2/0/0 instead to remove the `initializer_list` constructor from `span` entirely for C++26, and asked the paper to be revised.  Tomasz Kamiński, Tim Song, and Jonathan Wakely joined the author list.
+R0 with title "Breaking change in `std::span`'s new `initializer_list` constructor" was reviewed by LEWG on 2026-03-25.  That version of the paper proposed a fix just for `span<const bool>`.  It was submitted into the `isocpp.org` paper system as R0 immediately before LEWG review; it had not reached an official mailing.  On 2026-03-25, LEWG polled 16/14/2/0/0 instead to remove the `initializer_list` constructor from `span` entirely for C++26, and asked the paper to be revised.  Tomasz Kamiński, Tim Song, and Jonathan Wakely joined the author list.
 
-Given that the paper has not yet reached the official meeting, there's no straightforward way to make the revision an R1.  We will make the pre-LEWG-review design vs. the post-LEWG-review design clear in the text below.  Please see Appendix A for the originally proposed fix.
+R1 shows the post-LEWG-review design.  Please see Appendix A for the originally proposed fix.
 
 # Problem: "Silent" change in `span`'s behavior
 

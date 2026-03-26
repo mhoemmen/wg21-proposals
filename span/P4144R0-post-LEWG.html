@@ -422,7 +422,7 @@ div#refs p { padding-left: 32px; text-indent: -32px; }
 <table style="border:none;float:right">
   <tr>
     <td>Document #: </td>
-    <td>P4144R0</td>
+    <td>P4144R1</td>
   </tr>
   <tr>
     <td>Date: </td>
@@ -494,20 +494,18 @@ from any non-pointer type convertible to bool?</a></li>
 </ul>
 </div>
 <h1 data-number="1" id="revision-history"><span class="header-section-number">1</span> Revision history<a href="#revision-history" class="self-link"></a></h1>
-<p>Paper with original title “Breaking change in
-<code>std::span</code>’s new <code>initializer_list</code> constructor”
-was reviewed by LEWG on 2026-03-25. That version of the paper proposed a
-fix just for <code>span&lt;const bool&gt;</code>. It was submitted into
-the <code>isocpp.org</code> paper system as R0 immediately before LEWG
+<p>R0 with title “Breaking change in <code>std::span</code>’s new
+<code>initializer_list</code> constructor” was reviewed by LEWG on
+2026-03-25. That version of the paper proposed a fix just for
+<code>span&lt;const bool&gt;</code>. It was submitted into the
+<code>isocpp.org</code> paper system as R0 immediately before LEWG
 review; it had not reached an official mailing. On 2026-03-25, LEWG
 polled 16/14/2/0/0 instead to remove the <code>initializer_list</code>
 constructor from <code>span</code> entirely for C++26, and asked the
 paper to be revised. Tomasz Kamiński, Tim Song, and Jonathan Wakely
 joined the author list.</p>
-<p>Given that the paper has not yet reached the official meeting,
-there’s no straightforward way to make the revision an R1. We will make
-the pre-LEWG-review design vs. the post-LEWG-review design clear in the
-text below. Please see Appendix A for the originally proposed fix.</p>
+<p>R1 shows the post-LEWG-review design. Please see Appendix A for the
+originally proposed fix.</p>
 <h1 data-number="2" id="problem-silent-change-in-spans-behavior"><span class="header-section-number">2</span> Problem: “Silent” change in
 <code>span</code>’s behavior<a href="#problem-silent-change-in-spans-behavior" class="self-link"></a></h1>
 <h2 data-number="2.1" id="summary"><span class="header-section-number">2.1</span> Summary<a href="#summary" class="self-link"></a></h2>
