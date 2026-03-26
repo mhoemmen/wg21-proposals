@@ -5,21 +5,16 @@ date: today
 audience: LEWG
 author:
   - name: Mark Hoemmen
+    email: <mark.hoemmen@gmail.com>
   - name: Tomasz Kamiński
+    email: <tomaszkam@gmail.com>
   - name: Tim Song 
+    email: <t.canens.cpp@gmail.com>
   - name: Jonathan Wakely 
+    email: <cxx@kayari.org>
+
 toc: true
 ---
-
-# Authors
-
-* Mark Hoemmen
-
-* Tomasz Kamiński
- 
-* Tim Song
-
-* Jonathan Wakely
 
 # Revision history
 
@@ -136,6 +131,21 @@ Given that LEWG has asked us to remove the `initializer_list` constructor entire
 we can always consider Option (2) for later C++ versions.
 The `span` class template has many constructors with intricate constraints,
 so this will need to be done carefully.
+
+One suggestion is to constrain the constructor as follows.
+
+```c++
+  template <std::same_as<value_type> InitListValueType> 
+  constexpr
+    my_span(std::initializer_list<const InitListValueType> il)
+      requires (is_const_v<ElementType>);
+```
+
+This would prohibit the troublesome cases discussed above.
+However, it would also change the original design
+by forcing the type match to be exact.
+For example, `span<const bool>{true, false, true}` would work,
+but `span<const bool>{1, 0, 1}` would fail overload resolution.
 
 # Dissenting opinion
 

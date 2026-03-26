@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2026-03-25" />
+  <meta name="dcterms.date" content="2026-03-26" />
   <title>Remove span’s initializer_list constructor for C++26</title>
   <style>
 code{white-space: pre-wrap;}
@@ -426,7 +426,7 @@ div#refs p { padding-left: 32px; text-indent: -32px; }
   </tr>
   <tr>
     <td>Date: </td>
-    <td>2026-03-25</td>
+    <td>2026-03-26</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project: </td>
@@ -437,10 +437,10 @@ div#refs p { padding-left: 32px; text-indent: -32px; }
   <tr>
     <td style="vertical-align:top">Reply-to: </td>
     <td>
-      Mark Hoemmen<br>&lt;&gt;<br>
-      Tomasz Kamiński<br>&lt;&gt;<br>
-      Tim Song<br>&lt;&gt;<br>
-      Jonathan Wakely<br>&lt;&gt;<br>
+      Mark Hoemmen<br>&lt;<a href="mailto:mark.hoemmen@gmail.com" class="email">mark.hoemmen@gmail.com</a>&gt;<br>
+      Tomasz Kamiński<br>&lt;<a href="mailto:tomaszkam@gmail.com" class="email">tomaszkam@gmail.com</a>&gt;<br>
+      Tim Song<br>&lt;<a href="mailto:t.canens.cpp@gmail.com" class="email">t.canens.cpp@gmail.com</a>&gt;<br>
+      Jonathan Wakely<br>&lt;<a href="mailto:cxx@kayari.org" class="email">cxx@kayari.org</a>&gt;<br>
     </td>
   </tr>
 </table>
@@ -450,58 +450,50 @@ div#refs p { padding-left: 32px; text-indent: -32px; }
 <div id="TOC" role="doc-toc">
 <h1 id="toctitle">Contents</h1>
 <ul>
-<li><a href="#authors" id="toc-authors"><span class="toc-section-number">1</span> Authors</a></li>
-<li><a href="#revision-history" id="toc-revision-history"><span class="toc-section-number">2</span> Revision history</a></li>
-<li><a href="#problem-silent-change-in-spans-behavior" id="toc-problem-silent-change-in-spans-behavior"><span class="toc-section-number">3</span> Problem: “Silent” change in
+<li><a href="#revision-history" id="toc-revision-history"><span class="toc-section-number">1</span> Revision history</a></li>
+<li><a href="#problem-silent-change-in-spans-behavior" id="toc-problem-silent-change-in-spans-behavior"><span class="toc-section-number">2</span> Problem: “Silent” change in
 <code>span</code>’s behavior</a>
 <ul>
-<li><a href="#summary" id="toc-summary"><span class="toc-section-number">3.1</span> Summary</a></li>
-<li><a href="#cause-new-initializer_list-constructor" id="toc-cause-new-initializer_list-constructor"><span class="toc-section-number">3.2</span> Cause: New
+<li><a href="#summary" id="toc-summary"><span class="toc-section-number">2.1</span> Summary</a></li>
+<li><a href="#cause-new-initializer_list-constructor" id="toc-cause-new-initializer_list-constructor"><span class="toc-section-number">2.2</span> Cause: New
 <code>initializer_list</code> constructor</a></li>
 </ul></li>
-<li><a href="#its-not-silent-but-implementations-diverge" id="toc-its-not-silent-but-implementations-diverge"><span class="toc-section-number">4</span> It’s not “silent,” but
+<li><a href="#its-not-silent-but-implementations-diverge" id="toc-its-not-silent-but-implementations-diverge"><span class="toc-section-number">3</span> It’s not “silent,” but
 implementations diverge</a></li>
-<li><a href="#p2447-introduced-standard-library-and-wording-bugs-later-fixed" id="toc-p2447-introduced-standard-library-and-wording-bugs-later-fixed"><span class="toc-section-number">5</span> P2447 introduced Standard Library
+<li><a href="#p2447-introduced-standard-library-and-wording-bugs-later-fixed" id="toc-p2447-introduced-standard-library-and-wording-bugs-later-fixed"><span class="toc-section-number">4</span> P2447 introduced Standard Library
 and wording bugs, later fixed</a></li>
-<li><a href="#proposed-fix-remove-initializer_list-constructor" id="toc-proposed-fix-remove-initializer_list-constructor"><span class="toc-section-number">6</span> Proposed fix: Remove
+<li><a href="#proposed-fix-remove-initializer_list-constructor" id="toc-proposed-fix-remove-initializer_list-constructor"><span class="toc-section-number">5</span> Proposed fix: Remove
 <code>initializer_list</code> constructor</a></li>
-<li><a href="#alternatives" id="toc-alternatives"><span class="toc-section-number">7</span> Alternatives</a></li>
-<li><a href="#dissenting-opinion" id="toc-dissenting-opinion"><span class="toc-section-number">8</span> Dissenting opinion</a></li>
-<li><a href="#proposed-wording" id="toc-proposed-wording"><span class="toc-section-number">9</span> Proposed wording</a>
+<li><a href="#alternatives" id="toc-alternatives"><span class="toc-section-number">6</span> Alternatives</a></li>
+<li><a href="#dissenting-opinion" id="toc-dissenting-opinion"><span class="toc-section-number">7</span> Dissenting opinion</a></li>
+<li><a href="#proposed-wording" id="toc-proposed-wording"><span class="toc-section-number">8</span> Proposed wording</a>
 <ul>
-<li><a href="#remove-__cpp_lib_span_initializer_list-macro" id="toc-remove-__cpp_lib_span_initializer_list-macro"><span class="toc-section-number">9.1</span> Remove
+<li><a href="#remove-__cpp_lib_span_initializer_list-macro" id="toc-remove-__cpp_lib_span_initializer_list-macro"><span class="toc-section-number">8.1</span> Remove
 <code>__cpp_lib_span_initializer_list</code> macro</a></li>
-<li><a href="#remove-initializer_list-include-from-span.syn" id="toc-remove-initializer_list-include-from-span.syn"><span class="toc-section-number">9.2</span> Remove
+<li><a href="#remove-initializer_list-include-from-span.syn" id="toc-remove-initializer_list-include-from-span.syn"><span class="toc-section-number">8.2</span> Remove
 <code>initializer_list</code> include from [span.syn]</a></li>
-<li><a href="#remove-initializer_list-constructor-from-spans-class-declaration" id="toc-remove-initializer_list-constructor-from-spans-class-declaration"><span class="toc-section-number">9.3</span> Remove
+<li><a href="#remove-initializer_list-constructor-from-spans-class-declaration" id="toc-remove-initializer_list-constructor-from-spans-class-declaration"><span class="toc-section-number">8.3</span> Remove
 <code>initializer_list</code> constructor from <code>span</code>’s class
 declaration</a></li>
-<li><a href="#remove-initializer_list-constructor-from-spans-description" id="toc-remove-initializer_list-constructor-from-spans-description"><span class="toc-section-number">9.4</span> Remove
+<li><a href="#remove-initializer_list-constructor-from-spans-description" id="toc-remove-initializer_list-constructor-from-spans-description"><span class="toc-section-number">8.4</span> Remove
 <code>initializer_list</code> constructor from <code>span</code>’s
 description</a></li>
-<li><a href="#remove-the-entire-diff.cpp23.containers-section" id="toc-remove-the-entire-diff.cpp23.containers-section"><span class="toc-section-number">9.5</span> Remove the entire
+<li><a href="#remove-the-entire-diff.cpp23.containers-section" id="toc-remove-the-entire-diff.cpp23.containers-section"><span class="toc-section-number">8.5</span> Remove the entire
 [diff.cpp23.containers] section</a></li>
 </ul></li>
-<li><a href="#appendix-a-original-pre-lewg-review-proposed-fix" id="toc-appendix-a-original-pre-lewg-review-proposed-fix"><span class="toc-section-number">10</span> Appendix A: Original
+<li><a href="#appendix-a-original-pre-lewg-review-proposed-fix" id="toc-appendix-a-original-pre-lewg-review-proposed-fix"><span class="toc-section-number">9</span> Appendix A: Original
 (pre-LEWG-review) proposed fix</a>
 <ul>
-<li><a href="#ansatz-constrain-the-initializer-list-constructor" id="toc-ansatz-constrain-the-initializer-list-constructor"><span class="toc-section-number">10.1</span> Ansatz: Constrain the initializer
+<li><a href="#ansatz-constrain-the-initializer-list-constructor" id="toc-ansatz-constrain-the-initializer-list-constructor"><span class="toc-section-number">9.1</span> Ansatz: Constrain the initializer
 list constructor</a></li>
-<li><a href="#fix-initializer-list-construction-from-actual-bool-values" id="toc-fix-initializer-list-construction-from-actual-bool-values"><span class="toc-section-number">10.2</span> Fix initializer list construction
+<li><a href="#fix-initializer-list-construction-from-actual-bool-values" id="toc-fix-initializer-list-construction-from-actual-bool-values"><span class="toc-section-number">9.2</span> Fix initializer list construction
 from actual bool values</a></li>
-<li><a href="#fix-initializer-list-construction-from-any-non-pointer-type-convertible-to-bool" id="toc-fix-initializer-list-construction-from-any-non-pointer-type-convertible-to-bool"><span class="toc-section-number">10.3</span> Fix initializer list construction
+<li><a href="#fix-initializer-list-construction-from-any-non-pointer-type-convertible-to-bool" id="toc-fix-initializer-list-construction-from-any-non-pointer-type-convertible-to-bool"><span class="toc-section-number">9.3</span> Fix initializer list construction
 from any non-pointer type convertible to bool?</a></li>
 </ul></li>
 </ul>
 </div>
-<h1 data-number="1" id="authors"><span class="header-section-number">1</span> Authors<a href="#authors" class="self-link"></a></h1>
-<ul>
-<li><p>Mark Hoemmen</p></li>
-<li><p>Tomasz Kamiński</p></li>
-<li><p>Tim Song</p></li>
-<li><p>Jonathan Wakely</p></li>
-</ul>
-<h1 data-number="2" id="revision-history"><span class="header-section-number">2</span> Revision history<a href="#revision-history" class="self-link"></a></h1>
+<h1 data-number="1" id="revision-history"><span class="header-section-number">1</span> Revision history<a href="#revision-history" class="self-link"></a></h1>
 <p>Paper with original title “Breaking change in
 <code>std::span</code>’s new <code>initializer_list</code> constructor”
 was reviewed by LEWG on 2026-03-25. That version of the paper proposed a
@@ -516,9 +508,9 @@ joined the author list.</p>
 there’s no straightforward way to make the revision an R1. We will make
 the pre-LEWG-review design vs. the post-LEWG-review design clear in the
 text below. Please see Appendix A for the originally proposed fix.</p>
-<h1 data-number="3" id="problem-silent-change-in-spans-behavior"><span class="header-section-number">3</span> Problem: “Silent” change in
+<h1 data-number="2" id="problem-silent-change-in-spans-behavior"><span class="header-section-number">2</span> Problem: “Silent” change in
 <code>span</code>’s behavior<a href="#problem-silent-change-in-spans-behavior" class="self-link"></a></h1>
-<h2 data-number="3.1" id="summary"><span class="header-section-number">3.1</span> Summary<a href="#summary" class="self-link"></a></h2>
+<h2 data-number="2.1" id="summary"><span class="header-section-number">2.1</span> Summary<a href="#summary" class="self-link"></a></h2>
 <p>This paper expresses <a href="https://cplusplus.github.io/LWG/issue4520">LWG4520</a> and
 proposes fixing it by reverting adoption of <a href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p2447r6.html">P2447R6</a>.</p>
 <p>LWG 4520 came from <a href="https://github.com/NVIDIA/cccl/issues/7619">an issue</a> filed on
@@ -545,7 +537,7 @@ illustration of the change in behavior between C++23 and C++26.</p>
 <span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>  <span class="ot">assert</span><span class="op">(</span>bad_span<span class="op">.</span>size<span class="op">()</span> <span class="op">==</span> size<span class="op">)</span>;</span>
 <span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="dv">0</span>;</span>
 <span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
-<h2 data-number="3.2" id="cause-new-initializer_list-constructor"><span class="header-section-number">3.2</span> Cause: New
+<h2 data-number="2.2" id="cause-new-initializer_list-constructor"><span class="header-section-number">2.2</span> Cause: New
 <code>initializer_list</code> constructor<a href="#cause-new-initializer_list-constructor" class="self-link"></a></h2>
 <p>In C++23, constructor <code>span(element_type*, size_t)</code> is
 called.</p>
@@ -576,7 +568,7 @@ realized the significance of the change.</p>
 <p>Note that <code>span&lt;bool&gt;</code> does not have this issue.
 Using <code>{}</code> with <code>mdspan</code> (the source of design
 inspiration for <code>span</code>) works as expected.</p>
-<h1 data-number="4" id="its-not-silent-but-implementations-diverge"><span class="header-section-number">4</span> It’s not “silent,” but
+<h1 data-number="3" id="its-not-silent-but-implementations-diverge"><span class="header-section-number">3</span> It’s not “silent,” but
 implementations diverge<a href="#its-not-silent-but-implementations-diverge" class="self-link"></a></h1>
 <p>The example is actually ill-formed code; it’s a narrowing conversion
 from pointer to <code>bool</code>. GCC trunk compiles this but emits
@@ -600,7 +592,7 @@ However, in practice, it’s never lossy; the <code>tolower</code> value
 always fits in <code>char</code>. Rejecting code like this because of
 the C++11 narrowing rules would have hindered adoption of C++11
 enormously.</p>
-<h1 data-number="5" id="p2447-introduced-standard-library-and-wording-bugs-later-fixed"><span class="header-section-number">5</span> P2447 introduced Standard Library
+<h1 data-number="4" id="p2447-introduced-standard-library-and-wording-bugs-later-fixed"><span class="header-section-number">4</span> P2447 introduced Standard Library
 and wording bugs, later fixed<a href="#p2447-introduced-standard-library-and-wording-bugs-later-fixed" class="self-link"></a></h1>
 <p>Adoption of P2447 led to bugs in both Standard Library
 implementations and the Standard wording that later had to be fixed. We
@@ -609,7 +601,7 @@ already mentioned the libcu++ bug above. The libstdc++ <a href="https://gcc.gnu.
 Standard was specified to use curly braces for the return values of some
 <code>span</code> member functions, such as <code>submdspan</code>.
 Adoption of LWG 4293’s Proposed Fix corrected that.</p>
-<h1 data-number="6" id="proposed-fix-remove-initializer_list-constructor"><span class="header-section-number">6</span> Proposed fix: Remove
+<h1 data-number="5" id="proposed-fix-remove-initializer_list-constructor"><span class="header-section-number">5</span> Proposed fix: Remove
 <code>initializer_list</code> constructor<a href="#proposed-fix-remove-initializer_list-constructor" class="self-link"></a></h1>
 <p>On 2026-03-25, LEWG polled 16/14/2/0/0 to remove the
 <code>initializer_list</code> constructor from <code>span</code>
@@ -620,7 +612,7 @@ solution. Appendix A shows the originally proposed solution.</p>
 <a href="https://cplusplus.github.io/LWG/issue4293">LWG 4293</a> changed
 the wording to stop using the <code>initializer_list</code> constructor
 where doing so was not intended.</p>
-<h1 data-number="7" id="alternatives"><span class="header-section-number">7</span> Alternatives<a href="#alternatives" class="self-link"></a></h1>
+<h1 data-number="6" id="alternatives"><span class="header-section-number">6</span> Alternatives<a href="#alternatives" class="self-link"></a></h1>
 <ol type="1">
 <li><p>File a GCC bug to make GCC emit an error here.</p></li>
 <li><p>Try to constrain <code>span&lt;T&gt;</code>’s constructor
@@ -636,7 +628,18 @@ situations.</p>
 consider Option (2) for later C++ versions. The <code>span</code> class
 template has many constructors with intricate constraints, so this will
 need to be done carefully.</p>
-<h1 data-number="8" id="dissenting-opinion"><span class="header-section-number">8</span> Dissenting opinion<a href="#dissenting-opinion" class="self-link"></a></h1>
+<p>One suggestion is to constrain the constructor as follows.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span> <span class="op">&lt;</span>std<span class="op">::</span>same_as<span class="op">&lt;</span>value_type<span class="op">&gt;</span> InitListValueType<span class="op">&gt;</span> </span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    my_span<span class="op">(</span>std<span class="op">::</span>initializer_list<span class="op">&lt;</span><span class="kw">const</span> InitListValueType<span class="op">&gt;</span> il<span class="op">)</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>      <span class="kw">requires</span> <span class="op">(</span>is_const_v<span class="op">&lt;</span>ElementType<span class="op">&gt;)</span>;</span></code></pre></div>
+<p>This would prohibit the troublesome cases discussed above. However,
+it would also change the original design by forcing the type match to be
+exact. For example,
+<code>span&lt;const bool&gt;{true, false, true}</code> would work, but
+<code>span&lt;const bool&gt;{1, 0, 1}</code> would fail overload
+resolution.</p>
+<h1 data-number="7" id="dissenting-opinion"><span class="header-section-number">7</span> Dissenting opinion<a href="#dissenting-opinion" class="self-link"></a></h1>
 <p>One of P2447’s authors, Arthur O’Dwyer, contacted Tomasz Kamiński and
 myself to ask us to link to <a href="https://quuxplusone.github.io/blog/2026/03/19/p2447-success-story/">this
 blog post</a> about successful use of the
@@ -644,61 +647,61 @@ blog post</a> about successful use of the
 Chromium.</p>
 <p>This could be relevant for discussion of restoring the removed
 feature in future C++ versions.</p>
-<h1 data-number="9" id="proposed-wording"><span class="header-section-number">9</span> Proposed wording<a href="#proposed-wording" class="self-link"></a></h1>
-<h2 data-number="9.1" id="remove-__cpp_lib_span_initializer_list-macro"><span class="header-section-number">9.1</span> Remove
+<h1 data-number="8" id="proposed-wording"><span class="header-section-number">8</span> Proposed wording<a href="#proposed-wording" class="self-link"></a></h1>
+<h2 data-number="8.1" id="remove-__cpp_lib_span_initializer_list-macro"><span class="header-section-number">8.1</span> Remove
 <code>__cpp_lib_span_initializer_list</code> macro<a href="#remove-__cpp_lib_span_initializer_list-macro" class="self-link"></a></h2>
 <p><span class="ednote" style="color: #0000ff">[ Editor&#39;s note: In
 [version.syn], remove the <code>__cpp_lib_span_initializer_list</code>
 feature test macro definition. ]</span></p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>#define __cpp_lib_span                              202311L // freestanding, also in &lt;span&gt;</span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>#define __cpp_lib_span                              202311L // freestanding, also in &lt;span&gt;</span></code></pre></div>
 <div class="rm" style="color: #bf0303">
 
-<div class="sourceCode" id="cb6"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>#define __cpp_lib_span_initializer_list             202311L // freestanding, also in &lt;span&gt;</span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>#define __cpp_lib_span_initializer_list             202311L // freestanding, also in &lt;span&gt;</span></code></pre></div>
 
 </div>
-<div class="sourceCode" id="cb7"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>#define __cpp_lib_spanstream                        202106L // also in &lt;iosfwd&gt;, &lt;spanstream&gt;</span></code></pre></div>
-<h2 data-number="9.2" id="remove-initializer_list-include-from-span.syn"><span class="header-section-number">9.2</span> Remove
+<div class="sourceCode" id="cb8"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>#define __cpp_lib_spanstream                        202106L // also in &lt;iosfwd&gt;, &lt;spanstream&gt;</span></code></pre></div>
+<h2 data-number="8.2" id="remove-initializer_list-include-from-span.syn"><span class="header-section-number">8.2</span> Remove
 <code>initializer_list</code> include from [span.syn]<a href="#remove-initializer_list-include-from-span.syn" class="self-link"></a></h2>
 <p><span class="ednote" style="color: #0000ff">[ Editor&#39;s note: Remove
 <code>#include &lt;initializer_list&gt;</code> from [span.syn] (“Header
 <code>&lt;span&gt;</code> synopsis”) as shown below. ]</span></p>
 <div class="rm" style="color: #bf0303">
 
-<div class="sourceCode" id="cb8"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>#include &lt;initializer_list&gt;     // see [initializer.list.syn]</span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>#include &lt;initializer_list&gt;     // see [initializer.list.syn]</span></code></pre></div>
 
 </div>
-<div class="sourceCode" id="cb9"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>// mostly freestanding</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>namespace std {</span></code></pre></div>
-<h2 data-number="9.3" id="remove-initializer_list-constructor-from-spans-class-declaration"><span class="header-section-number">9.3</span> Remove
+<div class="sourceCode" id="cb10"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>// mostly freestanding</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>namespace std {</span></code></pre></div>
+<h2 data-number="8.3" id="remove-initializer_list-constructor-from-spans-class-declaration"><span class="header-section-number">8.3</span> Remove
 <code>initializer_list</code> constructor from <code>span</code>’s class
 declaration<a href="#remove-initializer_list-constructor-from-spans-class-declaration" class="self-link"></a></h2>
 <p><span class="ednote" style="color: #0000ff">[ Editor&#39;s note: Remove
 <code>span(initializer_list&lt;value_type&gt;)</code> constructor from
 <code>span</code>’s class declaration in [span.overview], as shown
 below. ]</span></p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>    // [span.cons], constructors, copy, and assignment</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    constexpr span() noexcept;</span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    template&lt;class It&gt;</span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>      constexpr explicit(extent != dynamic_extent) span(It first, size_type count);</span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    template&lt;class It, class End&gt;</span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>      constexpr explicit(extent != dynamic_extent) span(It first, End last);</span>
-<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>    template&lt;size_t N&gt;</span>
-<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>      constexpr span(type_identity_t&lt;element_type&gt; (&amp;arr)[N]) noexcept;</span>
-<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>    template&lt;class T, size_t N&gt;</span>
-<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>      constexpr span(array&lt;T, N&gt;&amp; arr) noexcept;</span>
-<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>    template&lt;class T, size_t N&gt;</span>
-<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>      constexpr span(const array&lt;T, N&gt;&amp; arr) noexcept;</span>
-<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>    template&lt;class R&gt;</span>
-<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>      constexpr explicit(extent != dynamic_extent) span(R&amp;&amp; r);</span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>    // [span.cons], constructors, copy, and assignment</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    constexpr span() noexcept;</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    template&lt;class It&gt;</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>      constexpr explicit(extent != dynamic_extent) span(It first, size_type count);</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    template&lt;class It, class End&gt;</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>      constexpr explicit(extent != dynamic_extent) span(It first, End last);</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>    template&lt;size_t N&gt;</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>      constexpr span(type_identity_t&lt;element_type&gt; (&amp;arr)[N]) noexcept;</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>    template&lt;class T, size_t N&gt;</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>      constexpr span(array&lt;T, N&gt;&amp; arr) noexcept;</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>    template&lt;class T, size_t N&gt;</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>      constexpr span(const array&lt;T, N&gt;&amp; arr) noexcept;</span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>    template&lt;class R&gt;</span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>      constexpr explicit(extent != dynamic_extent) span(R&amp;&amp; r);</span></code></pre></div>
 <div class="rm" style="color: #bf0303">
 
-<div class="sourceCode" id="cb11"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>    constexpr explicit(extent != dynamic_extent) span(std::initializer_list&lt;value_type&gt; il);</span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>    constexpr explicit(extent != dynamic_extent) span(std::initializer_list&lt;value_type&gt; il);</span></code></pre></div>
 
 </div>
-<div class="sourceCode" id="cb12"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>    constexpr span(const span&amp; other) noexcept = default;</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>    template&lt;class OtherElementType, size_t OtherExtent&gt;</span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>      constexpr explicit(see below) span(const span&lt;OtherElementType, OtherExtent&gt;&amp; s) noexcept;</span></code></pre></div>
-<h2 data-number="9.4" id="remove-initializer_list-constructor-from-spans-description"><span class="header-section-number">9.4</span> Remove
+<div class="sourceCode" id="cb13"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>    constexpr span(const span&amp; other) noexcept = default;</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>    template&lt;class OtherElementType, size_t OtherExtent&gt;</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>      constexpr explicit(see below) span(const span&lt;OtherElementType, OtherExtent&gt;&amp; s) noexcept;</span></code></pre></div>
+<h2 data-number="8.4" id="remove-initializer_list-constructor-from-spans-description"><span class="header-section-number">8.4</span> Remove
 <code>initializer_list</code> constructor from <code>span</code>’s
 description<a href="#remove-initializer_list-constructor-from-spans-description" class="self-link"></a></h2>
 <p><span class="ednote" style="color: #0000ff">[ Editor&#39;s note: Remove
@@ -714,7 +717,7 @@ description from [span.cons] (paragraphs 21-23), as shown below.
 <code>ranges​::​size(r)</code> throw.</p>
 <div class="rm" style="color: #bf0303">
 
-<div class="sourceCode" id="cb13"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>constexpr explicit(extent != dynamic_extent) span(std::initializer_list&lt;value_type&gt; il);</span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>constexpr explicit(extent != dynamic_extent) span(std::initializer_list&lt;value_type&gt; il);</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">21</a></span>
 <em>Constraints</em>: <code>is_const_v&lt;element_type&gt;</code> is
 <code>true</code>.</p>
@@ -726,11 +729,11 @@ description from [span.cons] (paragraphs 21-23), as shown below.
 <em>Effects</em>: Initializes <code>data_</code> with
 <code>il.data()</code> and <code>size_ with il.size()</code>.</p>
 </div>
-<div class="sourceCode" id="cb14"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>constexpr span(const span&amp; other) noexcept = default;</span></code></pre></div>
+<div class="sourceCode" id="cb15"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>constexpr span(const span&amp; other) noexcept = default;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">24</a></span>
 <em>Postconditions</em>:
 <code>other.size() == size() &amp;&amp; other.data() == data()</code>.</p>
-<h2 data-number="9.5" id="remove-the-entire-diff.cpp23.containers-section"><span class="header-section-number">9.5</span> Remove the entire
+<h2 data-number="8.5" id="remove-the-entire-diff.cpp23.containers-section"><span class="header-section-number">8.5</span> Remove the entire
 [diff.cpp23.containers] section<a href="#remove-the-entire-diff.cpp23.containers-section" class="self-link"></a></h2>
 <p><span class="ednote" style="color: #0000ff">[ Editor&#39;s note: Remove
 the entire [diff.cpp23.containers] section, as shown below. ]</span></p>
@@ -745,78 +748,78 @@ to a function taking <code>span</code>.</p>
 relies on the lack of this constructor may refuse to compile, or change
 behavior in this revision of C++.</p>
 <p>[<em>Example 1</em>:</p>
-<div class="sourceCode" id="cb15"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>void one(pair&lt;int, int&gt;);       // <em>#1</em></span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>void one(span&lt;const int&gt;);      // <em>#2</em></span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>void t1() { one({1, 2}); }      // <em>ambiguous between #1 and #2; previously called #1</em></span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>void two(span&lt;const int, 2&gt;);</span>
-<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>void t2() { two({{1, 2}}); }    // <em>ill-formed; previously well-formed</em></span>
-<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>void *a[10];</span>
-<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>int x = span&lt;void* const&gt;{a, 0}.size();     // x <em>is</em> 2; <em>previously</em> 0</span>
-<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>any b[10];</span>
-<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>int y = span&lt;const any&gt;{b, b + 10}.size();  // y <em>is</em> 2; <em>previously</em> 10</span></code></pre></div>
+<div class="sourceCode" id="cb16"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>void one(pair&lt;int, int&gt;);       // <em>#1</em></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>void one(span&lt;const int&gt;);      // <em>#2</em></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>void t1() { one({1, 2}); }      // <em>ambiguous between #1 and #2; previously called #1</em></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>void two(span&lt;const int, 2&gt;);</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>void t2() { two({{1, 2}}); }    // <em>ill-formed; previously well-formed</em></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>void *a[10];</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>int x = span&lt;void* const&gt;{a, 0}.size();     // x <em>is</em> 2; <em>previously</em> 0</span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>any b[10];</span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>int y = span&lt;const any&gt;{b, b + 10}.size();  // y <em>is</em> 2; <em>previously</em> 10</span></code></pre></div>
 <p>— <em>end example</em>]</p>
 </div>
-<h1 data-number="10" id="appendix-a-original-pre-lewg-review-proposed-fix"><span class="header-section-number">10</span> Appendix A: Original
+<h1 data-number="9" id="appendix-a-original-pre-lewg-review-proposed-fix"><span class="header-section-number">9</span> Appendix A: Original
 (pre-LEWG-review) proposed fix<a href="#appendix-a-original-pre-lewg-review-proposed-fix" class="self-link"></a></h1>
 <p>This is the fix that the original version of this paper proposed.
 LEWG reviewed this on 2026-03-25 and polled to select a different
 fix.</p>
-<h2 data-number="10.1" id="ansatz-constrain-the-initializer-list-constructor"><span class="header-section-number">10.1</span> Ansatz: Constrain the
+<h2 data-number="9.1" id="ansatz-constrain-the-initializer-list-constructor"><span class="header-section-number">9.1</span> Ansatz: Constrain the
 initializer list constructor<a href="#ansatz-constrain-the-initializer-list-constructor" class="self-link"></a></h2>
 <p>Constrain <code>span(initializer_list&lt;value_type&gt;)</code>
 constructor so that <code>value_type</code> is not
 <code>bool</code>.</p>
-<div class="sourceCode" id="cb16"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span></span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="kw">explicit</span><span class="op">(</span>extent <span class="op">!=</span> dynamic_extent<span class="op">)</span></span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>span<span class="op">(</span>initializer_list<span class="op">&lt;</span>value_type<span class="op">&gt;)</span></span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="kw">requires</span><span class="op">(</span></span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>  is_const_v<span class="op">&lt;</span>ElementType <span class="op">&amp;&amp;</span></span>
-<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>  <span class="op">(!</span> is_same_v<span class="op">&lt;</span>value_type, <span class="dt">bool</span><span class="op">&gt;)</span> <span class="co">// ADD</span></span>
-<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a><span class="op">)</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb17"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="kw">explicit</span><span class="op">(</span>extent <span class="op">!=</span> dynamic_extent<span class="op">)</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>span<span class="op">(</span>initializer_list<span class="op">&lt;</span>value_type<span class="op">&gt;)</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="kw">requires</span><span class="op">(</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>  is_const_v<span class="op">&lt;</span>ElementType <span class="op">&amp;&amp;</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>  <span class="op">(!</span> is_same_v<span class="op">&lt;</span>value_type, <span class="dt">bool</span><span class="op">&gt;)</span> <span class="co">// ADD</span></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a><span class="op">)</span>;</span></code></pre></div>
 <p>That would have the advantage that everything else works fine still,
 but we can avoid the breakage of valid user code, so only
 <code>span&lt;const bool&gt;</code> is affected.</p>
-<div class="sourceCode" id="cb17"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Works in current C++26 draft;</span></span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="co">// fails to compile with the above change</span></span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>span<span class="op">&lt;</span><span class="kw">const</span> <span class="dt">bool</span><span class="op">&gt;</span> span_from_bool<span class="op">{</span><span class="kw">true</span>, <span class="kw">false</span>, <span class="kw">true</span><span class="op">}</span>;</span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a><span class="co">// Work-around: Enclose initializer_list in ()</span></span>
-<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>span<span class="op">&lt;</span><span class="kw">const</span> <span class="dt">bool</span><span class="op">&gt;</span> span_from_bool2<span class="op">({</span><span class="kw">true</span>, <span class="kw">false</span>, <span class="kw">true</span><span class="op">})</span>;</span>
-<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a><span class="ot">assert</span><span class="op">(</span>span_from_bool2<span class="op">.</span>size<span class="op">()</span> <span class="op">==</span> <span class="dv">3</span><span class="bu">u</span><span class="op">)</span>;</span>
-<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a><span class="co">// Work-around: Enclose initializer_list in {}</span></span>
-<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>span<span class="op">&lt;</span><span class="kw">const</span> <span class="dt">bool</span><span class="op">&gt;</span> span_from_bool3<span class="op">{{</span><span class="kw">true</span>, <span class="kw">false</span>, <span class="kw">true</span><span class="op">}}</span>;</span>
-<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a><span class="ot">assert</span><span class="op">(</span>span_from_bool3<span class="op">.</span>size<span class="op">()</span> <span class="op">==</span> <span class="dv">3</span><span class="bu">u</span><span class="op">)</span>;</span></code></pre></div>
-<h2 data-number="10.2" id="fix-initializer-list-construction-from-actual-bool-values"><span class="header-section-number">10.2</span> Fix initializer list
+<div class="sourceCode" id="cb18"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Works in current C++26 draft;</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="co">// fails to compile with the above change</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>span<span class="op">&lt;</span><span class="kw">const</span> <span class="dt">bool</span><span class="op">&gt;</span> span_from_bool<span class="op">{</span><span class="kw">true</span>, <span class="kw">false</span>, <span class="kw">true</span><span class="op">}</span>;</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a><span class="co">// Work-around: Enclose initializer_list in ()</span></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>span<span class="op">&lt;</span><span class="kw">const</span> <span class="dt">bool</span><span class="op">&gt;</span> span_from_bool2<span class="op">({</span><span class="kw">true</span>, <span class="kw">false</span>, <span class="kw">true</span><span class="op">})</span>;</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a><span class="ot">assert</span><span class="op">(</span>span_from_bool2<span class="op">.</span>size<span class="op">()</span> <span class="op">==</span> <span class="dv">3</span><span class="bu">u</span><span class="op">)</span>;</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a><span class="co">// Work-around: Enclose initializer_list in {}</span></span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>span<span class="op">&lt;</span><span class="kw">const</span> <span class="dt">bool</span><span class="op">&gt;</span> span_from_bool3<span class="op">{{</span><span class="kw">true</span>, <span class="kw">false</span>, <span class="kw">true</span><span class="op">}}</span>;</span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a><span class="ot">assert</span><span class="op">(</span>span_from_bool3<span class="op">.</span>size<span class="op">()</span> <span class="op">==</span> <span class="dv">3</span><span class="bu">u</span><span class="op">)</span>;</span></code></pre></div>
+<h2 data-number="9.2" id="fix-initializer-list-construction-from-actual-bool-values"><span class="header-section-number">9.2</span> Fix initializer list
 construction from actual bool values<a href="#fix-initializer-list-construction-from-actual-bool-values" class="self-link"></a></h2>
 <p>The above change would break existing code, specifically by making
 the following fail to compile.</p>
-<div class="sourceCode" id="cb18"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>span<span class="op">&lt;</span><span class="kw">const</span> <span class="dt">bool</span><span class="op">&gt;</span> span_from_bool<span class="op">{</span><span class="kw">true</span>, <span class="kw">false</span>, <span class="kw">true</span><span class="op">}</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb19"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>span<span class="op">&lt;</span><span class="kw">const</span> <span class="dt">bool</span><span class="op">&gt;</span> span_from_bool<span class="op">{</span><span class="kw">true</span>, <span class="kw">false</span>, <span class="kw">true</span><span class="op">}</span>;</span></code></pre></div>
 <p>We can fix this by adding a new <code>initializer_list</code>
 constructor overload specifically for <code>bool</code> input
 values.</p>
-<div class="sourceCode" id="cb19"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co">// NEW CONSTRUCTOR</span></span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">typename</span> InitListType<span class="op">&gt;</span></span>
-<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span></span>
-<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="kw">explicit</span><span class="op">(</span>extent <span class="op">!=</span> dynamic_extent<span class="op">)</span></span>
-<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>my_span<span class="op">(</span>initializer_list<span class="op">&lt;</span>InitListType<span class="op">&gt;</span> il<span class="op">)</span></span>
-<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a><span class="kw">requires</span> <span class="op">(</span>is_const_v<span class="op">&lt;</span>ElementType<span class="op">&gt;</span></span>
-<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>  <span class="op">&amp;&amp;</span> <span class="op">(</span>is_same_v<span class="op">&lt;</span>value_type, <span class="dt">bool</span><span class="op">&gt;)</span></span>
-<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>  <span class="op">&amp;&amp;</span> <span class="op">(</span>is_same_v<span class="op">&lt;</span>InitListType, <span class="dt">bool</span><span class="op">&gt;)</span></span>
-<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a><span class="op">)</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb20"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co">// NEW CONSTRUCTOR</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">typename</span> InitListType<span class="op">&gt;</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a><span class="kw">explicit</span><span class="op">(</span>extent <span class="op">!=</span> dynamic_extent<span class="op">)</span></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>my_span<span class="op">(</span>initializer_list<span class="op">&lt;</span>InitListType<span class="op">&gt;</span> il<span class="op">)</span></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a><span class="kw">requires</span> <span class="op">(</span>is_const_v<span class="op">&lt;</span>ElementType<span class="op">&gt;</span></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>  <span class="op">&amp;&amp;</span> <span class="op">(</span>is_same_v<span class="op">&lt;</span>value_type, <span class="dt">bool</span><span class="op">&gt;)</span></span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>  <span class="op">&amp;&amp;</span> <span class="op">(</span>is_same_v<span class="op">&lt;</span>InitListType, <span class="dt">bool</span><span class="op">&gt;)</span></span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a><span class="op">)</span>;</span></code></pre></div>
 <p>Here is an <a href="https://gcc.godbolt.org/z/Esa1nc1jY">implementation</a> (thanks to
 Giuseppe D’Angelo! who suggests that this constructor could be a C++29
 feature, since it’s an extension, as code would move from breaking to
 non-breaking).</p>
-<h2 data-number="10.3" id="fix-initializer-list-construction-from-any-non-pointer-type-convertible-to-bool"><span class="header-section-number">10.3</span> Fix initializer list
+<h2 data-number="9.3" id="fix-initializer-list-construction-from-any-non-pointer-type-convertible-to-bool"><span class="header-section-number">9.3</span> Fix initializer list
 construction from any non-pointer type convertible to bool?<a href="#fix-initializer-list-construction-from-any-non-pointer-type-convertible-to-bool" class="self-link"></a></h2>
 <p>It would be excellent to permit non-pointer types that are
 convertible to <code>bool</code>. For example, this would permit the
 common case of initializing <code>bool</code> values from 0 and 1
 <code>int</code> literals.</p>
-<div class="sourceCode" id="cb20"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>span<span class="op">&lt;</span><span class="kw">const</span> <span class="dt">bool</span><span class="op">&gt;</span> span_from_bool<span class="op">{</span><span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">1</span><span class="op">}</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb21"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>span<span class="op">&lt;</span><span class="kw">const</span> <span class="dt">bool</span><span class="op">&gt;</span> span_from_bool<span class="op">{</span><span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">1</span><span class="op">}</span>;</span></code></pre></div>
 <p>However, we’re not sure how to specify this. Merely replacing the
 <code>is_same_v&lt;InitListType, bool&gt;</code> constraint with
 <code>is_integral_v&lt;InitListType&gt;</code> does <em>not</em> work.
