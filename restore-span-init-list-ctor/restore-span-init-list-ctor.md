@@ -1,6 +1,6 @@
 ---
 title: "Restore `span`'s `initializer_list` constructor for C++29"
-document: PXXXXR0
+document: DXXXXR0
 date: today
 audience: LEWG
 author:
