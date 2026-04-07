@@ -5,9 +5,11 @@ date: today
 audience: LEWG
 author:
   - name: Mark Hoemmen
-    email: mark-dot-hoemmen-at-gmail-dot-com
+    email: <mark.hoemmen-MILD-OBFUSCATION@gmail.com>
   - name: Hana Dusíková
-    email: hanicka-at-hanicka-dot-net
+    email: <hanicka-MILD-OBFUSCATION@hanicka.net>
+  - name: Rob Parolin
+    email: <robertoparolin-MILD-OBFUSCATION@gmail.com>
 toc: true
 ---
 
@@ -69,7 +71,7 @@ so that it refuses to convert a pointer to `value_type`.
 ```c++
   template <same_as<value_type> InitListValueType> 
   constexpr
-    my_span(std::initializer_list<const InitListValueType> il)
+    my_span(std::initializer_list<InitListValueType> il)
       requires (is_const_v<ElementType>);
 ```
 
@@ -139,7 +141,11 @@ The more constructors we add to it, the less clear this becomes.
 
 # Implementation
 
-[This Compiler Explorer link](https://godbolt.org/z/zW9Knjs6j)
+NVIDIA's libcu++ library is a Standard Library implementation.
+[Pull Request 8314](https://github.com/NVIDIA/cccl/pull/8314)
+implements the proposed change in libc++.
+
+[This Compiler Explorer link](https://godbolt.org/z/zGq8KssMW)
 shows a full `span` implementation with some tests.
 Appendix A shows the implementation.
 
@@ -219,7 +225,7 @@ namespace std {
 
   template <same_as<value_type> InitListValueType> 
   constexpr
-    my_span(std::initializer_list<const InitListValueType> il)
+    my_span(std::initializer_list<InitListValueType> il)
       requires (is_const_v<ElementType>);
 
 
@@ -227,7 +233,7 @@ namespace std {
 ```
 template<class InitListValueType>
   constexpr explicit(extent != dynamic_extent)
-    span(std::initializer_list<const InitListValueType> il);
+    span(std::initializer_list<InitListValueType> il);
 ```
 
 [21]{.pnum} *Constraints*:
@@ -277,6 +283,7 @@ void t2() { two({{1, 2}}); }    // @_ill-formed; previously well-formed_@
 ```c++
 #include <any>
 #include <cassert>
+#include <stdexcept>
 #include <iterator>
 #include <span>
 
@@ -291,17 +298,21 @@ namespace std2 {
   template<class ElementType, size_t Extent = dynamic_extent>
   class span;
 
-  template<class T>
-  constexpr bool is_span_v = false;
-  template<class ElementType, size_t Extent>
-  constexpr bool is_span_v<span<ElementType, Extent>> = true;
-  template<class ElementType, size_t Extent>
-  constexpr bool is_span_v<std::span<ElementType, Extent>> = true;
+  namespace impl {
+    template<class T>
+    constexpr bool is_span_v = false;
+    template<class ElementType, size_t Extent>
+    constexpr bool is_span_v<span<ElementType, Extent>> = true;
+    template<class ElementType, size_t Extent>
+    constexpr bool is_span_v<
+      std::span<ElementType, Extent>> = true;
 
-  template<class T>
-  constexpr bool is_std_array_v = false;
-  template<class ValueType, size_t Extent>
-  constexpr bool is_std_array_v<std::array<ValueType, Extent>> = true;
+    template<class T>
+    constexpr bool is_std_array_v = false;
+    template<class ValueType, size_t Extent>
+    constexpr bool is_std_array_v<
+      std::array<ValueType, Extent>> = true;
+  } // namespace impl
 
   template<class ElementType, size_t Extent>
   class span {
@@ -322,13 +333,11 @@ namespace std2 {
     using iterator = pointer;
     using const_iterator = const_pointer;
     using reverse_iterator = std::reverse_iterator<iterator>;
-#if ! defined(__clang__)
     // libc++ doesn't seem to define std::const_iterator or
-    // std::make_const_iterator in <iterator>.
-    using const_reverse_iterator = std::const_iterator<reverse_iterator>;
-#else
-    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
-#endif
+    // std::make_const_iterator in <iterator>.  We don't actually
+    // need these, though.
+    using const_reverse_iterator =
+      std::reverse_iterator<const_iterator>;
     static constexpr size_type extent = Extent;
 
     // [span.cons], constructors, copy, and assignment
@@ -337,9 +346,7 @@ namespace std2 {
 
     template<class It>
       requires(
-        std::contiguous_iterator<
-          It
-        > &&
+        std::contiguous_iterator<It> &&
         std::is_convertible_v<
           std::remove_reference_t<std::iter_reference_t<It>>(*)[],
           element_type(*)[]
@@ -363,10 +370,13 @@ namespace std2 {
       )
       constexpr explicit(extent != dynamic_extent)
         span(It first, End last)
-          : data_(::std::to_address(first)), size_(last - first) {}
+          : data_(::std::to_address(first)),
+            size_(last - first)
+        {}
   
     template<size_t N>
-      constexpr span(std::type_identity_t<element_type> (&arr)[N]) noexcept
+      constexpr span(
+        std::type_identity_t<element_type> (&arr)[N]) noexcept
       requires(
         (extent == dynamic_extent || N == extent) && 
         std::is_convertible_v<
@@ -395,38 +405,45 @@ namespace std2 {
         >
       ) : data_(arr.data()), size_(N) {}
 
-    template<class R>
-      requires(
-        std::ranges::contiguous_range<
-          std::remove_reference_t<std::ranges::range_reference_t<R>>
-        > &&
-        std::ranges::sized_range<
-          std::remove_reference_t<std::ranges::range_reference_t<R>>
-        > &&
-        (
-          std::ranges::borrowed_range<
-            std::remove_reference_t<std::ranges::range_reference_t<R>>
-          > ||
-          std::is_const_v<element_type>
-        ) &&
-        ! is_span_v<std::remove_cvref_t<R>> &&
-        ! is_std_array_v<std::remove_cvref_t<R>> &&
-        ! std::is_array_v<std::remove_cvref_t<R>> &&
-        std::is_convertible_v<
-          std::remove_reference_t<std::ranges::range_reference_t<R>>(*)[],
-          element_type(*)[]
-        >       
-      )
-      constexpr explicit(extent != dynamic_extent)
-        span(R&& r)
-          : data_( ::std::ranges::data(r)),
-            size_( ::std::ranges::size(r))
-        {}
+    template<class R> requires(
+      std::ranges::contiguous_range<
+        std::remove_reference_t<
+          std::ranges::range_reference_t<R>
+        >
+      > &&
+      std::ranges::sized_range<
+        std::remove_reference_t<
+          std::ranges::range_reference_t<R>
+        >
+      > &&
+      (
+        std::ranges::borrowed_range<
+          std::remove_reference_t<
+            std::ranges::range_reference_t<R>
+          >
+        > ||
+        std::is_const_v<element_type>
+      ) &&
+      ! impl::is_span_v<std::remove_cvref_t<R>> &&
+      ! impl::is_std_array_v<std::remove_cvref_t<R>> &&
+      ! std::is_array_v<std::remove_cvref_t<R>> &&
+      std::is_convertible_v<
+        std::remove_reference_t<
+          std::ranges::range_reference_t<R>
+        >(*)[],
+        element_type(*)[]
+      >       
+    )
+    constexpr explicit(extent != dynamic_extent)
+      span(R&& r)
+        : data_( ::std::ranges::data(r)),
+          size_( ::std::ranges::size(r))
+      {}
 
 #if defined(PROPOSED_CHANGE)
     template<std::same_as<value_type> InitListValueType>
       constexpr explicit(extent != dynamic_extent)
-        span( ::std::initializer_list<const InitListValueType> il)
+        span( ::std::initializer_list<InitListValueType> il)
           requires(std::is_const_v<element_type>)
       : data_(std::data(il)), size_(il.size())
     {
@@ -442,7 +459,8 @@ namespace std2 {
         OtherExtent == dynamic_extent ||
         extent == OtherExtent
       )
-      constexpr explicit(
+      constexpr
+      explicit(
         extent != dynamic_extent &&
         OtherExtent == dynamic_extent
       )
@@ -459,7 +477,10 @@ namespace std2 {
       }
     template<size_t Count>
       constexpr span<element_type, Count> last() const {
-        return span<element_type, Count>(data() + (size() - Count), Count);
+        return span<element_type, Count>(
+          data() + (size() - Count),
+          Count
+        );
       }
     template<size_t Offset, size_t Count = dynamic_extent>
       constexpr span<element_type,
@@ -467,25 +488,36 @@ namespace std2 {
           : (Extent != dynamic_extent ? Extent - Offset
             : dynamic_extent)
       > subspan() const {
-        static_assert(Offset <= Extent && (Count == dynamic_extent || Count <= Extent - Offset));
+        static_assert(
+          Offset <= Extent &&
+          (Count == dynamic_extent || Count <= Extent - Offset)
+        );
         static constexpr size_t ResultExtent =
           Count != dynamic_extent ? Count
             : (Extent != dynamic_extent ? Extent - Offset
               : dynamic_extent);
         return span<ElementType, ResultExtent>(
-          data() + Offset, Count != dynamic_extent ? Count : size() - Offset);
+          data() + Offset,
+          Count != dynamic_extent ? Count : size() - Offset
+        );
       }
 
-    constexpr span<element_type, dynamic_extent> first(size_type count) const {
-      return span<element_type, dynamic_extent>(data(), count);
-    }
-    constexpr span<element_type, dynamic_extent> last(size_type count) const {
-      return span<element_type, dynamic_extent>(data() + (size() - count), count);
-    }
+    constexpr span<element_type, dynamic_extent>
+      first(size_type count) const {
+        return span<element_type, dynamic_extent>(data(), count);
+      }
+    constexpr span<element_type, dynamic_extent>
+      last(size_type count) const {
+        return span<element_type, dynamic_extent>(
+          data() + (size() - count),
+          count
+        );
+      }
     constexpr span<element_type, dynamic_extent> subspan(
       size_type offset, size_type count = dynamic_extent) const {
         return span<element_type, dynamic_extent>(
-          data() + offset, count == dynamic_extent ? size() - offset : count
+          data() + offset,
+          count == dynamic_extent ? size() - offset : count
         );
       }
 
@@ -506,7 +538,7 @@ namespace std2 {
     }
     constexpr reference at(size_type idx) const {
       if (idx >= size()) {
-        throw std::out_of_range("uh oh");
+        throw std::out_of_range("span::at: Index out of bounds");
       }
       return data_[idx];
     }
@@ -527,45 +559,78 @@ namespace std2 {
     constexpr iterator end() const noexcept {
       return data() + size();
     }
-    constexpr const_iterator cbegin() const noexcept { return begin(); }
-    constexpr const_iterator cend() const noexcept { return end(); }
+    constexpr const_iterator cbegin() const noexcept {
+      return begin();
+    }
+    constexpr const_iterator cend() const noexcept {
+      return end();
+    }
     constexpr reverse_iterator rbegin() const noexcept {
       return reverse_iterator(end());
     }
     constexpr reverse_iterator rend() const noexcept {
       return reverse_iterator(begin());
     }
-    constexpr const_reverse_iterator crbegin() const noexcept {
-      return rbegin();
-    }
-    constexpr const_reverse_iterator crend() const noexcept {
-      return rend();
-    }
+    constexpr const_reverse_iterator
+      crbegin() const noexcept {
+        return rbegin();
+      }
+    constexpr const_reverse_iterator
+      crend() const noexcept {
+        return rend();
+      }
   };
 
   // [span.objectrep], views of object representation
   template<class ElementType, size_t Extent>
-    requires(! ::std::is_volatile_v<ElementType>)
-  span<const std::byte, Extent == dynamic_extent ? dynamic_extent : sizeof(ElementType) * Extent>
-    as_bytes(span<ElementType, Extent> s) noexcept {
-      using R = span<const std::byte, Extent == dynamic_extent ? dynamic_extent : sizeof(ElementType) * Extent>;
-      return R{reinterpret_cast<const std::byte*>(s.data()), s.size_bytes()};
-    }
+    requires(
+      ! ::std::is_volatile_v<ElementType>
+    )
+  span<
+    const std::byte,
+    Extent == dynamic_extent ? dynamic_extent : sizeof(ElementType) * Extent
+  >
+  as_bytes(span<ElementType, Extent> s) noexcept {
+    using R = span<
+      const std::byte,
+      Extent == dynamic_extent ? dynamic_extent : sizeof(ElementType) * Extent
+    >;
+    return R(
+      reinterpret_cast<const std::byte*>(s.data()),
+      s.size_bytes()
+    );
+  }
 
   template<class ElementType, size_t Extent>
-    requires(! ::std::is_const_v<ElementType> && ! ::std::is_volatile_v<ElementType>)
-  span<std::byte, Extent == dynamic_extent ? dynamic_extent : sizeof(ElementType) * Extent>
-    as_writable_bytes(span<ElementType, Extent> s) noexcept {
-      using R = span<std::byte, Extent == dynamic_extent ? dynamic_extent : sizeof(ElementType) * Extent>;
-      return R{reinterpret_cast<std::byte*>(s.data()), s.size_bytes()};
-    }
+    requires(
+      ! ::std::is_const_v<ElementType> &&
+      ! ::std::is_volatile_v<ElementType>
+    )
+  span<
+    std::byte,
+    Extent == dynamic_extent ? dynamic_extent : sizeof(ElementType) * Extent
+  >
+  as_writable_bytes(span<ElementType, Extent> s) noexcept {
+    using R = span<
+      std::byte,
+      Extent == dynamic_extent ? dynamic_extent : sizeof(ElementType) * Extent
+    >;
+    return R(
+      reinterpret_cast<std::byte*>(s.data()),
+      s.size_bytes()
+    );
+  }
 } // namespace std2
 
 namespace std::ranges {
   template<class ElementType, size_t Extent>
-    constexpr bool enable_view< ::std2::span<ElementType, Extent>> = true;
+    constexpr bool enable_view<
+      ::std2::span<ElementType, Extent>
+    > = true;
   template<class ElementType, size_t Extent>
-    constexpr bool enable_borrowed_range< ::std2::span<ElementType, Extent>> = true;
+    constexpr bool enable_borrowed_range<
+      ::std2::span<ElementType, Extent>
+    > = true;
 }
 
 bool bool_true() { return true; }
@@ -583,8 +648,20 @@ int main() {
     assert(b.size() == 3);
     assert(b[0] && ! b[1] && b[2]);
   }
+
+  //{
+  //  std2::span<const bool> b{1, 0, 1};
+  //  assert(b.size() == 3);
+  //  assert(b[0] && ! b[1] && b[2]);
+  //}
+  //{
+  //  std2::span<const std::any> b{"foo", true, 1.25f};
+  //  assert(b.size() == 3);
+  //}
   {
-    std2::span<const std::any> b{std::any{"foo"}, std::any{true}, std::any{1.25f}};
+    std2::span<const std::any> b{
+      std::any{"foo"}, std::any{true}, std::any{1.25f}
+    };
     assert(b.size() == 3);
   }
   {
@@ -592,6 +669,17 @@ int main() {
     assert(b.size() == 3);
     assert(b[0] == 1.0f && b[1] == 2.0f && b[2] == 3.0f);
   }
+  //{
+  //  std2::span<const float> b{1.0, 2.0, 3.0};
+  //  assert(b.size() == 3);
+  //  assert(b[0] == 1.0f && b[1] == 2.0f && b[2] == 3.0f);
+  //}
+  //{
+  //  std2::span<const float> b{1, 2, 3};
+  //  assert(b.size() == 3);
+  //  assert(b[0] == 1.0f && b[1] == 2.0f && b[2] == 3.0f);
+  //}
+
 #endif
 
   return 0;
