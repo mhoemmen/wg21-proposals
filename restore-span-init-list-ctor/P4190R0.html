@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2026-04-07" />
+  <meta name="dcterms.date" content="2026-04-16" />
   <title>Restore span’s initializer_list constructor for C++29</title>
   <style>
 code{white-space: pre-wrap;}
@@ -422,11 +422,11 @@ div#refs p { padding-left: 32px; text-indent: -32px; }
 <table style="border:none;float:right">
   <tr>
     <td>Document #: </td>
-    <td>DXXXXR0</td>
+    <td>P4190R0</td>
   </tr>
   <tr>
     <td>Date: </td>
-    <td>2026-04-07</td>
+    <td>2026-04-16</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project: </td>
@@ -656,9 +656,6 @@ description to [span.cons]. ]</span></p>
 <p><span class="marginalizedparent"><a class="marginalized">20</a></span>
 <em>Throws</em>: What and when <code>ranges​::​data(r)</code> and
 <code>ranges​::​size(r)</code> throw.</p>
-<p>template &lt;same_as<value_type> InitListValueType&gt; constexpr
-my_span(std::initializer_list<InitListValueType> il) requires
-(is_const_v<ElementType>);</p>
 <div class="add" style="color: #00AA00">
 
 <div class="sourceCode" id="cb14"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>template&lt;class InitListValueType&gt;</span>

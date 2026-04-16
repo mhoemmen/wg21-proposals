@@ -1,6 +1,6 @@
 ---
 title: "Restore `span`'s `initializer_list` constructor for C++29"
-document: DXXXXR0
+document: P4190R0
 date: today
 audience: LEWG
 author:
@@ -222,12 +222,6 @@ namespace std {
 [19]{.pnum} *Effects*: Initializes `data_` with `ranges​::​data(r)` and `size_` with `ranges​::​size(r)`.
 
 [20]{.pnum} *Throws*: What and when `ranges​::​data(r)` and `ranges​::​size(r)` throw.
-
-  template <same_as<value_type> InitListValueType> 
-  constexpr
-    my_span(std::initializer_list<InitListValueType> il)
-      requires (is_const_v<ElementType>);
-
 
 ::: add
 ```
