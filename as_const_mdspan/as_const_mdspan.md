@@ -1,6 +1,6 @@
 ---
-title: "Getting the const element type version of an mdspan accessor, and of an mdspan too"
-document: PXXXXR0
+title: "Getting a const element type version of an mdspan accessor, and of an mdspan too"
+document: P4311R0
 date: today
 audience: LEWG
 author:
@@ -12,7 +12,7 @@ author:
 toc: true
 ---
 
-# Author
+# Authors
 
 * Mark Hoemmen (NVIDIA)
 
@@ -20,7 +20,7 @@ toc: true
 
 # Revision history
 
-* Revision 0 to be submitted by 2026-07-13
+* Revision 0 to be submitted by 2026-07-15
 
 # Summary
 
@@ -34,37 +34,37 @@ Given an accessor `a` of type `A`, a "const element type version of `a`" (if it 
 
     * `b` and `b_dh` have the same accessible range as `a` and `a_dh`, and 
 
-    * `b.access(b_dh, k)` and `a.access(a_dh, k)` access the same element for `k` in the accessible range of `a_dh`.
+    * `b.access(b_dh, k)` and `a.access(a_dh, k)` access the same element for all `k` in the accessible range of `a_dh`.
 
-For example, a const element type version of any `default_accessor<T>` instance is any `default_accessor<const T>` instance, and a const element type version of any `aligned_accessor<T, ByteAlignment>` instance is any `aligned_accessor<const T, ByteAlignment>` instance.
+For example, a const element type version of any `default_accessor<T>` instance is any `default_accessor<const T>` instance, and a const element type version of any `aligned_accessor<T, ByteAlignment>` instance is any `aligned_accessor<const T, ByteAlignment>` instance.  We say "a const element type version" and not "the const element type version" because it is never unique; an unbounded set of custom accessor types would satisfy these criteria.
 
-Given an `mdspan` `x` whose accessor is `a` of type `A`, and assuming that `b` of type `B` is the const element type version of `a`, a "const element type version of `x`" is an `mdspan` `y` given by the following declaration.
+Given an `mdspan` `x` whose accessor is `a` of type `A`, and assuming that `b` of type `B` is a const element type version of `a`, a "const element type version of `x`" is an `mdspan`
 
-```c++
-mdspan y(B::data_handle_type(x.data_handle()), x.mapping(), b);
-```
+* whose data handle is `B::data_handle_type(x.data_handle())`, 
+
+* whose layout mapping is `x.mapping()`, and
+
+* whose accessor is `b`.
 
 The Standard doesn't currently have a way to take an arbitrary accessor and get a const element type version of it.  This hinders development of generic `mdspan` algorithm libraries.
 
 We propose adding three new features to the C++ Standard Library.
 
-1. A customization point object (CPO) `as_const_access`.  It takes an accessor with element type `element_type`, and returns a const element type version of the accessor.
+1. A customization point object (CPO) `as_const_access`.  It takes an accessor with element type `element_type`, and returns a const element type version of the accessor, which it computes using the rules below.
 
 2. A new accessor `as_const_accessor`.  It wraps an existing accessor, has const `element_type`, and has a `reference` type that wraps the existing accessor's `reference` but only permits reads, not writes.  The result is a const element type version of the wrapped accessor.  This behaves like the `mdspan` analog of `ranges::as_const_view`.
  
 3. A function template `as_const_mdspan` that takes an `mdspan` and uses (1) to return a const element type version of the `mdspan`.
 
-The CPO behaves as follows.
+The CPO computes the const element type version of an accessor using the following rules.
 
-1. For `default_accessor<T>`, it returns `default_accessor<const T>`.
+1. For accessor types whose `element_type` is already const, it just returns a copy of the input accessor.
 
-2. For `aligned_accessor<T, ByteAlignment>`, it returns `aligned_accessor<const T, ByteAlignment>`.
-
-3. For accessor types whose `element_type` is already const, it just returns a copy of the input accessor.
-
-4. If the accessor has a (possibly static) `as_const_access` member, the CPO returns the result of calling that.
+2. If the accessor has a (possibly static) `as_const_access` member, the CPO returns the result of calling that.
  
-5. Otherwise, the CPO returns the result of wrapping the input accessor in `as_const_accessor`.
+3. Otherwise, the CPO returns the result of wrapping the input accessor in `as_const_accessor`.
+
+For the two existing Standard accessor types that permit nonconst `element_type`, `default_accessor<T>` and `aligned_accessor<T, ByteAlignment>`, we propose adding public static `as_const_access` members that return `default_accessor<const T>` and `aligned_accessor<const T, ByteAlignment>`, respectively.
 
 # Motivation
 
@@ -163,17 +163,17 @@ We know how to do (1).  If a layout mapping is well-formed for one extents speci
 
 We do NOT know how to (2).  We know how to do it for the Standard accessors like `default_accessor` and `aligned_accessor`, but we don't know how to do it for an arbitrary user-defined accessor.
 
-This situation has come up in practice for the authors.  One author developed this two-layer scheme for generic algorithms in the kokkos-kernels subproject of the [Kokkos](https://github.com/kokkos/kokkos) project.  The scheme works there because Kokkos' analog of `mdspan`, `Kokkos::View`, has a way to get the const element type version of a `Kokkos::View`.  The same author consulted on how to implement the analogous two-layer scheme for an `mdspan`-based generic algorithms library, [RAPIDS RAFT](https://github.com/NVIDIA/raft).  It didn't work because there is no way currently to get the const element type version of an `mdspan`.
+This situation has come up in practice for the authors.  One author developed this two-layer scheme for generic algorithms in the kokkos-kernels subproject of the [Kokkos](https://github.com/kokkos/kokkos) project.  The scheme works there because Kokkos' analog of `mdspan`, `Kokkos::View`, has a way to get a const element type version of a `Kokkos::View`.  The same author consulted on how to implement the analogous two-layer scheme for an `mdspan`-based generic algorithms library, [RAPIDS RAFT](https://github.com/NVIDIA/raft).  It didn't work because there is no way currently to get a const element type version of an `mdspan`.
 
 ## Why can't users do this with the current Standard?
 
-We know how to get the const element type versions of the Standard accessors `default_accessor` and `aligned_accessor`.  Users might guess that they can assume that all accessors have the form `Accessor<ElementType, Args...>`, where the first template argument is the element type, and the subsequent template arguments determine the accessor's behavior.  This assumption is false, for the following reasons.
+We know how to geta const element type versions of the Standard accessors `default_accessor` and `aligned_accessor`.  Users might guess that they can assume that all accessors have the form `Accessor<ElementType, Args...>`, where the first template argument is the element type, and the subsequent template arguments determine the accessor's behavior.  This assumption is false, for the following reasons.
 
 * Accessors don't need to have template parameters at all.
 * Even if they do have template parameters, the first template parameter doesn't have to be the element type.
 * Even if the first template parameter is the element type, nothing requires that the accessor accept `const element_type` as its first template argument.  (Accessors don't have to be "const-able.")
 
-In many cases, users know what the const element type version of their accessor would be.  However, the Standard doesn't give them a way to tell generic code how to get this.
+In many cases, users know what a const element type version of their accessor would be.  However, the Standard doesn't give them a way to tell generic code how to get this.
 
 # Design
 
@@ -204,7 +204,7 @@ constexpr auto as_const_mdspan(
 
 The problem we have is to name three separate things.
 
-1. The CPO that returns the const element type version of an accessor
+1. The CPO that returns a const element type version of an accessor
 2. The function implementing the "customization" for the CPO
 3. The accessor that wraps the input accessor to forbid write access
 
@@ -226,7 +226,7 @@ We have the following design desiderata.
 
     c. The "fall-back" behavior of a wrapping accessor might be acceptable.
 
-2. Users should have a public interface for getting the const element type version of an accessor, not just a public interface for getting the const element type version of an mdspan.
+2. Users should have a public interface for getting a const element type version of an accessor, not just a public interface for getting a const element type version of an mdspan.
 
     a. Users might want to apply multiple transformations to accessors before creating an mdspan from them.  For instance, they might start with an mdspan with nonconst element type, like `default_accessor<float>`, turn it to const, and then wrap it in another accessor that adds logging functionality.
 
@@ -244,7 +244,7 @@ Precedent from Ranges takes Option (2); it distinguishes the CPO from the functi
 
 We know of no precedent for Option (3).  The CPO `std::compare_strong_order_fallback(a, b)` has an option to invoke the CPO `std::strong_order`, but there's no ADL happening.
 
-Precedent from [linalg] takes Option (4); it makes the CPO exposition-only.  For example, _`abs-if-needed`_ is an exposition-only CPO that attempts to use ADL to find `abs(E)`.  The [linalg] library takes this approach because the CPO is an implementation detail.  Users influence the library's behavior by defining ADL-findable functions for their number types, as they normally would for custom number types.  The CPO just "regularizes" the behavior of `std::abs` for built-in number types, in order to simplify the definition of [linalg]'s algorithms.  However, this precedent would violate Desideratum (2).  Users have good reasons to want the const element type version of an accessor directly.
+Precedent from [linalg] takes Option (4); it makes the CPO exposition-only.  For example, _`abs-if-needed`_ is an exposition-only CPO that attempts to use ADL to find `abs(E)`.  The [linalg] library takes this approach because the CPO is an implementation detail.  Users influence the library's behavior by defining ADL-findable functions for their number types, as they normally would for custom number types.  The CPO just "regularizes" the behavior of `std::abs` for built-in number types, in order to simplify the definition of [linalg]'s algorithms.  However, this precedent would violate Desideratum (2).  Users have good reasons to want a const element type version of an accessor directly.
 
 Precedent from [mdspan.sub] takes Option (5); it makes the CPO not exist at all.  The only public interface to get the mapping of the mdspan returned by `submdspan` is an unqualified call to `submdspan_mapping`.  The `mdspan` library lives in the `std` namespace.  There's no nested namespace in which to hide a CPO.  While the definition of `submdspan` attempts to find `submdspan_mapping` via ADL, that happens directly, not by means of a CPO (at least not a CPO that users can see).  This works because `submdspan` has no reasonable "fall-back" behavior for `submdspan_mapping`.  If calling it is well-formed, then `submdspan` can create the result mapping.  Otherwise, it's a custom mapping and `submdspan` would have no idea what to do with it, so `submdspan` is ill-formed.  However, this precedent violates Desideratum (1).  We don't want to force users to define the function for their custom accessors.
 
@@ -438,17 +438,17 @@ We do _not_ need the ability to rebind between arbitrary element types, e.g., fr
 
 For an arbitrary accessor with nonconst element type, it needs to "make semantic sense" to rebind the accessor to have const element type (and to make its `reference` type syntactically read-only) without otherwise changing its behavior.
 
-If we accept this, then we can take an approach similar to `std::ranges::views::as_const`.  That is, if the Standard "knows" how to get the const element type version of an accessor, then it can do so.  Otherwise, it can wrap the accessor in another accessor with const element type and with a `reference` type that only permits reads, analogously to how `std::ranges::as_const_view` wraps a base view.
+If we accept this, then we can take an approach similar to `std::ranges::views::as_const`.  That is, if the Standard "knows" how to get a const element type version of an accessor, then it can do so.  Otherwise, it can wrap the accessor in another accessor with const element type and with a `reference` type that only permits reads, analogously to how `std::ranges::as_const_view` wraps a base view.
 
 ## Unlike Ranges, use a customization point
 
-How should the Standard "know" how to get the const element type version of an accessor?  Ranges does this with an enumeration of various possibilities in [range.as.const.overview] 2.  There is no customization point to change the behavior of `views::as_const` for user-defined types.  User-defined ranges that aren't already `constant_range` always get wrapped in `as_const_view`.  This is idiomatic Ranges design, but it's not idiomatic `mdspan` design.  For example, `submdspan` gets the resulting layout mapping from the `submdspan_mapping` customization point, and the resulting accessor from the (possibly custom) input accessor's `offset` function.
+How should the Standard "know" how to get a const element type version of an accessor?  Ranges does this with an enumeration of various possibilities in [range.as.const.overview] 2.  There is no customization point to change the behavior of `views::as_const` for user-defined types.  User-defined ranges that aren't already `constant_range` always get wrapped in `as_const_view`.  This is idiomatic Ranges design, but it's not idiomatic `mdspan` design.  For example, `submdspan` gets the resulting layout mapping from the `submdspan_mapping` customization point, and the resulting accessor from the (possibly custom) input accessor's `offset` function.
 
 This suggests that we want a customization point so that users can define what "const version of an accessor" means for their own accessor types.
 
 # Implementation
 
-[This Compiler Explorer link](https://godbolt.org/z/rhM378djn) has a brief implementation.
+[This Compiler Explorer link](https://godbolt.org/z/n6PoaGhMr) has a brief implementation.
 
 One coauthor has an implementation of an earlier draft of this proposal in a branch of the [CCCL](https://github.com/NVIDIA/cccl/) repository.
 
@@ -510,6 +510,83 @@ One coauthor has an implementation of an earlier draft of this proposal in a bra
     class mdspan;
 ```
 
+## Change section [mdspan.accessor.default]
+
+> Change the existing section "[mdspan.accessor.default], Class template `default_accessor`" as specified below.
+
+### Overview [mdspan.accessor.default.overview]
+
+```
+namespace std {
+  template<class ElementType>
+  struct default_accessor {
+    using offset_policy = default_accessor;
+    using element_type = ElementType;
+    using reference = ElementType&;
+    using data_handle_type = ElementType*;
+
+    constexpr default_accessor() noexcept = default;
+    template<class OtherElementType>
+      constexpr default_accessor(default_accessor<OtherElementType>) noexcept;
+    constexpr reference access(data_handle_type p, size_t i) const noexcept;
+    constexpr data_handle_type offset(data_handle_type p, size_t i) const noexcept;
+```
+::: add
+```
+    static constexpr default_accessor<const element_type> as_const_access() noexcept {
+      return {};
+    }
+```
+:::
+```
+  };
+}
+```
+
+## Change section [mdspan.accessor.aligned]
+
+> Change the existing section "[mdspan.accessor.aligned], Class template `aligned_accessor`" as specified below.
+
+### Overview [mdspan.accessor.aligned.overview]
+
+```
+namespace std {
+  template<class ElementType, size_t ByteAlignment>
+  struct aligned_accessor {
+    using offset_policy = default_accessor<ElementType>;
+    using element_type = ElementType;
+    using reference = ElementType&;
+    using data_handle_type = ElementType*;
+
+    static constexpr size_t byte_alignment = ByteAlignment;
+
+    constexpr aligned_accessor() noexcept = default;
+    template<class OtherElementType, size_t OtherByteAlignment>
+      constexpr aligned_accessor(
+        aligned_accessor<OtherElementType, OtherByteAlignment>) noexcept;
+    template<class OtherElementType>
+      constexpr explicit aligned_accessor(default_accessor<OtherElementType>) noexcept;
+
+    template<class OtherElementType>
+      constexpr operator default_accessor<OtherElementType>() const noexcept;
+
+    constexpr reference access(data_handle_type p, size_t i) const noexcept;
+
+    constexpr typename offset_policy::data_handle_type offset(
+      data_handle_type p, size_t i) const noexcept;
+```
+::: add
+```
+    static constexpr aligned_accessor<const element_type> as_const_access() noexcept {
+      return {};
+    }
+```
+:::
+```
+  };
+}
+```
+
 ## Add new section [mdspan.accessor.as_const_accessor]
 
 > Add a new section "[mdspan.accessor.as_const_accessor], Class template `as_const_accessor`" between [mdspan.accessor.aligned] and [mdspan.mdspan],
@@ -517,6 +594,7 @@ One coauthor has an implementation of an earlier draft of this proposal in a bra
 
 ### [mdspan.accessor.as_const_accessor.overview] Overview
 
+::: add
 [1]{.pnum} The class template `as_const_accessor` is an `mdspan` accessor policy that wraps an existing `mdspan` accessor policy, and provides read-only access to the elements accessed by the wrapped policy.  It is part of the implementation of `as_const_access` ([mdspan.accessor.as_const_access]).
 
 ```
@@ -524,22 +602,28 @@ template <class NestedAccessor>
 class as_const_accessor {
 public:
   using data_handle_type = typename NestedAccessor::data_handle_type;
-  using element_type = std::add_const_t<typename NestedAccessor::element_type>;
-  using offset_policy = as_const_accessor<typename NestedAccessor::offset_policy>;
+  using element_type =
+    std::add_const_t<typename NestedAccessor::element_type>;
+  using offset_policy =
+    as_const_accessor<typename NestedAccessor::offset_policy>;
 
   // [mdspan.accessor.as_const_accessor.ref] Proxy reference type
-  using reference = @_as-const-accessor-reference_@;
+  using reference = @_as-const-accessor-reference_@<
+    typename NestedAccessor::element_type,
+    typename NestedAccessor::reference>;
  
   // [mdspan.accessor.as_const_accessor.cons] Constructors
   constexpr as_const_accessor(NestedAccessor acc);
 
   template<class OtherNestedAccessor>
     explicit(@_see below_@)
-      constexpr as_const_accessor(OtherNestedAccessor acc);
+      constexpr as_const_accessor(OtherNestedAccessor acc)
+        noexcept(noexcept(acc_(acc)));
 
   // [mdspan.accessor.as_const_accessor.members] Members
-  constexpr reference access(data_handle_type handle, std::size_t k) const
-    noexcept(noexcept(reference(acc_.access(handle, k))));
+  constexpr reference
+    access(data_handle_type handle, std::size_t k) const
+      noexcept(noexcept(reference(acc_.access(handle, k))));
 
   constexpr typename offset_policy::data_handle_type
     offset(data_handle_type handle, std::size_t k) const
@@ -561,24 +645,25 @@ private:
 * [3.3]{.pnum} `is_nothrow_swappable_v<as_const_accessor<NA>>` is `true` if `is_nothrow_swappable_v<NA> is `true`.
 
 [4]{.pnum} Each specialization `as_const_accessor<NA>` is a trivially copyable type if `NA` is a trivially copyable type.
+:::
 
 ### [mdspan.accessor.as_const_accessor.ref] Proxy reference type
 
-[1]{.pnum} _`as-const-accessor-reference`_ denotes the following exposition-only class type defined in the scope of `as_const_accessor`.
+::: add
+[1]{.pnum} _`as-const-accessor-reference`_ denotes the following exposition-only class template.
 
 ```
+template<NestedElementType, class NestedReferenceType>
 class @_as-const-accessor-reference_@ { // exposition-only
 private:
-  using nested_element_type = typename NestedAccessor::element_type;
-  using nested_reference_type = typename NestedAccessor::reference;
-  nested_reference_type ref_;
+  NestedReferenceType ref_;
  
 public:
-  using value_type = std::remove_cv_t<nested_element_type>;
+  using value_type = std::remove_cv_t<NestedElementType>;
 
   constexpr explicit
-    as_const_accessor_reference(nested_reference_type ref)
-      noexcept(noexcept(nested_reference_type(ref)))
+    as_const_accessor_reference(NestedReferenceType ref)
+      noexcept(noexcept(NestedReferenceType(ref)))
       : ref_(ref)
   {}
 
@@ -589,9 +674,11 @@ public:
   }
 };
 ```
+:::
 
 ### [mdspan.accessor.as_const_accessor.cons] Constructors
 
+::: add
 ```
   constexpr as_const_accessor(NestedAccessor acc);
 ```
@@ -602,8 +689,7 @@ public:
   template<class OtherNestedAccessor>
     explicit(@_see below_@)
       constexpr as_const_accessor(OtherNestedAccessor acc)
-        : acc_(acc)
-  {}
+        noexcept(noexcept(acc_(acc)));
 ```
 
 [2]{.pnum} *Constraints*:
@@ -615,9 +701,11 @@ public:
 [3]{.pnum} *Effects*: Direct-non-list-initializes `acc_` with `acc`.
 
 [4]{.pnum} *Remarks*: The expression inside `explicit` is equivalent to: `! std::is_convertible_v<OtherNestedAccessor, NestedAccessor>`.
+:::
 
 ### [mdspan.accessor.as_const_accessor.members] Members
 
+::: add
 ```
   constexpr reference access(data_handle_type handle, std::size_t k) const
     noexcept(noexcept(reference(acc_.access(handle, k))));
@@ -637,11 +725,13 @@ public:
 [2]{.pnum} *Returns*: `typename offset_policy::data_handle_type(acc_.offset(handle, k))`.
 
 [3]{.pnum} *Remarks*: The expression inside the `noexcept` specifier is equivalent to: `typename offset_policy::data_handle_type(acc_.offset(handle, k))`.
+:::
 
 ## Add new section [mdspan.accessor.as_const_access] 
 
 > Add a new section "[mdspan.accessor.as_const_access], Customization point object `as_const_access`" between [mdspan.accessor.as_const_accessor] and [mdspan.accessor.aligned], with the following content.
 
+::: add
 [1]{.pnum} Given an `mdspan` accessor policy `a` of type `A`, a "const element type version of `a`" (if it exists) is an `mdspan` accessor `b` of a possibly different type `B`, where
 
 * [1.1]{.pnum} `B::data_handle_type` is constructible from `A::data_handle_type`;
@@ -652,7 +742,7 @@ public:
 
     * [1.3.1]{.pnum} `b` and `b_dh` have the same accessible range as `a` and `a_dh`, and 
 
-    * [1.3.2]{.pnum} `b.access(b_dh, k)` and `a.access(a_dh, k)` access the same element for `k` in the accessible range of `a_dh`.
+    * [1.3.2]{.pnum} `b.access(b_dh, k)` and `a.access(a_dh, k)` access the same element for all `k` in the accessible range of `a_dh`.
 
 [*Example*: A const element type version of any `default_accessor<T>` instance is any `default_accessor<const T>` instance, and a const element type version of any `aligned_accessor<T, ByteAlignment>` instance is any `aligned_accessor<const T, ByteAlignment>` instance. --*end example*]
 
@@ -662,20 +752,18 @@ public:
 
 [3]{.pnum} The name `as_const_access` denotes a customization point object.  For a subexpression `a`, let `A` denote `decltype(a)`.  The expression `as_const_access(a)` is equivalent to the following.
 
-* [3.1]{.pnum} `default_accessor<const T>()`, if `A` is `default_accessor<T>`;
+* [3.1]{.pnum} `a`, if `A::element_type` is const;
 
-* [3.2]{.pnum} `aligned_accessor<const T, ByteAlignment>, if `A` is `aligned_accessor<T, ByteAlignment>`;
- 
-* [3.3]{.pnum} `a`, if `A::element_type` is const;
+* [3.2]{.pnum} `a.as_const_access()`, if that expression is well-formed;
 
-* [3.4]{.pnum} `a.as_const_access()`, if that expression is well-formed;
-
-* [3.5]{.pnum} `as_const_accessor(a)`, otherwise.
+* [3.3]{.pnum} `as_const_accessor(a)`, otherwise.
+:::
 
 ## Add new section [mdspan.accessor.as_const_mdspan] 
 
 > Add a new section "[mdspan.accessor.as_const_mdspan], Function template `as_const_mdspan`" between [mdspan.accessor.as_const_access] and [mdspan.accessor.aligned], with the following content.
 
+::: add
 ```
   template<class ElementType, class Extents, class Layout, class Accessor>
   constexpr auto as_const_mdspan(mdspan<ElementType, Extents, Layout, Accessor> x);
@@ -688,6 +776,7 @@ public:
   using result_data_handle_type = typename result_accessor_type::data_handle_type;
   return mdspan(result_data_handle_type(x.data_handle()), x.mapping(), as_const_access(x.accessor()));
 ```
+:::
 
 # Acknowledgments
 
