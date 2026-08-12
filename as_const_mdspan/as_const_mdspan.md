@@ -1,6 +1,6 @@
 ---
 title: "Getting a const element type version of an mdspan accessor, and of an mdspan too"
-document: P4311R0
+document: P4311R1
 date: today
 audience: LEWG
 author:
@@ -22,6 +22,12 @@ toc: true
 
 * Revision 0 to be submitted by 2026-07-15
 
+* Revision 1 to be submitted by 2026-08-15
+
+    * If the nested accessor's reference type is `element_type&`, then have `as_const_accessor` just add const (making the resulting reference type `const element_type&`) instead of using a proxy reference
+
+    * Expand the argument canonicalization example
+
 # Summary
 
 Given an accessor `a` of type `A`, a "const element type version of `a`" (if it exists) is an accessor `b` of a possibly different type `B`, where
@@ -32,7 +38,7 @@ Given an accessor `a` of type `A`, a "const element type version of `a`" (if it 
 
 * if `a_dh` is `A::data_handle_type` and `b_dh` is `B::data_handle_type(a_dh)`, then
 
-    * `b` and `b_dh` have the same accessible range as `a` and `a_dh`, and 
+    * `b` and `b_dh` have the same accessible range as `a` and `a_dh`, and
 
     * `b.access(b_dh, k)` and `a.access(a_dh, k)` access the same element for all `k` in the accessible range of `a_dh`.
 
@@ -40,7 +46,7 @@ For example, a const element type version of any `default_accessor<T>` instance 
 
 Given an `mdspan` `x` whose accessor is `a` of type `A`, and assuming that `b` of type `B` is a const element type version of `a`, a "const element type version of `x`" is an `mdspan`
 
-* whose data handle is `B::data_handle_type(x.data_handle())`, 
+* whose data handle is `B::data_handle_type(x.data_handle())`,
 
 * whose layout mapping is `x.mapping()`, and
 
@@ -52,8 +58,12 @@ We propose adding three new features to the C++ Standard Library.
 
 1. A customization point object (CPO) `as_const_access`.  It takes an accessor with element type `element_type`, and returns a const element type version of the accessor, which it computes using the rules below.
 
-2. A new accessor `as_const_accessor`.  It wraps an existing accessor, has const `element_type`, and has a `reference` type that wraps the existing accessor's `reference` but only permits reads, not writes.  The result is a const element type version of the wrapped accessor.  This behaves like the `mdspan` analog of `ranges::as_const_view`.
- 
+2. A new accessor `as_const_accessor` that wraps an existing accessor and has const `element_type`.  It behaves like the `mdspan` analog of `ranges::as_const_view`.
+
+    a. In the special case where the input accessor's `reference` type is `element_type&`, then `as_const_accessor` just uses `const element_type&` as its `reference` type.
+
+    b. Otherwise, `as_const_accessor`'s `reference` type wraps the existing accessor's `reference` but only permits reads, not writes.
+
 3. A function template `as_const_mdspan` that takes an `mdspan` and uses (1) to return a const element type version of the `mdspan`.
 
 The CPO computes the const element type version of an accessor using the following rules.
@@ -61,7 +71,7 @@ The CPO computes the const element type version of an accessor using the followi
 1. For accessor types whose `element_type` is already const, it just returns a copy of the input accessor.
 
 2. If the accessor has a (possibly static) `as_const_access` member, the CPO returns the result of calling that.
- 
+
 3. Otherwise, the CPO returns the result of wrapping the input accessor in `as_const_accessor`.
 
 For the two existing Standard accessor types that permit nonconst `element_type`, `default_accessor<T>` and `aligned_accessor<T, ByteAlignment>`, we propose adding public static `as_const_access` members that return `default_accessor<const T>` and `aligned_accessor<const T, ByteAlignment>`, respectively.
@@ -95,12 +105,13 @@ requires(
 
 Note that we can't just declare or constrain `input` to have const element type.  This is because users might call this algorithm with `input` that has nonconst element type.  We don't propose fixing that here; it's just how argument matching works in C++.  The Standard algorithms have the same issue with their range types; this is why their input ranges are not constrained on being read-only.
 
-The problem is that if users call this algorithm with `input` that has nonconst element type, and later call the algorithm with `input` that has const element type, `my_algorithm` will be instantiated twice.  The problem gets worse if we consider all the possible variations of `extents` specializations.  For instance, even if we don't care about optimizing for static extents and are perfectly happy with `InExtents` being `dims<3>`, the compiler will still instantiate different copies of the algorithm for `InExtents` `extents<size_t, dynamic_extents, 11, 13>`, `extents<size_t, 7, dynamic_extents, 13>`, `extents<unsigned, 7, 11, dynamic_extents>`, and so on.  If we just declare or constrain `InExtents` to be `dims<3>`, then the above algorithm won't be generic; it won't match users' extents types.
+The problem is that if users call this algorithm with `input` that has nonconst element type, and later call the algorithm with `input` that has const element type, `my_algorithm` will be instantiated twice.  The Standard algorithms that take iterators or ranges already have this problem.  For example, if users call `ranges::transform` with input range `span<float>`, and then call it again with input range `span<const float>`, then `ranges::transform` will be instantiated twice.  Multidimensional algorithms make this problem worse because they have combinatorially more possibilities of equivalent input resulting in different instantiations.  For instance, even if we don't care about optimizing for static extents and are perfectly happy with `InExtents` being `dims<3>`, the compiler will still instantiate different copies of the algorithm for `InExtents` being `extents<size_t, dynamic_extents, 11, 13>`, `extents<size_t, 7, dynamic_extents, 13>`, `extents<unsigned, 7, 11, dynamic_extents>`, and so on.  If we just declare or constrain `InExtents` to be `dims<3>`, then the above algorithm won't be generic; it won't match users' extents types.
 
 We solve this problem with a process we call *argument canonicalization*.  We start with the outer, fully generic interface of the algorithm.  Inside that, we "canonicalize" the `mdspan` arguments to the types that we want, for example by making their `extents` just `dims<3>`.  Then, we call the implementation of the algorithm.  The effect of this process is to reduce the number of instantiations of the actual algorithm.  Our experience is that if the algorithm is sufficiently complicated, then this reduces code size and compilation cost.  It also helps separate constraint and error checking from the actual algorithm.  Reducing the number of instantiations also makes techniques like explicit instantiation more effective.
 
 ```c++
 template<
+  class ScalarType,
   class InElementType, class InExtents, class InLayout, class InAccessor,
   class OutElementType, class OutExtents, class OutLayout, class OutAccessor
 >
@@ -110,31 +121,129 @@ requires(
   /* && other constraints ... */
 )
 void my_algorithm(
+  ScalarType scalar,
   mdspan<InElementType, InExtents, InLayout, InAccessor> input,
   mdspan<OutElementType, OutExtents, OutLayout, OutAccessor> output)
 requires(
   decltype(output)::mapping_type::is_always_unique()
   /* && other constraints ... */
 {
-  // ... any run-time checks on input and output extents might go here ...
-  auto canonical_input = impl::canonicalize_input_for_my_algorithm(input);
-  auto canonical_output = impl::canonicalize_output_for_my_algorithm(output);
-  impl::canonical_my_algorithm(input, output);
+  // This will also enforce Mandates and check Preconditions on arguments.
+  auto [s, in, out] =
+    impl::canonicalize_arguments_for_my_algorithm(scalar, input, output);
+
+  // The algorithm actually runs here.
+  // It is not exposed to users, so it doesn't need to
+  // declare constraints or check arguments.
+  impl::canonical_my_algorithm(s, in, out);
 }
 
 namespace impl {
 
-template<
-  class InElementType, class InExtents, class InLayout, class InAccessor
+// layout_left -> layout_left_padded<dynamic_extent>,
+// layout_right -> layout_right_padded<dynamic_extent>,
+// layout_left_padded<P> -> layout_left_padded<dynamic_extent>,
+// layout_right_padded<P> -> layout_right_padded<dynamic_extent>,
+// everything else passes through.
+//
+// This models optimizations that attempt to call a C or Fortran
+// BLAS _GEMM, that effectively expects one of the padded layouts.
+
+template<class IndexType, size_t ... Extents>
+constexpr std::layout_left_padded<std::dynamic_extent>::template mapping<
+  std::dims<sizeof...(Extents)>
 >
-constexpr auto canonicalize_input_for_my_algorithm(
-  mdspan<InElementType, InExtents, InLayout, InAccessor> input
+canonicalize_layout_mapping(
+  const std::layout_left::template mapping<
+    std::extents<IndexType, Extents...>>& map)
+{
+  return map; // implicit conversion
+}
+
+template<class IndexType, size_t ... Extents>
+constexpr std::layout_right_padded<std::dynamic_extent>::template mapping<
+  std::dims<sizeof...(Extents)>
+>
+canonicalize_layout_mapping(
+  const std::layout_right::template mapping<
+    std::extents<IndexType, Extents...>>& map)
+{
+  return map; // implicit conversion
+}
+
+template<size_t P, class IndexType, size_t ... Extents>
+constexpr std::layout_left_padded<std::dynamic_extent>::template mapping<
+  std::dims<sizeof...(Extents)>
+>
+canonicalize_layout_mapping(
+  const std::layout_left_padded<P>::template
+    mapping<std::extents<IndexType, Extents...>>& map)
+{
+  return map; // implicit conversion
+}
+
+template<size_t P, class IndexType, size_t ... Extents>
+constexpr std::layout_right_padded<std::dynamic_extent>::template mapping<
+  std::dims<sizeof...(Extents)>
+>
+canonicalize_layout_mapping(
+  const std::layout_right_padded<P>::template mapping<
+    std::extents<IndexType, Extents...>>& map)
+{
+  return map; // implicit conversion
+}
+
+template<class Mapping>
+constexpr Mapping canonicalize_layout_mapping(const Mapping& map) { return map; }
+
+constexpr void
+assert_extents_compatibility(
+  [[maybe_unused]] const std::dims<3>& in,
+  [[maybe_unused]] const std::dims<2>& out)
+{
+  // Check whatever the algorithm requires.
+  assert(in.extent(1) * in.extent(2) == out.extent(0));
+}
+
+template<
+  class ScalarType,
+  class InElementType, class InExtents, class InLayout, class InAccessor,
+  class OutElementType, class OutExtents, class OutLayout, class OutAccessor
+>
+constexpr auto canonicalize_arguments_for_my_algorithm(
+  ScalarType scalar,
+  mdspan<InElementType, InExtents, InLayout, InAccessor> input,
+  mdspan<OutElementType, OutExtents, OutLayout, OutAccessor> output
 )
 {
-  typename InLayout::template mapping<dims<3>> canonical_mapping(input.mapping());
-  auto canonical_accessor = std::as_const_access(input.accessor()); // proposed in this paper
-  decltype(canonical_accessor) canonical_data_handle(input.data_handle());
-  return mdspan(canonical_data_handle, canonical_mapping, canonical_accessor);
+  auto map_in = canonicalize_layout_mapping(input.mapping());
+  auto map_out = canonicalize_layout_mapping(output.mapping());
+  assert_extents_compatibility(map_in.extents(), map_out.extents());
+
+  // It might make sense to convert scalar to a different type, depending
+  // on the types of the other arguments.  For example, it's a common case
+  // for users of GEMM (the BLAS' matrix-matrix multiply) to supply integers
+  // like 0 or 1 for scaling factors ALPHA or BETA.  If the input and output
+  // arrays' value types are both double, then we can safely convert the
+  // scaling factor to double.  This may avoid an extra instantiation.
+  auto canonical_scalar = [&] () {
+    if constexpr (std::is_same_v<decltype(input)::value_type, double> &&
+      std::is_same_v<decltype(output)::value_type, double> &&
+      std::is_integral_v<std::remove_cvref_t<ScalarType>> &&
+      sizeof(ScalarType) <= sizeof(int))
+    {
+      return double(scalar);
+    }
+    else {
+      return scalar;
+    }
+  };
+
+  // This paper proposes as_const_mdspan.
+  auto canonical_input =
+    std::as_const_mdspan(mdspan(input.data_handle(), map_in, input.accessor()));
+  auto canonical_output = mdspan(output.data_handle(), map_out, output.accessor());
+  return std::tuple(scalar, canonical_input, canonical_output);
 }
 
 // ... define canonicalize_output_for_my_algorithm analogously ...
@@ -183,7 +292,7 @@ Add a customization point object (CPO) `std::as_const_access`.  It takes an acce
 
 1. For `default_accessor<ET>`, the CPO returns `default_accessor<const ET>()`.
 2. For `aligned_accessor<ET, BA>`, the CPO returns `aligned_accessor<const ET, BA>`.
-3. For accessor types whose `element_type` is already const, the CPO just returns a copy of its input.  
+3. For accessor types whose `element_type` is already const, the CPO just returns a copy of its input.
 4. For accessor types that have an `as_const_access` member function taking zero arguments, the CPO returns the result of calling that.
 5. Otherwise, the CPO wraps the accessor in a new accessor type `as_const_accessor` that behaves analogously to `ranges::as_const_view`.
 
@@ -210,7 +319,7 @@ The problem we have is to name three separate things.
 
 There are five options for disambiguating the CPO from the customization function.
 
-1. The function, if it exists, is a member of the accessor 
+1. The function, if it exists, is a member of the accessor
 2. The CPO has the same name as the function, but lives in a different namespace
 3. The CPO has a different name from the function
 4. The CPO is exposition-only
@@ -306,7 +415,7 @@ If the original `reference` is cv-qualified `element_type&`, then the resulting 
 
 If the original `reference` is (possibly cv-qualified) `element_type`, then the accessor works like `const std::vector<bool>`.  That is, access returns a value.  This implies that `element_type` is const, because access offers no way to change the element.  Thus, the resulting `reference` can just be the original `reference`.
 
-If the original `reference` is anything else, then it must be a proxy reference.  [mdspan.accessor.reqmts] 4 requires that the original `reference` models `common_reference_with<​reference&&, ​element_type&>`.  Thus, if `element_type` is const, the original `reference` must be read-only.  This means that we only have to change the original `reference` if the original `element_type` is not const.  We do that by wrapping the original proxy reference in a new proxy reference that stores the original proxy reference and has a conversion to `std::remove_cv_t<element_type>`.  We define the proxy reference like this.
+If the original `reference` is anything else, then it must be a proxy reference.  [mdspan.accessor.reqmts] 4 requires that the original `reference` models `common_reference_with<reference&&, element_type&>`.  Thus, if `element_type` is const, the original `reference` must be read-only.  This means that we only have to change the original `reference` if the original `element_type` is not const.  We do that by wrapping the original proxy reference in a new proxy reference that stores the original proxy reference and has a conversion to `std::remove_cv_t<element_type>`.  We define the proxy reference like this.
 
 ```c++
 template <class NestedAccessor>
@@ -315,7 +424,7 @@ private:
   using nested_element_type = typename NestedAccessor::element_type;
   using nested_reference_type = typename NestedAccessor::reference;
   nested_reference_type ref_;
- 
+
 public:
   using value_type = std::remove_cv_t<nested_element_type>;
 
@@ -420,7 +529,7 @@ We could draw an analogy between rebinding a layout mapping into a new mapping w
 
 ```c++
 layout_left::mapping map0(extents<int, 3, dynamic_extent, 7>(3, 5, 7));
-// Explicit, because of the precondition that map0.extents().extent(1) == 5. 
+// Explicit, because of the precondition that map0.extents().extent(1) == 5.
 layout_left::mapping<extents<int, 3, 5, 7>> map1(map0);
 ```
 
@@ -485,7 +594,7 @@ One coauthor has an implementation of an earlier draft of this proposal in a bra
   // [mdspan.accessor.aligned], class template aligned_accessor
   template<class ElementType, size_t ByteAlignment>
     class aligned_accessor;
-``` 
+```
 ::: add
 ```
 
@@ -598,6 +707,10 @@ namespace std {
 [1]{.pnum} The class template `as_const_accessor` is an `mdspan` accessor policy that wraps an existing `mdspan` accessor policy, and provides read-only access to the elements accessed by the wrapped policy.  It is part of the implementation of `as_const_access` ([mdspan.accessor.as_const_access]).
 
 ```
+template<class ElementType, class Reference>
+using @_as-const-accessor-reference-type_@ = // @_exposition-only_@
+  /* @_see-below_@ */;
+
 template <class NestedAccessor>
 class as_const_accessor {
 public:
@@ -608,10 +721,10 @@ public:
     as_const_accessor<typename NestedAccessor::offset_policy>;
 
   // [mdspan.accessor.as_const_accessor.ref] Proxy reference type
-  using reference = @_as-const-accessor-reference_@<
+  using reference = @_as-const-accessor-reference-type_@<
     typename NestedAccessor::element_type,
     typename NestedAccessor::reference>;
- 
+
   // [mdspan.accessor.as_const_accessor.cons] Constructors
   constexpr as_const_accessor(NestedAccessor acc);
 
@@ -639,7 +752,7 @@ private:
 [3]{.pnum} Each specialization `as_const_accessor<NA>` of `as_const_accessor` models [`copyable`](https://eel.is/c++draft/concepts.object#concept:copyable) and
 
 * [3.1]{.pnum} `is_nothrow_move_constructible_v<as_const_accessor<NA>>` is `true` if `is_nothrow_move_constructible_v<NA> is `true`,
- 
+
 * [3.2]{.pnum} `is_nothrow_move_assignable_v<as_const_accessor<NA>>` is `true` if `is_nothrow_move_assignable_v<NA> is `true`, and
 
 * [3.3]{.pnum} `is_nothrow_swappable_v<as_const_accessor<NA>>` is `true` if `is_nothrow_swappable_v<NA> is `true`.
@@ -657,7 +770,7 @@ template<NestedElementType, class NestedReferenceType>
 class @_as-const-accessor-reference_@ { // exposition-only
 private:
   NestedReferenceType ref_;
- 
+
 public:
   using value_type = std::remove_cv_t<NestedElementType>;
 
@@ -674,6 +787,13 @@ public:
   }
 };
 ```
+
+[2]{.pnum} The exposition-only type alias _`as-const-accessor-reference-type`_`<ElementType, Reference>` denotes the type
+
+* [2.1]{.pnum} `std::add_const_t<Reference>` if `Reference` has reference type, and
+
+* [2.2]{.pnum} _`as-const-accessor-reference`_`<ElementType, Reference>` otherwise.
+
 :::
 
 ### [mdspan.accessor.as_const_accessor.cons] Constructors
@@ -695,7 +815,7 @@ public:
 [2]{.pnum} *Constraints*:
 
 * [2.1]{.pnum} `OtherNestedAccessor` meets the accessor policy requirements ([mdspan.accessor.reqmts]).
- 
+
 * [2.2]{.pnum} `NestedAccessor` is constructible from `OtherNestedAccessor`.
 
 [3]{.pnum} *Effects*: Direct-non-list-initializes `acc_` with `acc`.
@@ -727,7 +847,7 @@ public:
 [3]{.pnum} *Remarks*: The expression inside the `noexcept` specifier is equivalent to: `typename offset_policy::data_handle_type(acc_.offset(handle, k))`.
 :::
 
-## Add new section [mdspan.accessor.as_const_access] 
+## Add new section [mdspan.accessor.as_const_access]
 
 > Add a new section "[mdspan.accessor.as_const_access], Customization point object `as_const_access`" between [mdspan.accessor.as_const_accessor] and [mdspan.accessor.aligned], with the following content.
 
@@ -740,7 +860,7 @@ public:
 
 * [1.3]{.pnum} if `a_dh` is `A::data_handle_type` and `b_dh` is `B::data_handle_type(a_dh)`, then
 
-    * [1.3.1]{.pnum} `b` and `b_dh` have the same accessible range as `a` and `a_dh`, and 
+    * [1.3.1]{.pnum} `b` and `b_dh` have the same accessible range as `a` and `a_dh`, and
 
     * [1.3.2]{.pnum} `b.access(b_dh, k)` and `a.access(a_dh, k)` access the same element for all `k` in the accessible range of `a_dh`.
 
@@ -759,7 +879,7 @@ public:
 * [3.3]{.pnum} `as_const_accessor(a)`, otherwise.
 :::
 
-## Add new section [mdspan.accessor.as_const_mdspan] 
+## Add new section [mdspan.accessor.as_const_mdspan]
 
 > Add a new section "[mdspan.accessor.as_const_mdspan], Function template `as_const_mdspan`" between [mdspan.accessor.as_const_access] and [mdspan.accessor.aligned], with the following content.
 
