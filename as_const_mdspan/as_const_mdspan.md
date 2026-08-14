@@ -504,7 +504,7 @@ These two features together form a facility to rebind a layout mapping with a di
 
 Note that mappings are not required to have this conversion.  They are only required to permit rebinding the type, as long as the mapping type supports an extents type of that rank (see proposed resolution of [LWG 4582](https://cplusplus.github.io/LWG/lwg-active.html#4582)).  It is perhaps a design flaw that the requirements include type rebinding but not conversion.
 
-## Why don't accessors work like layout mappings?
+## Could accessors work like layout mappings?
 
 Accessors don't separate "policy" type from the actual accessor.  One could imagine a different `mdspan` design in which the actual accessor type were a function of an accessor policy type and the element type.  It might look like this.
 
@@ -523,27 +523,17 @@ layout_left::mapping map0(extents<int, 3, dynamic_extent, 7>(3, 5, 7));
 layout_left::mapping<extents<int, 3, 5, 7>> map1(map0);
 ```
 
-The analogy breaks down because changing from a nonconst to const `element_type` might change how the accessor accesses its elements.  For example, a nonconst accessor that represents elements on a networked file system might perform destructive, not-concurrent-safe accesses even on reads, because it happens to be more efficient on that platform.  It would be reasonable for users to assume that a const accessor would perform concurrent-safe reads.
+One way in which this analogy could break down is if changing from a nonconst to const `element_type` changes how the accessor accesses its elements.  For example, a nonconst accessor that represents elements on a networked file system might perform destructive, not-concurrent-safe accesses even on reads, because it happens to be more efficient on that platform.  It would be reasonable for users to assume that a const accessor would perform concurrent-safe reads.
 
-Perhaps a destructively reading accessor would be a bad design.  Iterators are supposed to perform safe concurrent reads of distinct elements, regardless of whether the iterator is const or nonconst.  Shouldn't accessors behave the same way?  Shouldn't syntactically read-only access always be semantically read-only?
+It seems like a destructively reading accessor would be a bad design.  Iterators are supposed to perform safe concurrent reads of distinct elements, regardless of whether the iterator is const or nonconst.  Shouldn't accessors behave the same way?  Shouldn't syntactically read-only access always be semantically read-only?
+
+This proposal depends on that assumption.  That is, it assumes that for an arbitrary accessor with nonconst element type, it "makes semantic sense" to rebind the accessor to have const element type (and to make its `reference` type syntactically read-only) without otherwise changing its behavior.  
 
 ## Nonconst to const is all we need
 
 The above discussion suggests that all we need is an ability to rebind an accessor from nonconst element type to const element type.
 
 We do _not_ need the ability to rebind between arbitrary element types, e.g., from `float` to `std::string`, or from `const float` to `float`.
-
-## Take inspiration from Ranges design
-
-For an arbitrary accessor with nonconst element type, it needs to "make semantic sense" to rebind the accessor to have const element type (and to make its `reference` type syntactically read-only) without otherwise changing its behavior.
-
-If we accept this, then we can take an approach similar to `std::ranges::views::as_const`.  That is, if the Standard "knows" how to get a const element type version of an accessor, then it can do so.  Otherwise, it can wrap the accessor in another accessor with const element type and with a `reference` type that only permits reads, analogously to how `std::ranges::as_const_view` wraps a base view.
-
-## Unlike Ranges, use a customization point
-
-How should the Standard "know" how to get a const element type version of an accessor?  Ranges does this with an enumeration of various possibilities in [range.as.const.overview] 2.  There is no customization point to change the behavior of `views::as_const` for user-defined types.  User-defined ranges that aren't already `constant_range` always get wrapped in `as_const_view`.  This is idiomatic Ranges design, but it's not idiomatic `mdspan` design.  For example, `submdspan` gets the resulting layout mapping from the `submdspan_mapping` customization point, and the resulting accessor from the (possibly custom) input accessor's `offset` function.
-
-This suggests that we want a customization point so that users can define what "const version of an accessor" means for their own accessor types.
 
 # Implementation
 

@@ -482,14 +482,10 @@ rebind”</a></li>
 allocators?</a></li>
 <li><a href="#layout-mappings-have-extents-rebind" id="toc-layout-mappings-have-extents-rebind"><span class="toc-section-number">6.4</span> Layout mappings have “extents
 rebind”</a></li>
-<li><a href="#why-dont-accessors-work-like-layout-mappings" id="toc-why-dont-accessors-work-like-layout-mappings"><span class="toc-section-number">6.5</span> Why don’t accessors work like
-layout mappings?</a></li>
+<li><a href="#could-accessors-work-like-layout-mappings" id="toc-could-accessors-work-like-layout-mappings"><span class="toc-section-number">6.5</span> Could accessors work like layout
+mappings?</a></li>
 <li><a href="#nonconst-to-const-is-all-we-need" id="toc-nonconst-to-const-is-all-we-need"><span class="toc-section-number">6.6</span> Nonconst to const is all we
 need</a></li>
-<li><a href="#take-inspiration-from-ranges-design" id="toc-take-inspiration-from-ranges-design"><span class="toc-section-number">6.7</span> Take inspiration from Ranges
-design</a></li>
-<li><a href="#unlike-ranges-use-a-customization-point" id="toc-unlike-ranges-use-a-customization-point"><span class="toc-section-number">6.8</span> Unlike Ranges, use a customization
-point</a></li>
 </ul></li>
 <li><a href="#implementation" id="toc-implementation"><span class="toc-section-number">7</span> Implementation</a></li>
 <li><a href="#proposed-wording" id="toc-proposed-wording"><span class="toc-section-number">8</span> Proposed wording</a>
@@ -1354,8 +1350,8 @@ only required to permit rebinding the type, as long as the mapping type
 supports an extents type of that rank (see proposed resolution of <a href="https://cplusplus.github.io/LWG/lwg-active.html#4582">LWG
 4582</a>). It is perhaps a design flaw that the requirements include
 type rebinding but not conversion.</p>
-<h2 data-number="6.5" id="why-dont-accessors-work-like-layout-mappings"><span class="header-section-number">6.5</span> Why don’t accessors work like
-layout mappings?<a href="#why-dont-accessors-work-like-layout-mappings" class="self-link"></a></h2>
+<h2 data-number="6.5" id="could-accessors-work-like-layout-mappings"><span class="header-section-number">6.5</span> Could accessors work like
+layout mappings?<a href="#could-accessors-work-like-layout-mappings" class="self-link"></a></h2>
 <p>Accessors don’t separate “policy” type from the actual accessor. One
 could imagine a different <code>mdspan</code> design in which the actual
 accessor type were a function of an accessor policy type and the element
@@ -1384,18 +1380,23 @@ const element type with accessors.</p>
 <div class="sourceCode" id="cb7"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>layout_left<span class="op">::</span>mapping map0<span class="op">(</span>extents<span class="op">&lt;</span><span class="dt">int</span>, <span class="dv">3</span>, dynamic_extent, <span class="dv">7</span><span class="op">&gt;(</span><span class="dv">3</span>, <span class="dv">5</span>, <span class="dv">7</span><span class="op">))</span>;</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="co">// Explicit, because of the precondition that map0.extents().extent(1) == 5.</span></span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>layout_left<span class="op">::</span>mapping<span class="op">&lt;</span>extents<span class="op">&lt;</span><span class="dt">int</span>, <span class="dv">3</span>, <span class="dv">5</span>, <span class="dv">7</span><span class="op">&gt;&gt;</span> map1<span class="op">(</span>map0<span class="op">)</span>;</span></code></pre></div>
-<p>The analogy breaks down because changing from a nonconst to const
-<code>element_type</code> might change how the accessor accesses its
-elements. For example, a nonconst accessor that represents elements on a
-networked file system might perform destructive, not-concurrent-safe
-accesses even on reads, because it happens to be more efficient on that
-platform. It would be reasonable for users to assume that a const
-accessor would perform concurrent-safe reads.</p>
-<p>Perhaps a destructively reading accessor would be a bad design.
+<p>One way in which this analogy could break down is if changing from a
+nonconst to const <code>element_type</code> changes how the accessor
+accesses its elements. For example, a nonconst accessor that represents
+elements on a networked file system might perform destructive,
+not-concurrent-safe accesses even on reads, because it happens to be
+more efficient on that platform. It would be reasonable for users to
+assume that a const accessor would perform concurrent-safe reads.</p>
+<p>It seems like a destructively reading accessor would be a bad design.
 Iterators are supposed to perform safe concurrent reads of distinct
 elements, regardless of whether the iterator is const or nonconst.
 Shouldn’t accessors behave the same way? Shouldn’t syntactically
 read-only access always be semantically read-only?</p>
+<p>This proposal depends on that assumption. That is, it assumes that
+for an arbitrary accessor with nonconst element type, it “makes semantic
+sense” to rebind the accessor to have const element type (and to make
+its <code>reference</code> type syntactically read-only) without
+otherwise changing its behavior.</p>
 <h2 data-number="6.6" id="nonconst-to-const-is-all-we-need"><span class="header-section-number">6.6</span> Nonconst to const is all we
 need<a href="#nonconst-to-const-is-all-we-need" class="self-link"></a></h2>
 <p>The above discussion suggests that all we need is an ability to
@@ -1404,36 +1405,6 @@ rebind an accessor from nonconst element type to const element type.</p>
 element types, e.g., from <code>float</code> to
 <code>std::string</code>, or from <code>const float</code> to
 <code>float</code>.</p>
-<h2 data-number="6.7" id="take-inspiration-from-ranges-design"><span class="header-section-number">6.7</span> Take inspiration from Ranges
-design<a href="#take-inspiration-from-ranges-design" class="self-link"></a></h2>
-<p>For an arbitrary accessor with nonconst element type, it needs to
-“make semantic sense” to rebind the accessor to have const element type
-(and to make its <code>reference</code> type syntactically read-only)
-without otherwise changing its behavior.</p>
-<p>If we accept this, then we can take an approach similar to
-<code>std::ranges::views::as_const</code>. That is, if the Standard
-“knows” how to get a const element type version of an accessor, then it
-can do so. Otherwise, it can wrap the accessor in another accessor with
-const element type and with a <code>reference</code> type that only
-permits reads, analogously to how
-<code>std::ranges::as_const_view</code> wraps a base view.</p>
-<h2 data-number="6.8" id="unlike-ranges-use-a-customization-point"><span class="header-section-number">6.8</span> Unlike Ranges, use a
-customization point<a href="#unlike-ranges-use-a-customization-point" class="self-link"></a></h2>
-<p>How should the Standard “know” how to get a const element type
-version of an accessor? Ranges does this with an enumeration of various
-possibilities in [range.as.const.overview] 2. There is no customization
-point to change the behavior of <code>views::as_const</code> for
-user-defined types. User-defined ranges that aren’t already
-<code>constant_range</code> always get wrapped in
-<code>as_const_view</code>. This is idiomatic Ranges design, but it’s
-not idiomatic <code>mdspan</code> design. For example,
-<code>submdspan</code> gets the resulting layout mapping from the
-<code>submdspan_mapping</code> customization point, and the resulting
-accessor from the (possibly custom) input accessor’s <code>offset</code>
-function.</p>
-<p>This suggests that we want a customization point so that users can
-define what “const version of an accessor” means for their own accessor
-types.</p>
 <h1 data-number="7" id="implementation"><span class="header-section-number">7</span> Implementation<a href="#implementation" class="self-link"></a></h1>
 <p><a href="https://godbolt.org/z/o3vfhnonP">This Compiler Explorer
 link</a> has a brief implementation with tests.</p>
