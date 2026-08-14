@@ -535,11 +535,10 @@ need</a></li>
 <li><p>Revision 0 to be submitted by 2026-07-15</p></li>
 <li><p>Revision 1 to be submitted by 2026-08-15</p>
 <ul>
-<li><p>If the nested accessor’s reference type is
-<code>element_type&amp;</code>, then have <code>as_const_accessor</code>
-just add const (making the resulting reference type
-<code>const element_type&amp;</code>) instead of using a proxy
-reference</p></li>
+<li><p>If the nested accessor’s reference type is <code>T&amp;</code>
+for some <code>T</code>, then have <code>as_const_accessor</code> just
+add const (making the resulting reference type
+<code>const T&amp;</code>) instead of using a proxy reference</p></li>
 <li><p>Expand the argument canonicalization example</p></li>
 <li><p>Update implementation link and show full implementation in
 paper</p></li>

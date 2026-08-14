@@ -24,7 +24,7 @@ toc: true
 
 * Revision 1 to be submitted by 2026-08-15
 
-    * If the nested accessor's reference type is `element_type&`, then have `as_const_accessor` just add const (making the resulting reference type `const element_type&`) instead of using a proxy reference
+    * If the nested accessor's reference type is `T&` for some `T`, then have `as_const_accessor` just add const (making the resulting reference type `const T&`) instead of using a proxy reference
 
     * Expand the argument canonicalization example
 
